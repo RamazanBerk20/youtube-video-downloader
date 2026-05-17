@@ -8,14 +8,24 @@ cd /d "%~dp0"
 set "VENV_DIR=.venv"
 
 REM Prefer the Windows 'py' launcher; fall back to 'python' on PATH.
+REM Verify with --version so we reject the Microsoft Store stub
+REM (which 'where' finds but which doesn't actually run Python).
 set "PYTHON="
-where py >nul 2>nul && set "PYTHON=py -3"
+where py >nul 2>nul && py -3 --version >nul 2>nul && set "PYTHON=py -3"
 if not defined PYTHON (
-    where python >nul 2>nul && set "PYTHON=python"
+    where python >nul 2>nul && python --version >nul 2>nul && set "PYTHON=python"
 )
 if not defined PYTHON (
-    echo Error: Python is not installed or not on PATH.
-    echo        Install Python 3.10+ from https://www.python.org/downloads/ and try again.
+    echo Error: No working Python interpreter was found.
+    echo.
+    echo Install Python 3.10 or newer from:
+    echo   https://www.python.org/downloads/
+    echo.
+    echo IMPORTANT: tick "Add python.exe to PATH" in the installer.
+    echo.
+    echo If clicking start.bat opens the Microsoft Store, disable Python's
+    echo App Execution Aliases at:
+    echo   Settings ^> Apps ^> Advanced app settings ^> App execution aliases
     pause
     exit /b 1
 )

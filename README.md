@@ -31,7 +31,7 @@ Linux and Windows.
 ### Linux / macOS
 
 ```bash
-git clone https://github.com/<your-user>/youtube-video-downloader.git
+git clone https://github.com/RamazanBerk20/youtube-video-downloader.git
 cd youtube-video-downloader
 ./start.sh
 ```
@@ -49,15 +49,28 @@ brew install ffmpeg            # macOS
 
 ### Windows
 
-```bat
-git clone https://github.com/<your-user>/youtube-video-downloader.git
-cd youtube-video-downloader
-start.bat
-```
+1. Install **Python 3.10+** from <https://www.python.org/downloads/> — make
+   sure to tick **"Add python.exe to PATH"** in the installer. (If you skip
+   this step, double-clicking `start.bat` will open the Microsoft Store
+   instead of running.)
+2. Install **ffmpeg**:
+   ```bat
+   winget install Gyan.FFmpeg
+   ```
+   or grab a build from <https://www.gyan.dev/ffmpeg/builds/> and add its
+   `bin\` folder to `PATH`.
+3. Clone and launch:
+   ```bat
+   git clone https://github.com/RamazanBerk20/youtube-video-downloader.git
+   cd youtube-video-downloader
+   start.bat
+   ```
+   Or just double-click `start.bat` after cloning.
 
-Or just double-click `start.bat`. Install `ffmpeg` first with
-`winget install Gyan.FFmpeg` or grab a build from
-<https://www.gyan.dev/ffmpeg/builds/>.
+If you previously got a *"Windows doesn't support this version"* dialog, it
+means the bundled Microsoft Store stub ran instead of a real Python.
+Install Python from the link above and try again, or disable the alias at
+**Settings → Apps → Advanced app settings → App execution aliases**.
 
 ## Usage
 

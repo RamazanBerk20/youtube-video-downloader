@@ -1,0 +1,11 @@
+# Normalize text files in the repo.
+* text=auto
+
+# Windows batch files MUST have CRLF line endings, even if a user's
+# git is configured with core.autocrlf=false. cmd.exe can misparse
+# multi-line `if (...)` blocks with bare LF endings.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# POSIX shell scripts must keep LF.
+*.sh  text eol=lf
