@@ -32,7 +32,8 @@ _T: dict[str, dict[str, str]] = {
 
         "label.format": "Format",
         "radio.video": "Video",
-        "radio.audio": "Audio (mp3)",
+        "radio.audio": "Audio",
+        "label.codec": "Codec",
         "label.quality": "Quality",
         "check.playlist": "Download as playlist",
         "label.max_concurrent": "Max concurrent",
@@ -99,7 +100,8 @@ _T: dict[str, dict[str, str]] = {
 
         "label.format": "Biçim",
         "radio.video": "Video",
-        "radio.audio": "Ses (mp3)",
+        "radio.audio": "Ses",
+        "label.codec": "Kodek",
         "label.quality": "Kalite",
         "check.playlist": "Oynatma listesi olarak indir",
         "label.max_concurrent": "Eş zamanlı sayısı",

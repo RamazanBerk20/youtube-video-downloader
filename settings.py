@@ -33,6 +33,8 @@ class Settings:
     output_dir: str = ""        # "" → default to ~/Downloads
     mode: str = "video"
     quality: str = "Best"
+    video_codec: str = "Auto"
+    audio_codec: str = "m4a (AAC)"
     playlist: bool = False
     auto_update_check: bool = True
 

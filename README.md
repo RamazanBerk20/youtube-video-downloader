@@ -12,9 +12,15 @@ Linux and Windows.
   progress row
 - **English + Türkçe** — toggle EN / TR in the top-right; the choice is
   remembered. Auto-detects from your system locale on first launch.
-- **Video or audio (mp3)** — toggle with a single radio button
+- **Video or audio** — toggle with a single radio button
+- **Codec selector** — for video: Auto (mp4 if possible, else webm/mkv) /
+  MP4 (H.264) / WebM (VP9) / WebM (AV1). For audio: m4a (AAC, default) /
+  mp3 / opus / flac / wav / Original (no transcoding). m4a is the modern
+  default — YouTube serves AAC natively up to 1080p so no re-encoding is
+  needed, files are smaller than mp3, and quality is higher.
 - **Quality selector** — Best / 4K / 1440p / 1080p / 720p / 480p / 360p /
-  Worst for video; 320 / 256 / 192 / 128 / 96 kbps for audio
+  Worst for video; 320 / 256 / 192 / 128 / 96 kbps for lossy audio. The
+  bitrate dropdown auto-disables for flac/wav/Original.
 - **Playlist support** — entire playlists download into a folder named after
   the playlist, with zero-padded index prefixes
 - **Per-task cancel + Cancel all + Clear finished** — fine-grained control
@@ -84,9 +90,9 @@ Install Python from the link above and try again, or disable the alias at
 
 1. Paste one or more YouTube URLs into the **URL(s)** textbox — one per line
 2. Pick an output folder (defaults to `~/Downloads`)
-3. Choose **Video** or **Audio (mp3)** and a quality
+3. Choose **Video** or **Audio**, then a **Codec** and a **Quality**
 4. Tick **Download as playlist** if a URL is a playlist
-5. Pick **Max concurrent** (1–5)
+5. Pick **Max concurrent** (1–5, or type a custom number, or `∞`)
 6. Click **Add to queue** — downloads start immediately
 
 Each download gets its own row showing status, progress, speed and ETA, plus

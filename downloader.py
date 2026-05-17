@@ -31,54 +31,34 @@ def has_ffmpeg() -> bool:
     return shutil.which("ffmpeg") is not None
 
 
-# ---- Quality option tables --------------------------------------------------
+# ---- Quality / codec option tables ----------------------------------------
+#
+# Quality is the user-visible resolution / bitrate label. Codec is the
+# container + codec preference. The two combine into a yt-dlp `--format`
+# selector at download time via `_build_video_format` /
+# `_build_audio_postprocessor`.
+#
+# We intentionally do NOT pass `merge_output_format=mp4` — forcing mp4
+# around opus audio yields files that some players (Windows Media Player,
+# Movies & TV) play silently. Instead we *prefer* compatible codecs and
+# let yt-dlp pick the natural container (.mp4 for H.264/AAC, .webm/.mkv
+# for VP9/AV1/opus).
 
-# Each selector tries, in order:
-#   1. mp4 video + m4a (AAC) audio  → muxes cleanly into mp4, playable everywhere
-#   2. any video + any audio        → covers 4K/AV1 (webm only on YouTube)
-#   3. best single muxed stream     → last-ditch fallback that always has audio
-# We intentionally do NOT pass merge_output_format=mp4 — forcing mp4 around
-# opus audio produces files that some players (e.g. Windows Media Player,
-# Movies & TV) play *silently*. Letting yt-dlp pick the container based on
-# the streams yields .mp4 for H.264+AAC and .webm/.mkv for VP9/AV1+opus.
-_VIDEO_FORMATS: dict[str, str] = {
-    "Best": (
-        "bestvideo[ext=mp4]+bestaudio[ext=m4a]/"
-        "bestvideo+bestaudio/best"
-    ),
-    "4K (2160p)": (
-        "bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/"
-        "bestvideo[height<=2160]+bestaudio/"
-        "best[height<=2160]/best"
-    ),
-    "1440p": (
-        "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/"
-        "bestvideo[height<=1440]+bestaudio/"
-        "best[height<=1440]/best"
-    ),
-    "1080p": (
-        "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/"
-        "bestvideo[height<=1080]+bestaudio/"
-        "best[height<=1080]/best"
-    ),
-    "720p": (
-        "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/"
-        "bestvideo[height<=720]+bestaudio/"
-        "best[height<=720]/best"
-    ),
-    "480p": (
-        "bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/"
-        "bestvideo[height<=480]+bestaudio/"
-        "best[height<=480]/best"
-    ),
-    "360p": (
-        "bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/"
-        "bestvideo[height<=360]+bestaudio/"
-        "best[height<=360]/best"
-    ),
-    "Worst": "worstvideo+worstaudio/worst",
+# Maps the quality label to a height ceiling. None = no cap (Best),
+# "worst" = the special worst-quality selector.
+_QUALITY_HEIGHT: dict[str, int | None | str] = {
+    "Best": None,
+    "4K (2160p)": 2160,
+    "1440p": 1440,
+    "1080p": 1080,
+    "720p": 720,
+    "480p": 480,
+    "360p": 360,
+    "Worst": "worst",
 }
 
+# Bitrate (kbps) lookup for lossy audio codecs. "0" tells yt-dlp to use the
+# codec's default best bitrate.
 _AUDIO_BITRATES: dict[str, str] = {
     "Best": "0",
     "320 kbps": "320",
@@ -88,13 +68,92 @@ _AUDIO_BITRATES: dict[str, str] = {
     "96 kbps": "96",
 }
 
+# Video codec → chain of `/`-joined format selectors, each containing `{h}`
+# which is replaced with the height filter (or "" for Best). The chain is
+# tried left-to-right until one resolves, so each entry can be increasingly
+# loose (codec-specific → container-specific → generic best).
+_VIDEO_CODEC_CHAINS: dict[str, list[str]] = {
+    "Auto": [
+        "bestvideo{h}[ext=mp4]+bestaudio[ext=m4a]",
+        "bestvideo{h}+bestaudio",
+        "best{h}",
+        "best",
+    ],
+    "MP4 (H.264)": [
+        "bestvideo{h}[vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]",
+        "bestvideo{h}[ext=mp4]+bestaudio[ext=m4a]",
+        "best{h}[ext=mp4]",
+        "best{h}",
+        "best",
+    ],
+    "WebM (VP9)": [
+        "bestvideo{h}[vcodec^=vp09]+bestaudio[acodec=opus]",
+        "bestvideo{h}[ext=webm]+bestaudio[ext=webm]",
+        "bestvideo{h}+bestaudio",
+        "best{h}",
+        "best",
+    ],
+    "WebM (AV1)": [
+        "bestvideo{h}[vcodec^=av01]+bestaudio[acodec=opus]",
+        "bestvideo{h}+bestaudio",
+        "best{h}",
+        "best",
+    ],
+}
+
+# Audio codec → (ffmpeg preferredcodec, supports_bitrate).
+# None codec = "Original" mode: no FFmpegExtractAudio postprocessor at all,
+# so the source audio file is kept as-is (.webm/.m4a/etc.).
+_AUDIO_CODECS: dict[str, tuple[str | None, bool]] = {
+    "m4a (AAC)": ("m4a", True),
+    "mp3":       ("mp3", True),
+    "opus":      ("opus", True),
+    "flac":      ("flac", False),
+    "wav":       ("wav", False),
+    "Original":  (None, False),
+}
+
 
 def video_quality_options() -> list[str]:
-    return list(_VIDEO_FORMATS.keys())
+    return list(_QUALITY_HEIGHT.keys())
 
 
 def audio_quality_options() -> list[str]:
     return list(_AUDIO_BITRATES.keys())
+
+
+def video_codec_options() -> list[str]:
+    return list(_VIDEO_CODEC_CHAINS.keys())
+
+
+def audio_codec_options() -> list[str]:
+    return list(_AUDIO_CODECS.keys())
+
+
+def audio_codec_uses_bitrate(codec_key: str) -> bool:
+    """True iff the audio codec has a meaningful bitrate setting."""
+    return _AUDIO_CODECS.get(codec_key, (None, False))[1]
+
+
+def _build_video_format(quality: str, codec: str) -> str:
+    spec = _QUALITY_HEIGHT.get(quality)
+    if spec == "worst":
+        return "worstvideo+worstaudio/worst"
+    h = f"[height<={spec}]" if isinstance(spec, int) else ""
+    chain = _VIDEO_CODEC_CHAINS.get(codec) or _VIDEO_CODEC_CHAINS["Auto"]
+    return "/".join(s.replace("{h}", h) for s in chain)
+
+
+def _build_audio_postprocessor(codec_key: str, bitrate_key: str) -> dict | None:
+    spec = _AUDIO_CODECS.get(codec_key) or _AUDIO_CODECS["m4a (AAC)"]
+    codec, supports_br = spec
+    if codec is None:
+        return None  # Original: keep source as-is, no postprocessing
+    return {
+        "key": "FFmpegExtractAudio",
+        "preferredcodec": codec,
+        "preferredquality": _AUDIO_BITRATES.get(bitrate_key, "0") if supports_br else "0",
+    }
 
 
 # ---- Task ------------------------------------------------------------------
@@ -111,6 +170,7 @@ class DownloadTask:
     output_dir: Path
     mode: str
     quality: str
+    codec: str
     playlist: bool
 
     status: str = "queued"   # queued | running | done | failed | cancelled
@@ -153,6 +213,7 @@ class DownloadManager:
         output_dir: Path,
         mode: str,
         quality: str,
+        codec: str,
         playlist: bool,
     ) -> DownloadTask:
         task = DownloadTask(
@@ -161,6 +222,7 @@ class DownloadManager:
             output_dir=output_dir,
             mode=mode,
             quality=quality,
+            codec=codec,
             playlist=playlist,
             title=url,
         )
@@ -304,18 +366,15 @@ class DownloadManager:
         }
 
         if task.mode == "audio":
-            bitrate = _AUDIO_BITRATES.get(task.quality, "0")
             opts["format"] = "bestaudio/best"
-            opts["postprocessors"] = [
-                {
-                    "key": "FFmpegExtractAudio",
-                    "preferredcodec": "mp3",
-                    "preferredquality": bitrate,
-                }
-            ]
+            pp = _build_audio_postprocessor(task.codec, task.quality)
+            if pp is not None:
+                opts["postprocessors"] = [pp]
+            # else: "Original" → keep the raw audio stream as-is.
         else:
-            opts["format"] = _VIDEO_FORMATS.get(task.quality, _VIDEO_FORMATS["Best"])
-            # No merge_output_format: see the comment on _VIDEO_FORMATS above.
+            opts["format"] = _build_video_format(task.quality, task.codec)
+            # No merge_output_format: forcing mp4 around opus audio plays
+            # silently in some players. Let yt-dlp pick the natural container.
         return opts
 
 

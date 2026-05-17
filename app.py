@@ -19,8 +19,11 @@ import updater
 from downloader import (
     DownloadManager,
     DownloadTask,
+    audio_codec_options,
+    audio_codec_uses_bitrate,
     audio_quality_options,
     has_ffmpeg,
+    video_codec_options,
     video_quality_options,
 )
 from i18n import I18n, LANGUAGES, autodetect_language
@@ -253,6 +256,7 @@ class App(ctk.CTk):
 
         self._build_ui()
         self._apply_language()
+        self._update_quality_enabled()
         self.protocol("WM_DELETE_WINDOW", self._on_close)
 
         # Startup checks: show banners for missing ffmpeg and pending updates.
@@ -345,9 +349,10 @@ class App(ctk.CTk):
         self.browse_btn.grid(row=0, column=2, padx=(8, 0))
         self._labels_to_translate.append((self.browse_btn, "text", "button.browse"))
 
-        # Options: two rows so widgets keep their natural width when narrow.
+        # Options: three rows so widgets keep their natural width when narrow.
         # Row 0: Format radios + Quality.
-        # Row 1: Playlist toggle + Max concurrent.
+        # Row 1: Codec (label + dropdown).
+        # Row 2: Playlist toggle + Max concurrent.
         # Column 5 absorbs leftover horizontal space.
         opts = ctk.CTkFrame(self)
         opts.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
@@ -382,14 +387,33 @@ class App(ctk.CTk):
         )
         self.quality_menu.grid(row=0, column=4, padx=6, pady=(12, 4), sticky="w")
 
+        # Row 1 — codec selector. The dropdown values swap with the mode.
+        self.codec_lbl = ctk.CTkLabel(opts, text="")
+        self.codec_lbl.grid(row=1, column=0, padx=(14, 8), pady=4, sticky="w")
+        self._labels_to_translate.append((self.codec_lbl, "text", "label.codec"))
+
+        initial_codec = (
+            self.settings.audio_codec if self.mode_var.get() == "audio"
+            else self.settings.video_codec
+        )
+        self.codec_var = tk.StringVar(value=initial_codec)
+        self.codec_menu = ctk.CTkOptionMenu(
+            opts, variable=self.codec_var,
+            values=self._current_codec_values(),
+            width=180,
+            command=self._on_codec_change,
+        )
+        self.codec_menu.grid(row=1, column=1, columnspan=4, padx=6, pady=4,
+                             sticky="w")
+
         self.playlist_var = tk.BooleanVar(value=self.settings.playlist)
         self.playlist_chk = ctk.CTkCheckBox(opts, text="", variable=self.playlist_var)
-        self.playlist_chk.grid(row=1, column=0, columnspan=3, padx=(14, 12),
+        self.playlist_chk.grid(row=2, column=0, columnspan=3, padx=(14, 12),
                                pady=(4, 12), sticky="w")
         self._labels_to_translate.append((self.playlist_chk, "text", "check.playlist"))
 
         self.mc_lbl = ctk.CTkLabel(opts, text="")
-        self.mc_lbl.grid(row=1, column=3, padx=(20, 8), pady=(4, 12), sticky="e")
+        self.mc_lbl.grid(row=2, column=3, padx=(20, 8), pady=(4, 12), sticky="e")
         self._labels_to_translate.append((self.mc_lbl, "text", "label.max_concurrent"))
 
         self.max_concurrent_var = tk.StringVar(
@@ -399,7 +423,7 @@ class App(ctk.CTk):
             opts, variable=self.max_concurrent_var,
             values=MAX_CONCURRENT_PRESETS, width=110,
         )
-        self.max_concurrent_menu.grid(row=1, column=4, padx=6, pady=(4, 12),
+        self.max_concurrent_menu.grid(row=2, column=4, padx=6, pady=(4, 12),
                                       sticky="w")
 
         # Action row
@@ -470,6 +494,19 @@ class App(ctk.CTk):
         if self.mode_var.get() == "audio":
             return audio_quality_options()
         return video_quality_options()
+
+    def _current_codec_values(self) -> list[str]:
+        if self.mode_var.get() == "audio":
+            return audio_codec_options()
+        return video_codec_options()
+
+    def _update_quality_enabled(self) -> None:
+        """Grey-out the quality dropdown when audio codec ignores bitrate."""
+        if self.mode_var.get() == "audio":
+            uses_br = audio_codec_uses_bitrate(self.codec_var.get())
+            self.quality_menu.configure(state="normal" if uses_br else "disabled")
+        else:
+            self.quality_menu.configure(state="normal")
 
     # ---- Banners (ffmpeg-missing, update-available) ----------------------
 
@@ -654,10 +691,28 @@ class App(ctk.CTk):
     # ---- User actions -----------------------------------------------------
 
     def _on_mode_change(self) -> None:
-        values = self._current_quality_values()
-        self.quality_menu.configure(values=values)
-        if self.quality_var.get() not in values:
-            self.quality_var.set(values[0])
+        q_values = self._current_quality_values()
+        self.quality_menu.configure(values=q_values)
+        if self.quality_var.get() not in q_values:
+            self.quality_var.set(q_values[0])
+
+        c_values = self._current_codec_values()
+        self.codec_menu.configure(values=c_values)
+        # Remember each mode's last-used codec so flipping back restores it.
+        if self.mode_var.get() == "audio":
+            preferred = self.settings.audio_codec
+        else:
+            preferred = self.settings.video_codec
+        self.codec_var.set(preferred if preferred in c_values else c_values[0])
+        self._update_quality_enabled()
+
+    def _on_codec_change(self, _value: str | None = None) -> None:
+        # Persist per-mode so swapping modes restores the right codec
+        if self.mode_var.get() == "audio":
+            self.settings.audio_codec = self.codec_var.get()
+        else:
+            self.settings.video_codec = self.codec_var.get()
+        self._update_quality_enabled()
 
     def _on_paste(self) -> None:
         try:
@@ -702,9 +757,10 @@ class App(ctk.CTk):
         self._last_output_dir = out_dir
         mode = self.mode_var.get()
         quality = self.quality_var.get()
+        codec = self.codec_var.get()
         playlist = self.playlist_var.get()
         for url in urls:
-            self.manager.add(url, out_dir, mode, quality, playlist)
+            self.manager.add(url, out_dir, mode, quality, codec, playlist)
             self._log(self.i18n.t("log.task_added", url=url))
 
         self.url_placeholder.clear()
@@ -877,6 +933,11 @@ class App(ctk.CTk):
         self.settings.output_dir = self.out_var.get().strip()
         self.settings.mode = self.mode_var.get()
         self.settings.quality = self.quality_var.get()
+        # codec is per-mode; only the active mode's value comes from the dropdown
+        if self.mode_var.get() == "audio":
+            self.settings.audio_codec = self.codec_var.get()
+        else:
+            self.settings.video_codec = self.codec_var.get()
         self.settings.playlist = bool(self.playlist_var.get())
         self.settings.save()
 
