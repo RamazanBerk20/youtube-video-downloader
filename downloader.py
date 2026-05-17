@@ -33,14 +33,49 @@ def has_ffmpeg() -> bool:
 
 # ---- Quality option tables --------------------------------------------------
 
+# Each selector tries, in order:
+#   1. mp4 video + m4a (AAC) audio  → muxes cleanly into mp4, playable everywhere
+#   2. any video + any audio        → covers 4K/AV1 (webm only on YouTube)
+#   3. best single muxed stream     → last-ditch fallback that always has audio
+# We intentionally do NOT pass merge_output_format=mp4 — forcing mp4 around
+# opus audio produces files that some players (e.g. Windows Media Player,
+# Movies & TV) play *silently*. Letting yt-dlp pick the container based on
+# the streams yields .mp4 for H.264+AAC and .webm/.mkv for VP9/AV1+opus.
 _VIDEO_FORMATS: dict[str, str] = {
-    "Best": "bestvideo*+bestaudio/best",
-    "4K (2160p)": "bestvideo[height<=2160]+bestaudio/best[height<=2160]/best",
-    "1440p": "bestvideo[height<=1440]+bestaudio/best[height<=1440]/best",
-    "1080p": "bestvideo[height<=1080]+bestaudio/best[height<=1080]/best",
-    "720p": "bestvideo[height<=720]+bestaudio/best[height<=720]/best",
-    "480p": "bestvideo[height<=480]+bestaudio/best[height<=480]/best",
-    "360p": "bestvideo[height<=360]+bestaudio/best[height<=360]/best",
+    "Best": (
+        "bestvideo[ext=mp4]+bestaudio[ext=m4a]/"
+        "bestvideo+bestaudio/best"
+    ),
+    "4K (2160p)": (
+        "bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/"
+        "bestvideo[height<=2160]+bestaudio/"
+        "best[height<=2160]/best"
+    ),
+    "1440p": (
+        "bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/"
+        "bestvideo[height<=1440]+bestaudio/"
+        "best[height<=1440]/best"
+    ),
+    "1080p": (
+        "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/"
+        "bestvideo[height<=1080]+bestaudio/"
+        "best[height<=1080]/best"
+    ),
+    "720p": (
+        "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/"
+        "bestvideo[height<=720]+bestaudio/"
+        "best[height<=720]/best"
+    ),
+    "480p": (
+        "bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/"
+        "bestvideo[height<=480]+bestaudio/"
+        "best[height<=480]/best"
+    ),
+    "360p": (
+        "bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/"
+        "bestvideo[height<=360]+bestaudio/"
+        "best[height<=360]/best"
+    ),
     "Worst": "worstvideo+worstaudio/worst",
 }
 
@@ -275,7 +310,7 @@ class DownloadManager:
             ]
         else:
             opts["format"] = _VIDEO_FORMATS.get(task.quality, _VIDEO_FORMATS["Best"])
-            opts["merge_output_format"] = "mp4"
+            # No merge_output_format: see the comment on _VIDEO_FORMATS above.
         return opts
 
 
