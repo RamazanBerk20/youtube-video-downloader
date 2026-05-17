@@ -33,3 +33,5 @@ Thumbs.db
 # Local-only screenshots used for bug reports
 /fullscreen.png
 /windowed.png
+/layout.png
+/new-layout.png
