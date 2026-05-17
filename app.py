@@ -538,13 +538,13 @@ class App(ctk.CTk):
         self.manager.cancel_all()
 
     def _on_clear_done(self) -> None:
-        removed = self.manager.clear_done()
-        if not removed:
-            return
-        for tid in [tid for tid, row in self.rows.items()
-                    if tid not in self.manager.tasks]:
-            self.rows[tid].destroy()
-            del self.rows[tid]
+        # The manager returns exactly which task ids it removed under its
+        # lock, so the GUI destroys precisely those rows — no inference,
+        # no race with download threads transitioning state mid-click.
+        for tid in self.manager.clear_done():
+            row = self.rows.pop(tid, None)
+            if row is not None:
+                row.destroy()
         self._update_empty_visibility()
 
     def _on_open_folder(self) -> None:

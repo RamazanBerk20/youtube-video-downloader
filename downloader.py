@@ -183,13 +183,18 @@ class DownloadManager:
         for tid in list(self.tasks.keys()):
             self.cancel(tid)
 
-    def clear_done(self) -> int:
+    def clear_done(self) -> list[int]:
+        """Remove finished tasks from the manager and return their ids.
+
+        Returning the exact list keeps the GUI from having to infer which
+        rows to destroy by diffing the dict after the call — that approach
+        races with download threads transitioning state mid-click."""
         finished = {"done", "failed", "cancelled"}
         with self._lock:
             removed = [tid for tid, t in self.tasks.items() if t.status in finished]
             for tid in removed:
                 del self.tasks[tid]
-        return len(removed)
+        return removed
 
     def schedule(self, max_concurrent: int) -> None:
         """Start as many queued tasks as fit under `max_concurrent`."""
