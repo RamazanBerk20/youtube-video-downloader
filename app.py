@@ -27,6 +27,28 @@ from settings import Settings
 POLL_INTERVAL_MS = 120
 DEFAULT_DOWNLOAD_DIR = Path.home() / "Downloads"
 PLACEHOLDER_COLOR = "#6e6e6e"
+INFINITY_LABEL = "∞"
+INFINITY_VALUE = 9999  # effectively unlimited; manager just starts everything queued
+MAX_CONCURRENT_PRESETS = ["1", "2", "3", "4", "5", "10", INFINITY_LABEL]
+
+
+def _parse_concurrent(raw: str) -> int:
+    """Translate the combobox text to an int the scheduler can use.
+    Empty/garbage falls back to 2; '∞' becomes a very large number."""
+    s = (raw or "").strip()
+    if s == INFINITY_LABEL or s.lower() in ("inf", "infinity", "unlimited"):
+        return INFINITY_VALUE
+    try:
+        return max(1, int(s))
+    except (TypeError, ValueError):
+        return 2
+
+
+def _format_concurrent(value: int) -> str:
+    """Inverse of _parse_concurrent for displaying a saved setting."""
+    if value >= INFINITY_VALUE or value <= 0:
+        return INFINITY_LABEL
+    return str(value)
 
 
 class _TextboxPlaceholder:
@@ -305,15 +327,16 @@ class App(ctk.CTk):
         self.browse_btn.grid(row=0, column=2, padx=(8, 0))
         self._labels_to_translate.append((self.browse_btn, "text", "button.browse"))
 
-        # Options frame
+        # Options: two rows so widgets keep their natural width when narrow.
+        # Row 0: Format radios + Quality.
+        # Row 1: Playlist toggle + Max concurrent.
+        # Column 5 absorbs leftover horizontal space.
         opts = ctk.CTkFrame(self)
         opts.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
-        for c in (1, 3, 5):
-            opts.grid_columnconfigure(c, weight=0)
-        opts.grid_columnconfigure(7, weight=1)
+        opts.grid_columnconfigure(5, weight=1)
 
         self.fmt_lbl = ctk.CTkLabel(opts, text="")
-        self.fmt_lbl.grid(row=0, column=0, padx=(14, 8), pady=12)
+        self.fmt_lbl.grid(row=0, column=0, padx=(14, 8), pady=(12, 4), sticky="w")
         self._labels_to_translate.append((self.fmt_lbl, "text", "label.format"))
 
         self.mode_var = tk.StringVar(value=self.settings.mode)
@@ -325,13 +348,13 @@ class App(ctk.CTk):
             opts, text="", variable=self.mode_var, value="audio",
             command=self._on_mode_change,
         )
-        self.video_rb.grid(row=0, column=1, padx=6, pady=12)
-        self.audio_rb.grid(row=0, column=2, padx=6, pady=12)
+        self.video_rb.grid(row=0, column=1, padx=6, pady=(12, 4), sticky="w")
+        self.audio_rb.grid(row=0, column=2, padx=6, pady=(12, 4), sticky="w")
         self._labels_to_translate.append((self.video_rb, "text", "radio.video"))
         self._labels_to_translate.append((self.audio_rb, "text", "radio.audio"))
 
         self.q_lbl = ctk.CTkLabel(opts, text="")
-        self.q_lbl.grid(row=0, column=3, padx=(20, 8), pady=12)
+        self.q_lbl.grid(row=0, column=3, padx=(20, 8), pady=(12, 4), sticky="e")
         self._labels_to_translate.append((self.q_lbl, "text", "label.quality"))
 
         self.quality_var = tk.StringVar(value=self.settings.quality)
@@ -339,24 +362,27 @@ class App(ctk.CTk):
             opts, variable=self.quality_var,
             values=self._current_quality_values(), width=140,
         )
-        self.quality_menu.grid(row=0, column=4, padx=6, pady=12)
+        self.quality_menu.grid(row=0, column=4, padx=6, pady=(12, 4), sticky="w")
 
         self.playlist_var = tk.BooleanVar(value=self.settings.playlist)
         self.playlist_chk = ctk.CTkCheckBox(opts, text="", variable=self.playlist_var)
-        self.playlist_chk.grid(row=0, column=5, padx=(20, 12), pady=12)
+        self.playlist_chk.grid(row=1, column=0, columnspan=3, padx=(14, 12),
+                               pady=(4, 12), sticky="w")
         self._labels_to_translate.append((self.playlist_chk, "text", "check.playlist"))
 
         self.mc_lbl = ctk.CTkLabel(opts, text="")
-        self.mc_lbl.grid(row=0, column=6, padx=(20, 8), pady=12, sticky="e")
+        self.mc_lbl.grid(row=1, column=3, padx=(20, 8), pady=(4, 12), sticky="e")
         self._labels_to_translate.append((self.mc_lbl, "text", "label.max_concurrent"))
 
-        self.max_concurrent_var = tk.StringVar(value=str(self.settings.max_concurrent))
-        self.max_concurrent_menu = ctk.CTkOptionMenu(
-            opts, variable=self.max_concurrent_var,
-            values=["1", "2", "3", "4", "5"], width=70,
-            command=lambda _v: None,
+        self.max_concurrent_var = tk.StringVar(
+            value=_format_concurrent(self.settings.max_concurrent)
         )
-        self.max_concurrent_menu.grid(row=0, column=7, padx=(0, 14), pady=12, sticky="w")
+        self.max_concurrent_menu = ctk.CTkComboBox(
+            opts, variable=self.max_concurrent_var,
+            values=MAX_CONCURRENT_PRESETS, width=110,
+        )
+        self.max_concurrent_menu.grid(row=1, column=4, padx=6, pady=(4, 12),
+                                      sticky="w")
 
         # Action row
         actions = ctk.CTkFrame(self, fg_color="transparent")
@@ -544,11 +570,9 @@ class App(ctk.CTk):
         except queue.Empty:
             pass
 
-        try:
-            mc = int(self.max_concurrent_var.get())
-        except (TypeError, ValueError):
-            mc = 2
-        self.manager.schedule(max_concurrent=mc)
+        self.manager.schedule(
+            max_concurrent=_parse_concurrent(self.max_concurrent_var.get())
+        )
 
         self.after(POLL_INTERVAL_MS, self._tick)
 
@@ -639,10 +663,7 @@ class App(ctk.CTk):
         self.log.configure(state="disabled")
 
     def _persist_user_prefs(self) -> None:
-        try:
-            mc = int(self.max_concurrent_var.get())
-        except (TypeError, ValueError):
-            mc = 2
+        mc = _parse_concurrent(self.max_concurrent_var.get())
         self.settings.language = self.i18n.lang
         self.settings.max_concurrent = mc
         self.settings.output_dir = self.out_var.get().strip()
