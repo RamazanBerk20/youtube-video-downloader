@@ -258,7 +258,7 @@ class App(ctk.CTk):
         self._apply_language()
         self._update_quality_enabled()
         if self.mode_var.get() == "audio":
-            self.force_mp4_chk.grid_remove()
+            self.force_mp4_chk.pack_forget()
         self.protocol("WM_DELETE_WINDOW", self._on_close)
 
         # Startup checks: show banners for missing ffmpeg and pending updates.
@@ -351,47 +351,39 @@ class App(ctk.CTk):
         self.browse_btn.grid(row=0, column=2, padx=(8, 0))
         self._labels_to_translate.append((self.browse_btn, "text", "button.browse"))
 
-        # Options: three rows so widgets keep their natural width when narrow.
-        # Row 0: Format radios + Quality.
-        # Row 1: Codec (label + dropdown).
-        # Row 2: Playlist toggle + Max concurrent.
-        # Column 5 absorbs leftover horizontal space.
+        # Options panel — two rows, each its own sub-frame using pack so
+        # widgets sit at their natural width without one tier squeezing
+        # another. Row 0 groups the "what to download" controls; row 1
+        # groups the "settings" the user wanted aligned: Quality, Force
+        # MP4, and Max concurrent.
         opts = ctk.CTkFrame(self)
         opts.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
-        opts.grid_columnconfigure(5, weight=1)
+        opts.grid_columnconfigure(0, weight=1)
 
-        self.fmt_lbl = ctk.CTkLabel(opts, text="")
-        self.fmt_lbl.grid(row=0, column=0, padx=(14, 8), pady=(12, 4), sticky="w")
+        # ---- Row 0: Format · Codec · Playlist ---------------------------
+        row0 = ctk.CTkFrame(opts, fg_color="transparent")
+        row0.grid(row=0, column=0, padx=14, pady=(12, 4), sticky="w")
+
+        self.fmt_lbl = ctk.CTkLabel(row0, text="")
+        self.fmt_lbl.pack(side="left", padx=(0, 8))
         self._labels_to_translate.append((self.fmt_lbl, "text", "label.format"))
 
         self.mode_var = tk.StringVar(value=self.settings.mode)
         self.video_rb = ctk.CTkRadioButton(
-            opts, text="", variable=self.mode_var, value="video",
+            row0, text="", variable=self.mode_var, value="video",
             command=self._on_mode_change,
         )
         self.audio_rb = ctk.CTkRadioButton(
-            opts, text="", variable=self.mode_var, value="audio",
+            row0, text="", variable=self.mode_var, value="audio",
             command=self._on_mode_change,
         )
-        self.video_rb.grid(row=0, column=1, padx=6, pady=(12, 4), sticky="w")
-        self.audio_rb.grid(row=0, column=2, padx=6, pady=(12, 4), sticky="w")
+        self.video_rb.pack(side="left", padx=6)
+        self.audio_rb.pack(side="left", padx=(6, 24))
         self._labels_to_translate.append((self.video_rb, "text", "radio.video"))
         self._labels_to_translate.append((self.audio_rb, "text", "radio.audio"))
 
-        self.q_lbl = ctk.CTkLabel(opts, text="")
-        self.q_lbl.grid(row=0, column=3, padx=(20, 8), pady=(12, 4), sticky="e")
-        self._labels_to_translate.append((self.q_lbl, "text", "label.quality"))
-
-        self.quality_var = tk.StringVar(value=self.settings.quality)
-        self.quality_menu = ctk.CTkOptionMenu(
-            opts, variable=self.quality_var,
-            values=self._current_quality_values(), width=140,
-        )
-        self.quality_menu.grid(row=0, column=4, padx=6, pady=(12, 4), sticky="w")
-
-        # Row 1 — codec selector. The dropdown values swap with the mode.
-        self.codec_lbl = ctk.CTkLabel(opts, text="")
-        self.codec_lbl.grid(row=1, column=0, padx=(14, 8), pady=4, sticky="w")
+        self.codec_lbl = ctk.CTkLabel(row0, text="")
+        self.codec_lbl.pack(side="left", padx=(0, 8))
         self._labels_to_translate.append((self.codec_lbl, "text", "label.codec"))
 
         initial_codec = (
@@ -400,47 +392,57 @@ class App(ctk.CTk):
         )
         self.codec_var = tk.StringVar(value=initial_codec)
         self.codec_menu = ctk.CTkOptionMenu(
-            opts, variable=self.codec_var,
+            row0, variable=self.codec_var,
             values=self._current_codec_values(),
-            width=180,
+            width=170,
             command=self._on_codec_change,
         )
-        self.codec_menu.grid(row=1, column=1, columnspan=2, padx=6, pady=4,
-                             sticky="w")
+        self.codec_menu.pack(side="left", padx=(0, 24))
 
-        # "Force MP4" applies only to video downloads. It runs an
-        # FFmpegVideoConvertor pass after merging that re-encodes to a
-        # guaranteed-mp4 file (H.264 + AAC). Slow when the source isn't
-        # already mp4-compatible, but always produces a playable .mp4.
+        self.playlist_var = tk.BooleanVar(value=self.settings.playlist)
+        self.playlist_chk = ctk.CTkCheckBox(row0, text="", variable=self.playlist_var)
+        self.playlist_chk.pack(side="left")
+        self._labels_to_translate.append((self.playlist_chk, "text", "check.playlist"))
+
+        # ---- Row 1: Quality · Force MP4 · Max concurrent ----------------
+        row1 = ctk.CTkFrame(opts, fg_color="transparent")
+        row1.grid(row=1, column=0, padx=14, pady=(4, 12), sticky="w")
+
+        self.q_lbl = ctk.CTkLabel(row1, text="")
+        self.q_lbl.pack(side="left", padx=(0, 8))
+        self._labels_to_translate.append((self.q_lbl, "text", "label.quality"))
+
+        self.quality_var = tk.StringVar(value=self.settings.quality)
+        self.quality_menu = ctk.CTkOptionMenu(
+            row1, variable=self.quality_var,
+            values=self._current_quality_values(), width=140,
+        )
+        self.quality_menu.pack(side="left", padx=(0, 24))
+
+        # Force MP4 only makes sense for video; we pack_forget it in audio
+        # mode. _on_mode_change re-packs it with `before=self.mc_lbl` so
+        # the visual order stays Quality · Force MP4 · Max concurrent.
         self.force_mp4_var = tk.BooleanVar(value=self.settings.force_mp4)
         self.force_mp4_chk = ctk.CTkCheckBox(
-            opts, text="", variable=self.force_mp4_var,
+            row1, text="", variable=self.force_mp4_var,
         )
-        self.force_mp4_chk.grid(row=1, column=3, columnspan=2,
-                                padx=(20, 12), pady=4, sticky="w")
+        self.force_mp4_chk.pack(side="left", padx=(0, 24))
         self._labels_to_translate.append(
             (self.force_mp4_chk, "text", "check.force_mp4")
         )
 
-        self.playlist_var = tk.BooleanVar(value=self.settings.playlist)
-        self.playlist_chk = ctk.CTkCheckBox(opts, text="", variable=self.playlist_var)
-        self.playlist_chk.grid(row=2, column=0, columnspan=3, padx=(14, 12),
-                               pady=(4, 12), sticky="w")
-        self._labels_to_translate.append((self.playlist_chk, "text", "check.playlist"))
-
-        self.mc_lbl = ctk.CTkLabel(opts, text="")
-        self.mc_lbl.grid(row=2, column=3, padx=(20, 8), pady=(4, 12), sticky="e")
+        self.mc_lbl = ctk.CTkLabel(row1, text="")
+        self.mc_lbl.pack(side="left", padx=(0, 8))
         self._labels_to_translate.append((self.mc_lbl, "text", "label.max_concurrent"))
 
         self.max_concurrent_var = tk.StringVar(
             value=_format_concurrent(self.settings.max_concurrent)
         )
         self.max_concurrent_menu = ctk.CTkComboBox(
-            opts, variable=self.max_concurrent_var,
+            row1, variable=self.max_concurrent_var,
             values=MAX_CONCURRENT_PRESETS, width=110,
         )
-        self.max_concurrent_menu.grid(row=2, column=4, padx=6, pady=(4, 12),
-                                      sticky="w")
+        self.max_concurrent_menu.pack(side="left")
 
         # Action row
         actions = ctk.CTkFrame(self, fg_color="transparent")
@@ -721,11 +723,15 @@ class App(ctk.CTk):
             preferred = self.settings.video_codec
         self.codec_var.set(preferred if preferred in c_values else c_values[0])
 
-        # Force MP4 only makes sense in video mode.
+        # Force MP4 only makes sense in video mode. When re-showing, pack
+        # it back BEFORE the Max-concurrent label so the visual order is
+        # Quality · Force MP4 · Max concurrent.
         if self.mode_var.get() == "audio":
-            self.force_mp4_chk.grid_remove()
-        else:
-            self.force_mp4_chk.grid()
+            self.force_mp4_chk.pack_forget()
+        elif not self.force_mp4_chk.winfo_manager():
+            self.force_mp4_chk.pack(
+                side="left", padx=(0, 24), before=self.mc_lbl,
+            )
 
         self._update_quality_enabled()
 
