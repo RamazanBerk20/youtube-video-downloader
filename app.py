@@ -6,6 +6,7 @@ import os
 import queue
 import subprocess
 import sys
+import threading
 import tkinter as tk
 import tkinter.font as tkfont
 from pathlib import Path
@@ -13,6 +14,8 @@ from tkinter import filedialog, messagebox
 
 import customtkinter as ctk
 
+import installer
+import updater
 from downloader import (
     DownloadManager,
     DownloadTask,
@@ -252,18 +255,32 @@ class App(ctk.CTk):
         self._apply_language()
         self.protocol("WM_DELETE_WINDOW", self._on_close)
 
+        # Startup checks: show banners for missing ffmpeg and pending updates.
+        self._check_ffmpeg_at_startup()
+        if self.settings.auto_update_check:
+            threading.Thread(
+                target=self._check_updates_bg, daemon=True
+            ).start()
+
         self.after(POLL_INTERVAL_MS, self._tick)
 
     # ---- UI construction --------------------------------------------------
 
     def _build_ui(self) -> None:
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(6, weight=3)  # queue
-        self.grid_rowconfigure(8, weight=1)  # log
+        self.grid_rowconfigure(7, weight=3)  # queue (was 6)
+        self.grid_rowconfigure(9, weight=1)  # log   (was 8)
+
+        # Row 0: banner stack (ffmpeg-missing, update-available, ...).
+        # Always present; empty when nothing to show, so other rows don't move.
+        self.banners = ctk.CTkFrame(self, fg_color="transparent")
+        self.banners.grid(row=0, column=0, padx=20, pady=(8, 0), sticky="ew")
+        self.banners.grid_columnconfigure(0, weight=1)
+        self._banner_widgets: dict[str, ctk.CTkFrame] = {}
 
         # Header row: title + language toggle
         header = ctk.CTkFrame(self, fg_color="transparent")
-        header.grid(row=0, column=0, padx=20, pady=(18, 6), sticky="ew")
+        header.grid(row=1, column=0, padx=20, pady=(12, 6), sticky="ew")
         header.grid_columnconfigure(0, weight=1)
 
         self.header_lbl = ctk.CTkLabel(
@@ -281,7 +298,7 @@ class App(ctk.CTk):
 
         # URL multi-line input
         url_frame = ctk.CTkFrame(self, fg_color="transparent")
-        url_frame.grid(row=1, column=0, padx=20, pady=(8, 4), sticky="ew")
+        url_frame.grid(row=2, column=0, padx=20, pady=(8, 4), sticky="ew")
         url_frame.grid_columnconfigure(1, weight=1)
 
         self.url_lbl = ctk.CTkLabel(url_frame, text="", width=80, anchor="nw")
@@ -311,7 +328,7 @@ class App(ctk.CTk):
 
         # Output folder
         out_frame = ctk.CTkFrame(self, fg_color="transparent")
-        out_frame.grid(row=2, column=0, padx=20, pady=4, sticky="ew")
+        out_frame.grid(row=3, column=0, padx=20, pady=4, sticky="ew")
         out_frame.grid_columnconfigure(1, weight=1)
         self.save_lbl = ctk.CTkLabel(out_frame, text="", width=80, anchor="w")
         self.save_lbl.grid(row=0, column=0, padx=(0, 8))
@@ -332,7 +349,7 @@ class App(ctk.CTk):
         # Row 1: Playlist toggle + Max concurrent.
         # Column 5 absorbs leftover horizontal space.
         opts = ctk.CTkFrame(self)
-        opts.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
+        opts.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
         opts.grid_columnconfigure(5, weight=1)
 
         self.fmt_lbl = ctk.CTkLabel(opts, text="")
@@ -386,7 +403,7 @@ class App(ctk.CTk):
 
         # Action row
         actions = ctk.CTkFrame(self, fg_color="transparent")
-        actions.grid(row=4, column=0, padx=20, pady=(0, 6), sticky="ew")
+        actions.grid(row=5, column=0, padx=20, pady=(0, 6), sticky="ew")
         actions.grid_columnconfigure(3, weight=1)
 
         self.cancel_all_btn = ctk.CTkButton(
@@ -415,12 +432,12 @@ class App(ctk.CTk):
         self.queue_lbl = ctk.CTkLabel(self, text="",
                                       font=ctk.CTkFont(size=13, weight="bold"),
                                       anchor="w")
-        self.queue_lbl.grid(row=5, column=0, padx=22, pady=(10, 2), sticky="w")
+        self.queue_lbl.grid(row=6, column=0, padx=22, pady=(10, 2), sticky="w")
         self._labels_to_translate.append((self.queue_lbl, "text", "label.queue"))
 
         # Queue scrollable frame
         self.queue_scroll = ctk.CTkScrollableFrame(self, fg_color=("#dddddd", "#1e1e1e"))
-        self.queue_scroll.grid(row=6, column=0, padx=20, pady=(0, 8), sticky="nsew")
+        self.queue_scroll.grid(row=7, column=0, padx=20, pady=(0, 8), sticky="nsew")
         self.queue_scroll.grid_columnconfigure(0, weight=1)
 
         self.empty_lbl = ctk.CTkLabel(self.queue_scroll, text="",
@@ -437,24 +454,176 @@ class App(ctk.CTk):
         self.log_lbl = ctk.CTkLabel(self, text="",
                                     font=ctk.CTkFont(size=13, weight="bold"),
                                     anchor="w")
-        self.log_lbl.grid(row=7, column=0, padx=22, pady=(4, 2), sticky="w")
+        self.log_lbl.grid(row=8, column=0, padx=22, pady=(4, 2), sticky="w")
         self._labels_to_translate.append((self.log_lbl, "text", "label.log"))
 
         mono = tkfont.nametofont("TkFixedFont").actual()["family"]
         self.log = ctk.CTkTextbox(self, height=140, wrap="word",
                                   font=ctk.CTkFont(family=mono, size=11))
-        self.log.grid(row=8, column=0, padx=20, pady=(0, 16), sticky="nsew")
+        self.log.grid(row=9, column=0, padx=20, pady=(0, 16), sticky="nsew")
         self.log.configure(state="disabled")
 
         self._log(self.i18n.t("log.ready"))
-        if not has_ffmpeg():
-            self._log(self.i18n.t("log.no_ffmpeg"))
-            self._log(self.i18n.t("log.no_ffmpeg.install"))
 
     def _current_quality_values(self) -> list[str]:
         if self.mode_var.get() == "audio":
             return audio_quality_options()
         return video_quality_options()
+
+    # ---- Banners (ffmpeg-missing, update-available) ----------------------
+
+    def _show_banner(
+        self,
+        key: str,
+        *,
+        message: str,
+        action: str | None = None,
+        on_action=None,
+        accent: str = "#2a4a78",
+    ) -> None:
+        """Show or replace a banner. Banners stack vertically inside self.banners."""
+        existing = self._banner_widgets.pop(key, None)
+        if existing is not None:
+            existing.destroy()
+
+        banner = ctk.CTkFrame(self.banners, fg_color=accent, corner_radius=6)
+        banner.grid_columnconfigure(0, weight=1)
+
+        lbl = ctk.CTkLabel(banner, text=message, anchor="w", justify="left",
+                           wraplength=600)
+        lbl.grid(row=0, column=0, padx=12, pady=8, sticky="ew")
+
+        col = 1
+        if action and on_action is not None:
+            btn = ctk.CTkButton(
+                banner, text=action, width=130,
+                fg_color="#3a6dd0", hover_color="#2a55a8",
+                command=on_action,
+            )
+            btn.grid(row=0, column=col, padx=4, pady=6)
+            col += 1
+
+        dismiss = ctk.CTkButton(
+            banner, text="×", width=28, height=24,
+            fg_color="transparent", hover_color="#1a2a4a",
+            text_color="#cccccc", font=ctk.CTkFont(size=16),
+            command=lambda k=key: self._dismiss_banner(k),
+        )
+        dismiss.grid(row=0, column=col, padx=(2, 8), pady=6)
+
+        # Stack banners top-to-bottom in arrival order
+        banner.grid(row=len(self._banner_widgets), column=0, sticky="ew",
+                    pady=(0, 6))
+        self._banner_widgets[key] = banner
+
+    def _dismiss_banner(self, key: str) -> None:
+        widget = self._banner_widgets.pop(key, None)
+        if widget is not None:
+            widget.destroy()
+        # Re-grid remaining banners to close any gap left behind.
+        for i, w in enumerate(self._banner_widgets.values()):
+            w.grid_configure(row=i)
+
+    # ---- Startup checks ---------------------------------------------------
+
+    def _check_ffmpeg_at_startup(self) -> None:
+        if has_ffmpeg():
+            return
+        plan = installer.plan_install("ffmpeg")
+        if plan.pm is None or plan.requires_manual:
+            # No way to auto-install. Show a non-actionable banner.
+            hint = plan.manual_hint or self.i18n.t("banner.no_pm")
+            self._show_banner(
+                "ffmpeg",
+                message=self.i18n.t("banner.ffmpeg_missing") + "  " + hint,
+                accent="#7a3030",
+            )
+            return
+        self._show_banner(
+            "ffmpeg",
+            message=self.i18n.t("banner.ffmpeg_missing"),
+            action=self.i18n.t("button.install"),
+            on_action=self._on_install_ffmpeg,
+            accent="#7a3030",
+        )
+
+    def _check_updates_bg(self) -> None:
+        behind, err = updater.commits_behind()
+        if err is not None:
+            return  # silent: not a git checkout / no network / etc.
+        if behind <= 0:
+            return  # up to date
+        # Hop back to the main thread to mutate widgets
+        self.after(0, lambda n=behind: self._show_banner(
+            "update",
+            message=self.i18n.t("banner.update_available", n=n),
+            action=self.i18n.t("button.update_now"),
+            on_action=self._on_update_now,
+            accent="#2a4a78",
+        ))
+
+    # ---- Install + update actions ----------------------------------------
+
+    def _on_install_ffmpeg(self) -> None:
+        plan = installer.plan_install("ffmpeg")
+        if plan.requires_manual:
+            self._log(self.i18n.t("banner.manual_install"))
+            self._log("  " + " ".join(plan.command or [plan.manual_hint]))
+            return
+        self._log(self.i18n.t("log.installing", package="ffmpeg"))
+        self._log(self.i18n.t("log.install_running",
+                              cmd=" ".join(plan.command)))
+        # Disable the install button while it runs by hiding the banner
+        # (we'll re-show on success or failure).
+        self._dismiss_banner("ffmpeg")
+        threading.Thread(
+            target=self._run_install_bg,
+            args=(plan, "ffmpeg"),
+            daemon=True,
+        ).start()
+
+    def _run_install_bg(self, plan: "installer.InstallPlan", package: str) -> None:
+        def log_line(line: str) -> None:
+            self.after(0, lambda l=line: self._log(l))
+        ok, summary = installer.run_install(plan, log_line)
+        if ok and (package != "ffmpeg" or has_ffmpeg()):
+            self.after(0, lambda: self._log(self.i18n.t("log.install_done",
+                                                        package=package)))
+        else:
+            err = summary if not ok else "binary still not on PATH"
+            self.after(0, lambda e=err: self._log(self.i18n.t(
+                "log.install_failed", error=e)))
+            # Restore the banner so the user can try again
+            if package == "ffmpeg" and not has_ffmpeg():
+                self.after(0, self._check_ffmpeg_at_startup)
+
+    def _on_update_now(self) -> None:
+        self._dismiss_banner("update")
+        self._log(self.i18n.t("log.update_running"))
+        threading.Thread(target=self._run_update_bg, daemon=True).start()
+
+    def _run_update_bg(self) -> None:
+        ok, output = updater.pull()
+        for line in (output or "").splitlines():
+            if line.strip():
+                self.after(0, lambda l=line: self._log(l))
+        if ok:
+            self.after(0, lambda: self._log(self.i18n.t("log.update_done")))
+            self.after(0, self._prompt_restart)
+        else:
+            self.after(0, lambda: self._log(self.i18n.t(
+                "log.update_failed", error=output or "unknown")))
+
+    def _prompt_restart(self) -> None:
+        if messagebox.askyesno(
+            self.i18n.t("msg.restart.title"),
+            self.i18n.t("msg.restart.body"),
+        ):
+            self._persist_user_prefs()
+            try:
+                os.execv(sys.executable, [sys.executable, *sys.argv])
+            except OSError as e:
+                self._log(f"Failed to restart: {e}")
 
     # ---- Language ---------------------------------------------------------
 

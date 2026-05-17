@@ -34,6 +34,7 @@ class Settings:
     mode: str = "video"
     quality: str = "Best"
     playlist: bool = False
+    auto_update_check: bool = True
 
     @classmethod
     def load(cls) -> "Settings":
