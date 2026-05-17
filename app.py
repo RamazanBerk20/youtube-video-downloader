@@ -272,9 +272,10 @@ class App(ctk.CTk):
         self.grid_rowconfigure(9, weight=1)  # log   (was 8)
 
         # Row 0: banner stack (ffmpeg-missing, update-available, ...).
-        # Always present; empty when nothing to show, so other rows don't move.
+        # Created up front but only gridded when at least one banner is
+        # shown — a CTkFrame defaults to 200×200 px, so leaving an empty
+        # one in the grid pushes every other row down by ~200 px.
         self.banners = ctk.CTkFrame(self, fg_color="transparent")
-        self.banners.grid(row=0, column=0, padx=20, pady=(8, 0), sticky="ew")
         self.banners.grid_columnconfigure(0, weight=1)
         self._banner_widgets: dict[str, ctk.CTkFrame] = {}
 
@@ -482,6 +483,7 @@ class App(ctk.CTk):
         accent: str = "#2a4a78",
     ) -> None:
         """Show or replace a banner. Banners stack vertically inside self.banners."""
+        was_empty = not self._banner_widgets
         existing = self._banner_widgets.pop(key, None)
         if existing is not None:
             existing.destroy()
@@ -515,6 +517,8 @@ class App(ctk.CTk):
         banner.grid(row=len(self._banner_widgets), column=0, sticky="ew",
                     pady=(0, 6))
         self._banner_widgets[key] = banner
+        if was_empty:
+            self.banners.grid(row=0, column=0, padx=20, pady=(8, 0), sticky="ew")
 
     def _dismiss_banner(self, key: str) -> None:
         widget = self._banner_widgets.pop(key, None)
@@ -523,6 +527,9 @@ class App(ctk.CTk):
         # Re-grid remaining banners to close any gap left behind.
         for i, w in enumerate(self._banner_widgets.values()):
             w.grid_configure(row=i)
+        # Hide the (now-empty) container so it doesn't reserve a 200-px slot.
+        if not self._banner_widgets:
+            self.banners.grid_forget()
 
     # ---- Startup checks ---------------------------------------------------
 
