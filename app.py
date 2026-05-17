@@ -17,6 +17,7 @@ from downloader import (
     DownloadJob,
     DownloadWorker,
     audio_quality_options,
+    has_ffmpeg,
     video_quality_options,
 )
 
@@ -156,6 +157,16 @@ class App(ctk.CTk):
         self.log.configure(state="disabled")
 
         self._log("Ready. Paste a URL and press Download.")
+
+        if not has_ffmpeg():
+            self._log(
+                "warning: ffmpeg not found on PATH. Audio (mp3) extraction and "
+                "high-quality video merging will fail."
+            )
+            self._log(
+                "         Install:  winget install Gyan.FFmpeg  (Windows)  /  "
+                "sudo pacman -S ffmpeg  (Arch)  /  brew install ffmpeg  (macOS)"
+            )
 
     # ---- Event handlers ---------------------------------------------------
 

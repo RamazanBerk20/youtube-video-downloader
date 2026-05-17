@@ -7,12 +7,25 @@ responsive and avoids cross-thread widget access.
 from __future__ import annotations
 
 import queue
+import re
+import shutil
 import threading
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
 
 import yt_dlp
+
+
+_ANSI_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
+
+
+def _strip_ansi(text: str) -> str:
+    return _ANSI_RE.sub("", text)
+
+
+def has_ffmpeg() -> bool:
+    return shutil.which("ffmpeg") is not None
 
 
 class CancelledError(Exception):
@@ -141,6 +154,7 @@ class DownloadWorker:
             "noprogress": True,
             "quiet": True,
             "no_warnings": False,
+            "no_color": True,
             "noplaylist": not job.playlist,
             "ignoreerrors": False,
             "logger": _QuietLogger(self._emit),
@@ -177,7 +191,20 @@ class DownloadWorker:
         except CancelledError:
             self._emit(type="done", ok=False, error="cancelled")
         except yt_dlp.utils.DownloadError as e:
-            self._emit(type="done", ok=False, error=str(e))
+            err = _strip_ansi(str(e))
+            if "ffmpeg is not installed" in err.lower() or "ffmpeg is not installed" in err:
+                err = (
+                    "ffmpeg is required to merge video + audio or extract mp3, "
+                    "but it was not found on PATH.\n"
+                    "Install it and try again:\n"
+                    "  Windows:  winget install Gyan.FFmpeg\n"
+                    "  Arch:     sudo pacman -S ffmpeg\n"
+                    "  Debian:   sudo apt install ffmpeg\n"
+                    "  macOS:    brew install ffmpeg\n"
+                    "\n"
+                    "Original error: " + err
+                )
+            self._emit(type="done", ok=False, error=err)
         except Exception as e:  # noqa: BLE001
             self._emit(type="done", ok=False, error=f"{type(e).__name__}: {e}")
 
@@ -197,13 +224,13 @@ class _QuietLogger:
 
     def info(self, msg: str) -> None:
         if msg:
-            self._emit(type="log", message=msg)
+            self._emit(type="log", message=_strip_ansi(msg))
 
     def warning(self, msg: str) -> None:
-        self._emit(type="log", message=f"warning: {msg}")
+        self._emit(type="log", message=f"warning: {_strip_ansi(msg)}")
 
     def error(self, msg: str) -> None:
-        self._emit(type="log", message=f"error: {msg}")
+        self._emit(type="log", message=f"error: {_strip_ansi(msg)}")
 
 
 def _fmt_speed(speed: float | None) -> str:
