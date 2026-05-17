@@ -26,6 +26,68 @@ from settings import Settings
 
 POLL_INTERVAL_MS = 120
 DEFAULT_DOWNLOAD_DIR = Path.home() / "Downloads"
+PLACEHOLDER_COLOR = "#6e6e6e"
+
+
+class _TextboxPlaceholder:
+    """Manually emulate placeholder_text on a CTkTextbox (which doesn't support it).
+
+    Inserts greyed-out hint text when the textbox is empty + unfocused; clears
+    on focus-in. `get_user_text()` returns the real content (empty string when
+    the placeholder is showing).
+    """
+
+    def __init__(self, textbox: ctk.CTkTextbox, text: str) -> None:
+        self.textbox = textbox
+        self.text = text
+        self._showing = False
+        self._normal_color = textbox.cget("text_color")
+        textbox.bind("<FocusIn>", self._on_focus_in, add="+")
+        textbox.bind("<FocusOut>", self._on_focus_out, add="+")
+        self._show()
+
+    def _show(self) -> None:
+        if self._showing or self.textbox.get("1.0", "end").strip():
+            return
+        self._showing = True
+        self.textbox.configure(text_color=PLACEHOLDER_COLOR)
+        self.textbox.insert("1.0", self.text)
+
+    def _hide(self) -> None:
+        if not self._showing:
+            return
+        self._showing = False
+        self.textbox.delete("1.0", "end")
+        self.textbox.configure(text_color=self._normal_color)
+
+    def _on_focus_in(self, _evt) -> None:
+        if self._showing:
+            self._hide()
+
+    def _on_focus_out(self, _evt) -> None:
+        self._show()
+
+    def get_user_text(self) -> str:
+        return "" if self._showing else self.textbox.get("1.0", "end")
+
+    def before_insert(self) -> None:
+        """Call before programmatically inserting text into the textbox."""
+        if self._showing:
+            self._hide()
+
+    def clear(self) -> None:
+        """Clear user text and re-display the placeholder."""
+        self._showing = False
+        self.textbox.delete("1.0", "end")
+        self._show()
+
+    def set_text(self, text: str) -> None:
+        was_showing = self._showing
+        if was_showing:
+            self._hide()
+        self.text = text
+        if was_showing:
+            self._show()
 
 
 # ---- Per-task row -----------------------------------------------------------
@@ -208,7 +270,9 @@ class App(ctk.CTk):
                                       font=ctk.CTkFont(size=12))
         self.url_box.grid(row=0, column=1, sticky="ew")
         self.url_box.bind("<Control-Return>", lambda _e: self._on_add())
-        self._refresh_url_placeholder()
+        self.url_placeholder = _TextboxPlaceholder(
+            self.url_box, self.i18n.t("field.url.placeholder")
+        )
 
         side = ctk.CTkFrame(url_frame, fg_color="transparent")
         side.grid(row=0, column=2, padx=(8, 0), sticky="ns")
@@ -371,15 +435,10 @@ class App(ctk.CTk):
                 widget.configure(**{attr: self.i18n.t(key)})
             except tk.TclError:
                 pass
-        self._refresh_url_placeholder()
+        if hasattr(self, "url_placeholder"):
+            self.url_placeholder.set_text(self.i18n.t("field.url.placeholder"))
         for row in self.rows.values():
             row.refresh()
-
-    def _refresh_url_placeholder(self) -> None:
-        try:
-            self.url_box.configure(placeholder_text=self.i18n.t("field.url.placeholder"))
-        except tk.TclError:
-            pass
 
     def _on_language_change(self, value: str) -> None:
         self.i18n.set_language(value.lower())
@@ -401,6 +460,7 @@ class App(ctk.CTk):
             return
         if not text:
             return
+        self.url_placeholder.before_insert()
         existing = self.url_box.get("1.0", "end").strip()
         new = (existing + "\n" + text).strip() if existing else text
         self.url_box.delete("1.0", "end")
@@ -413,7 +473,7 @@ class App(ctk.CTk):
             self.out_var.set(path)
 
     def _on_add(self) -> None:
-        raw = self.url_box.get("1.0", "end")
+        raw = self.url_placeholder.get_user_text()
         urls = [line.strip() for line in raw.splitlines() if line.strip()]
         urls = [u for u in urls if u.lower().startswith(("http://", "https://"))]
         if not urls:
@@ -441,7 +501,7 @@ class App(ctk.CTk):
             self.manager.add(url, out_dir, mode, quality, playlist)
             self._log(self.i18n.t("log.task_added", url=url))
 
-        self.url_box.delete("1.0", "end")
+        self.url_placeholder.clear()
         self._persist_user_prefs()
 
     def _on_cancel_all(self) -> None:
