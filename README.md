@@ -7,18 +7,26 @@ Linux and Windows.
 
 ## Features
 
+- **Concurrent downloads** — paste many URLs (one per line), pick a max-
+  simultaneous count (1–5), and they run in parallel with a per-task
+  progress row
+- **English + Türkçe** — toggle EN / TR in the top-right; the choice is
+  remembered. Auto-detects from your system locale on first launch.
 - **Video or audio (mp3)** — toggle with a single radio button
-- **Quality selector** — Best / 4K / 1440p / 1080p / 720p / 480p / 360p / Worst
-  for video; 320 / 256 / 192 / 128 / 96 kbps for audio
+- **Quality selector** — Best / 4K / 1440p / 1080p / 720p / 480p / 360p /
+  Worst for video; 320 / 256 / 192 / 128 / 96 kbps for audio
 - **Playlist support** — entire playlists download into a folder named after
   the playlist, with zero-padded index prefixes
-- **Live progress** — progress bar, current filename, speed, ETA, and
-  playlist position `(3 / 24)`
-- **Cancellable** — cooperative cancel via the Cancel button
+- **Per-task cancel + Cancel all + Clear finished** — fine-grained control
+  over the queue
 - **Session log** — timestamped panel showing each completed file and any
   warnings/errors
-- **One-click open** — opens the output folder when the download finishes
-- **Dark theme** — CustomTkinter, looks the same on both OSes
+- **Remembers preferences** — language, max-concurrent, output folder,
+  format, quality, playlist toggle persist in a config file:
+  `%APPDATA%\youtube-downloader\config.json` (Windows) /
+  `~/.config/youtube-downloader/config.json` (Linux) /
+  `~/Library/Application Support/youtube-downloader/config.json` (macOS)
+- **Dark theme** — CustomTkinter, identical on both OSes
 
 ## Requirements
 
@@ -74,11 +82,16 @@ Install Python from the link above and try again, or disable the alias at
 
 ## Usage
 
-1. Paste a YouTube video or playlist URL into the **URL** field
+1. Paste one or more YouTube URLs into the **URL(s)** textbox — one per line
 2. Pick an output folder (defaults to `~/Downloads`)
 3. Choose **Video** or **Audio (mp3)** and a quality
-4. Check **Download as playlist** if the URL is a playlist
-5. Click **Download**
+4. Tick **Download as playlist** if a URL is a playlist
+5. Pick **Max concurrent** (1–5)
+6. Click **Add to queue** — downloads start immediately
+
+Each download gets its own row showing status, progress, speed and ETA, plus
+a per-task cancel button. Use **Cancel all** to stop everything in flight,
+or **Clear finished** to remove completed rows.
 
 Files are named `<title> [<id>].<ext>`; playlist entries land in a subfolder
 named after the playlist.
@@ -86,8 +99,10 @@ named after the playlist.
 ## Project layout
 
 ```
-app.py             # CustomTkinter GUI
-downloader.py      # Background yt-dlp worker (thread + event queue)
+app.py             # CustomTkinter GUI: queue list, language toggle, polling loop
+downloader.py      # DownloadManager + DownloadTask (concurrent yt-dlp threads)
+i18n.py            # English + Turkish translation tables
+settings.py        # JSON-backed user preferences
 requirements.txt   # yt-dlp, customtkinter
 start.sh           # Linux/macOS launcher
 start.bat          # Windows launcher
