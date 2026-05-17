@@ -389,7 +389,9 @@ class App(ctk.CTk):
         self.q_lbl.pack(side="left", padx=(0, 8))
         self._labels_to_translate.append((self.q_lbl, "text", "label.quality"))
 
-        self.quality_var = tk.StringVar(value=self.settings.quality)
+        self.quality_var = tk.StringVar(
+            value=self.i18n.localize_option(self.settings.quality)
+        )
         self.quality_menu = ctk.CTkOptionMenu(
             quality_frame, variable=self.quality_var,
             values=self._current_quality_values(), width=140,
@@ -405,7 +407,7 @@ class App(ctk.CTk):
             self.settings.audio_codec if self.mode_var.get() == "audio"
             else self.settings.video_codec
         )
-        self.codec_var = tk.StringVar(value=initial_codec)
+        self.codec_var = tk.StringVar(value=self.i18n.localize_option(initial_codec))
         self.codec_menu = ctk.CTkOptionMenu(
             opts, variable=self.codec_var,
             values=self._current_codec_values(),
@@ -517,20 +519,42 @@ class App(ctk.CTk):
 
         self._log(self.i18n.t("log.ready"))
 
-    def _current_quality_values(self) -> list[str]:
+    # Quality / codec dropdowns: the *values* shown to the user are localised
+    # ("En iyi" instead of "Best" in Turkish), but the rest of the code
+    # works with internal English keys. The _internal_*_options helpers
+    # return the canonical lists; _current_*_values are what gets pumped
+    # into the dropdown widgets.
+
+    def _internal_quality_options(self) -> list[str]:
         if self.mode_var.get() == "audio":
             return audio_quality_options()
         return video_quality_options()
 
-    def _current_codec_values(self) -> list[str]:
+    def _internal_codec_options(self) -> list[str]:
         if self.mode_var.get() == "audio":
             return audio_codec_options()
         return video_codec_options()
 
+    def _current_quality_values(self) -> list[str]:
+        return [self.i18n.localize_option(k) for k in self._internal_quality_options()]
+
+    def _current_codec_values(self) -> list[str]:
+        return [self.i18n.localize_option(k) for k in self._internal_codec_options()]
+
+    def _quality_internal(self) -> str:
+        return self.i18n.delocalize_option(
+            self.quality_var.get(), self._internal_quality_options()
+        )
+
+    def _codec_internal(self) -> str:
+        return self.i18n.delocalize_option(
+            self.codec_var.get(), self._internal_codec_options()
+        )
+
     def _update_quality_enabled(self) -> None:
         """Grey-out the quality dropdown when audio codec ignores bitrate."""
         if self.mode_var.get() == "audio":
-            uses_br = audio_codec_uses_bitrate(self.codec_var.get())
+            uses_br = audio_codec_uses_bitrate(self._codec_internal())
             self.quality_menu.configure(state="normal" if uses_br else "disabled")
         else:
             self.quality_menu.configure(state="normal")
@@ -707,6 +731,30 @@ class App(ctk.CTk):
                 pass
         if hasattr(self, "url_placeholder"):
             self.url_placeholder.set_text(self.i18n.t("field.url.placeholder"))
+
+        # Re-localise the dropdown values, preserving the user's selection
+        # by mapping through the internal key. delocalize_option uses the
+        # *old* language's table because the var still holds the old display
+        # string, then we look the internal key back up via the *new*
+        # language's table.
+        if hasattr(self, "quality_menu"):
+            q_keys = self._internal_quality_options()
+            # Resolve current internal key by trying both languages so a stale
+            # display from before the switch still maps cleanly.
+            current_internal = self._quality_internal()
+            if current_internal not in q_keys:
+                current_internal = q_keys[0]
+            self.quality_menu.configure(values=self._current_quality_values())
+            self.quality_var.set(self.i18n.localize_option(current_internal))
+
+        if hasattr(self, "codec_menu"):
+            c_keys = self._internal_codec_options()
+            current_internal = self._codec_internal()
+            if current_internal not in c_keys:
+                current_internal = c_keys[0]
+            self.codec_menu.configure(values=self._current_codec_values())
+            self.codec_var.set(self.i18n.localize_option(current_internal))
+
         for row in self.rows.values():
             row.refresh()
 
@@ -727,9 +775,10 @@ class App(ctk.CTk):
         self.codec_menu.configure(values=c_values)
         # Remember each mode's last-used codec so flipping back restores it.
         if self.mode_var.get() == "audio":
-            preferred = self.settings.audio_codec
+            preferred_internal = self.settings.audio_codec
         else:
-            preferred = self.settings.video_codec
+            preferred_internal = self.settings.video_codec
+        preferred = self.i18n.localize_option(preferred_internal)
         self.codec_var.set(preferred if preferred in c_values else c_values[0])
 
         # Force MP4 only makes sense in video mode.
@@ -741,11 +790,13 @@ class App(ctk.CTk):
         self._update_quality_enabled()
 
     def _on_codec_change(self, _value: str | None = None) -> None:
-        # Persist per-mode so swapping modes restores the right codec
+        # Persist per-mode (always as the internal English key, even though
+        # the user may see 'Otomatik' in the dropdown).
+        internal = self._codec_internal()
         if self.mode_var.get() == "audio":
-            self.settings.audio_codec = self.codec_var.get()
+            self.settings.audio_codec = internal
         else:
-            self.settings.video_codec = self.codec_var.get()
+            self.settings.video_codec = internal
         self._update_quality_enabled()
 
     def _on_paste(self) -> None:
@@ -790,8 +841,8 @@ class App(ctk.CTk):
 
         self._last_output_dir = out_dir
         mode = self.mode_var.get()
-        quality = self.quality_var.get()
-        codec = self.codec_var.get()
+        quality = self._quality_internal()
+        codec = self._codec_internal()
         playlist = self.playlist_var.get()
         force_mp4 = bool(self.force_mp4_var.get()) and mode == "video"
         for url in urls:
@@ -970,12 +1021,13 @@ class App(ctk.CTk):
         self.settings.max_concurrent = mc
         self.settings.output_dir = self.out_var.get().strip()
         self.settings.mode = self.mode_var.get()
-        self.settings.quality = self.quality_var.get()
-        # codec is per-mode; only the active mode's value comes from the dropdown
+        # Always persist the internal English key, not the localised display.
+        self.settings.quality = self._quality_internal()
+        codec_internal = self._codec_internal()
         if self.mode_var.get() == "audio":
-            self.settings.audio_codec = self.codec_var.get()
+            self.settings.audio_codec = codec_internal
         else:
-            self.settings.video_codec = self.codec_var.get()
+            self.settings.video_codec = codec_internal
         self.settings.force_mp4 = bool(self.force_mp4_var.get())
         self.settings.playlist = bool(self.playlist_var.get())
         self.settings.save()

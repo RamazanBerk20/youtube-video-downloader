@@ -13,6 +13,11 @@ from typing import Callable
 LANGUAGES: tuple[str, ...] = ("en", "tr")
 DEFAULT_LANG = "en"
 
+# Internal option keys that should be translated for display. Everything not
+# in this set is technical (codec names, resolutions, bitrates) and stays
+# English in every language.
+LOCALIZED_OPTIONS: frozenset[str] = frozenset({"Best", "Worst", "Auto", "Original"})
+
 _T: dict[str, dict[str, str]] = {
     "en": {
         "app.title": "YouTube Downloader",
@@ -35,7 +40,12 @@ _T: dict[str, dict[str, str]] = {
         "radio.audio": "Audio",
         "label.codec": "Codec",
         "label.quality": "Quality",
-        "check.force_mp4": "Force MP4 (slow)",
+        # Dropdown values that should be localized (rest are technical):
+        "option.best": "Best",
+        "option.worst": "Worst",
+        "option.auto": "Auto",
+        "option.original": "Original",
+        "check.force_mp4": "Force MP4 (re-encode if needed — slow)",
         "check.playlist": "Download as playlist",
         "label.max_concurrent": "Max concurrent",
 
@@ -104,7 +114,12 @@ _T: dict[str, dict[str, str]] = {
         "radio.audio": "Ses",
         "label.codec": "Kodek",
         "label.quality": "Kalite",
-        "check.force_mp4": "MP4'e zorla (yavaş)",
+        # Dropdown values that should be localized (rest are technical):
+        "option.best": "En iyi",
+        "option.worst": "En kötü",
+        "option.auto": "Otomatik",
+        "option.original": "Orijinal",
+        "check.force_mp4": "MP4'e zorla (gerekirse yeniden kodla — yavaş)",
         "check.playlist": "Oynatma listesi olarak indir",
         "label.max_concurrent": "Eş zamanlı sayısı",
 
@@ -206,3 +221,30 @@ class I18n:
 
     def on_change(self, callback: Callable[[], None]) -> None:
         self._listeners.append(callback)
+
+    # ---- Dropdown option helpers -----------------------------------------
+
+    def localize_option(self, key: str) -> str:
+        """Return the display string for a dropdown value. Internal keys
+        like 'Best', 'Auto', 'Worst', 'Original' get translated;
+        technical keys ('1080p', 'mp3', 'MP4 (H.264)', etc.) pass through
+        unchanged."""
+        if key in LOCALIZED_OPTIONS:
+            return self.t(f"option.{key.lower()}")
+        return key
+
+    def delocalize_option(self, display: str, candidates) -> str:
+        """Reverse of localize_option: map a displayed dropdown value back
+        to its internal English key. Tries every supported language, so a
+        stale display string from before a language switch (when the
+        var still holds the previous language's text) still resolves
+        cleanly."""
+        for k in candidates:
+            if k not in LOCALIZED_OPTIONS:
+                if k == display:
+                    return k
+                continue
+            for lang in LANGUAGES:
+                if _T[lang].get(f"option.{k.lower()}") == display:
+                    return k
+        return display

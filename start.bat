@@ -67,6 +67,44 @@ exit /b 1
 
 :python_ok
 
+REM ---- Git: optional, but the in-app auto-updater needs it to fetch
+REM      from origin. Offer to install via winget the same way Python is.
+where git >nul 2>nul
+if errorlevel 1 goto :git_missing
+goto :git_ok
+
+:git_missing
+echo Note: 'git' is not installed. Auto-update checks will be disabled.
+where winget >nul 2>nul
+if errorlevel 1 goto :git_no_winget
+echo Would install via:  winget install Git.Git
+set "GIT_REPLY="
+set /p GIT_REPLY="Install now? [Y/n] "
+if /i "%GIT_REPLY%"=="n"  goto :git_skip
+if /i "%GIT_REPLY%"=="no" goto :git_skip
+winget install --silent --accept-source-agreements --accept-package-agreements Git.Git
+if errorlevel 1 (
+    echo git install failed — continuing without auto-update.
+    goto :git_ok
+)
+REM Re-probe PATH so this session sees the new git
+where git >nul 2>nul
+if errorlevel 1 (
+    echo git installed but not on PATH for this session.
+    echo Close and re-run start.bat to pick it up.
+)
+goto :git_ok
+
+:git_no_winget
+echo   No winget available. Install Git for Windows manually if you want auto-updates:
+echo     https://git-scm.com/download/win
+goto :git_ok
+
+:git_skip
+echo Skipping. Auto-update remains disabled.
+
+:git_ok
+
 REM ---- ffmpeg warning (the app also surfaces this with an Install button)
 where ffmpeg >nul 2>nul
 if errorlevel 1 (

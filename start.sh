@@ -69,6 +69,52 @@ if ! command -v ffmpeg >/dev/null 2>&1; then
     echo "           brew install ffmpeg       # macOS" >&2
 fi
 
+# Git is optional but recommended — without it the in-app auto-updater
+# silently bails out (because it can't fetch from origin). Offer to install
+# the same way we offer Python install above.
+if ! command -v git >/dev/null 2>&1; then
+    echo "Note: 'git' is not installed. Auto-update checks will be disabled."
+    GIT_PM=""
+    GIT_PM_ARGS=""
+    if command -v pacman >/dev/null 2>&1; then
+        GIT_PM="pacman"; GIT_PM_ARGS="-S --noconfirm git"
+    elif command -v apt-get >/dev/null 2>&1; then
+        GIT_PM="apt-get"; GIT_PM_ARGS="install -y git"
+    elif command -v dnf >/dev/null 2>&1; then
+        GIT_PM="dnf"; GIT_PM_ARGS="install -y git"
+    elif command -v zypper >/dev/null 2>&1; then
+        GIT_PM="zypper"; GIT_PM_ARGS="--non-interactive install git"
+    elif command -v brew >/dev/null 2>&1; then
+        GIT_PM="brew"; GIT_PM_ARGS="install git"
+    fi
+    GIT_ELEV=""
+    if [ "$GIT_PM" != "brew" ] && [ -n "$GIT_PM" ]; then
+        if command -v pkexec >/dev/null 2>&1; then
+            GIT_ELEV="pkexec"
+        elif command -v sudo >/dev/null 2>&1; then
+            GIT_ELEV="sudo"
+        fi
+    fi
+    if [ -n "$GIT_PM" ]; then
+        echo "Would install via:  ${GIT_ELEV:+$GIT_ELEV }$GIT_PM $GIT_PM_ARGS"
+        printf "Install now? [Y/n] "
+        read -r git_reply
+        case "$git_reply" in
+            ""|y|Y|yes|YES)
+                # shellcheck disable=SC2086
+                ${GIT_ELEV:+$GIT_ELEV} $GIT_PM $GIT_PM_ARGS || {
+                    echo "git install failed — continuing without auto-update." >&2
+                }
+                ;;
+            *)
+                echo "Skipping. Auto-update remains disabled." >&2
+                ;;
+        esac
+    else
+        echo "  No supported package manager found. Install git manually if you want auto-updates." >&2
+    fi
+fi
+
 if [ ! -d "$VENV_DIR" ]; then
     echo "First-time setup: creating virtual environment in $VENV_DIR…"
     "$PYTHON_BIN" -m venv "$VENV_DIR"
