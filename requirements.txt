@@ -1,2 +1,6 @@
 yt-dlp>=2024.10.7
 customtkinter>=5.2.2
+# Arabic shaping: presentation-form glyphs + RTL bidi algorithm.
+# Without these, Tk 8.6 renders Arabic letters in isolated form.
+arabic-reshaper>=3.0.0
+python-bidi>=0.4.2

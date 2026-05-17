@@ -10,6 +10,29 @@ import locale
 import os
 from typing import Callable
 
+# Arabic shaping: Tk 8.6 has no built-in HarfBuzz integration, so Arabic
+# letters render in their isolated forms (disconnected). `arabic-reshaper`
+# substitutes the contextual presentation-form glyphs and `python-bidi`
+# rewrites the string to visual order so the LTR Tk renderer places them
+# correctly. Both libs are pure-Python pip deps. If they're missing the
+# helper degrades to identity — Arabic still displays, just not pretty.
+try:
+    import arabic_reshaper as _arabic_reshaper
+    from bidi.algorithm import get_display as _bidi_get_display
+    _HAS_RTL_SHAPING = True
+except ImportError:
+    _HAS_RTL_SHAPING = False
+
+
+def _shape_rtl(text: str) -> str:
+    """Pre-shape an RTL string (presentation forms + bidi) for Tk."""
+    if not _HAS_RTL_SHAPING or not text:
+        return text
+    try:
+        return _bidi_get_display(_arabic_reshaper.reshape(text))
+    except Exception:  # noqa: BLE001 — never crash translations
+        return text
+
 LANGUAGES: tuple[str, ...] = (
     "en", "tr", "es", "fr", "de", "ru", "ar", "zh", "ja",
 )
@@ -743,10 +766,21 @@ def autodetect_language() -> str:
     return "en"
 
 
+def display_name(code: str) -> str:
+    """Native name of `code`, shaped for display (Arabic gets presentation
+    forms + bidi so it renders cursively in Tk; other scripts pass through)."""
+    raw = LANGUAGE_DISPLAY_NAMES.get(code, code)
+    if code == "ar":
+        return _shape_rtl(raw)
+    return raw
+
+
 def code_for_display(display: str) -> str:
-    """Return the ISO code for a native-name string from the language picker."""
-    for code, name in LANGUAGE_DISPLAY_NAMES.items():
-        if name == display:
+    """Return the ISO code for a native-name string from the language
+    picker. Compares against the *shaped* display so it works even when
+    the user just picked Arabic from the dropdown."""
+    for code in LANGUAGES:
+        if display_name(code) == display:
             return code
     return DEFAULT_LANG
 
@@ -764,6 +798,10 @@ class I18n:
                 s = s.format(**kwargs)
             except (KeyError, IndexError):
                 pass
+        # Arabic must be shaped AFTER formatting so the bidi algorithm sees
+        # any interpolated values (titles, URLs, error strings) in context.
+        if self.lang == "ar":
+            s = _shape_rtl(s)
         return s
 
     def set_language(self, lang: str) -> None:
@@ -793,15 +831,20 @@ class I18n:
     def delocalize_option(self, display: str, candidates) -> str:
         """Reverse of localize_option: map a displayed dropdown value back
         to its internal English key. Tries every supported language, so a
-        stale display string from before a language switch (when the
-        var still holds the previous language's text) still resolves
-        cleanly."""
+        stale display string from before a language switch (when the var
+        still holds the previous language's text) still resolves cleanly.
+        Arabic candidates are compared in their shaped form because that's
+        what we put on screen."""
         for k in candidates:
             if k not in LOCALIZED_OPTIONS:
                 if k == display:
                     return k
                 continue
             for lang in LANGUAGES:
-                if _T[lang].get(f"option.{k.lower()}") == display:
+                raw = _T[lang].get(f"option.{k.lower()}")
+                if raw is None:
+                    continue
+                shown = _shape_rtl(raw) if lang == "ar" else raw
+                if shown == display:
                     return k
         return display
