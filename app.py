@@ -26,7 +26,9 @@ from downloader import (
     video_codec_options,
     video_quality_options,
 )
-from i18n import I18n, LANGUAGES, autodetect_language
+from i18n import (
+    I18n, LANGUAGES, LANGUAGE_DISPLAY_NAMES, autodetect_language, code_for_display,
+)
 from settings import Settings
 
 
@@ -296,11 +298,16 @@ class App(ctk.CTk):
         self.header_lbl.grid(row=0, column=0, sticky="w")
         self._labels_to_translate.append((self.header_lbl, "text", "header.title"))
 
-        self.lang_toggle = ctk.CTkSegmentedButton(
-            header, values=[code.upper() for code in LANGUAGES],
-            command=self._on_language_change, width=110,
+        # Language picker — uses native names ("Türkçe", "Русский", "中文"…)
+        # so users can find their language without knowing English. A 2-entry
+        # segmented button doesn't scale to 9; a dropdown does.
+        self.lang_toggle = ctk.CTkOptionMenu(
+            header,
+            values=[LANGUAGE_DISPLAY_NAMES[code] for code in LANGUAGES],
+            command=self._on_language_change, width=140,
         )
-        self.lang_toggle.set(self.i18n.lang.upper())
+        self.lang_toggle.set(LANGUAGE_DISPLAY_NAMES.get(self.i18n.lang,
+                                                        LANGUAGE_DISPLAY_NAMES["en"]))
         self.lang_toggle.grid(row=0, column=1, sticky="e")
 
         # URL multi-line input
@@ -759,7 +766,9 @@ class App(ctk.CTk):
             row.refresh()
 
     def _on_language_change(self, value: str) -> None:
-        self.i18n.set_language(value.lower())
+        # `value` is the native-name display from the dropdown (e.g. "Türkçe",
+        # "中文"). Map it back to its ISO code.
+        self.i18n.set_language(code_for_display(value))
         self.settings.language = self.i18n.lang
         self.settings.save()
 
