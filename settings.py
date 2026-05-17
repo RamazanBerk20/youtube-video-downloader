@@ -35,6 +35,7 @@ class Settings:
     quality: str = "Best"
     video_codec: str = "Auto"
     audio_codec: str = "m4a (AAC)"
+    force_mp4: bool = False
     playlist: bool = False
     auto_update_check: bool = True
 

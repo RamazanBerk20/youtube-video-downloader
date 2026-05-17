@@ -172,6 +172,7 @@ class DownloadTask:
     quality: str
     codec: str
     playlist: bool
+    force_mp4: bool = False
 
     status: str = "queued"   # queued | running | done | failed | cancelled
     title: str = ""
@@ -215,6 +216,7 @@ class DownloadManager:
         quality: str,
         codec: str,
         playlist: bool,
+        force_mp4: bool = False,
     ) -> DownloadTask:
         task = DownloadTask(
             id=next(self._id_seq),
@@ -224,6 +226,7 @@ class DownloadManager:
             quality=quality,
             codec=codec,
             playlist=playlist,
+            force_mp4=force_mp4,
             title=url,
         )
         with self._lock:
@@ -373,8 +376,15 @@ class DownloadManager:
             # else: "Original" → keep the raw audio stream as-is.
         else:
             opts["format"] = _build_video_format(task.quality, task.codec)
-            # No merge_output_format: forcing mp4 around opus audio plays
-            # silently in some players. Let yt-dlp pick the natural container.
+            # We deliberately do NOT pass merge_output_format=mp4: it would
+            # mux opus audio into mp4 and play silently in some players.
+            # If the user wants a guaranteed-mp4 output, force_mp4 triggers
+            # an FFmpegVideoConvertor pass that re-encodes to H.264 + AAC.
+            # Convertor is a no-op when the merged file is already .mp4.
+            if task.force_mp4:
+                opts["postprocessors"] = [
+                    {"key": "FFmpegVideoConvertor", "preferedformat": "mp4"}
+                ]
         return opts
 
 

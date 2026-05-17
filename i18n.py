@@ -35,6 +35,7 @@ _T: dict[str, dict[str, str]] = {
         "radio.audio": "Audio",
         "label.codec": "Codec",
         "label.quality": "Quality",
+        "check.force_mp4": "Force MP4 (re-encode if needed — slow)",
         "check.playlist": "Download as playlist",
         "label.max_concurrent": "Max concurrent",
 
@@ -103,6 +104,7 @@ _T: dict[str, dict[str, str]] = {
         "radio.audio": "Ses",
         "label.codec": "Kodek",
         "label.quality": "Kalite",
+        "check.force_mp4": "MP4'e zorla (gerekirse yeniden kodla — yavaş)",
         "check.playlist": "Oynatma listesi olarak indir",
         "label.max_concurrent": "Eş zamanlı sayısı",
 

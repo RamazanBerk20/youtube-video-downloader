@@ -257,6 +257,8 @@ class App(ctk.CTk):
         self._build_ui()
         self._apply_language()
         self._update_quality_enabled()
+        if self.mode_var.get() == "audio":
+            self.force_mp4_chk.grid_remove()
         self.protocol("WM_DELETE_WINDOW", self._on_close)
 
         # Startup checks: show banners for missing ffmpeg and pending updates.
@@ -403,8 +405,22 @@ class App(ctk.CTk):
             width=180,
             command=self._on_codec_change,
         )
-        self.codec_menu.grid(row=1, column=1, columnspan=4, padx=6, pady=4,
+        self.codec_menu.grid(row=1, column=1, columnspan=2, padx=6, pady=4,
                              sticky="w")
+
+        # "Force MP4" applies only to video downloads. It runs an
+        # FFmpegVideoConvertor pass after merging that re-encodes to a
+        # guaranteed-mp4 file (H.264 + AAC). Slow when the source isn't
+        # already mp4-compatible, but always produces a playable .mp4.
+        self.force_mp4_var = tk.BooleanVar(value=self.settings.force_mp4)
+        self.force_mp4_chk = ctk.CTkCheckBox(
+            opts, text="", variable=self.force_mp4_var,
+        )
+        self.force_mp4_chk.grid(row=1, column=3, columnspan=2,
+                                padx=(20, 12), pady=4, sticky="w")
+        self._labels_to_translate.append(
+            (self.force_mp4_chk, "text", "check.force_mp4")
+        )
 
         self.playlist_var = tk.BooleanVar(value=self.settings.playlist)
         self.playlist_chk = ctk.CTkCheckBox(opts, text="", variable=self.playlist_var)
@@ -704,6 +720,13 @@ class App(ctk.CTk):
         else:
             preferred = self.settings.video_codec
         self.codec_var.set(preferred if preferred in c_values else c_values[0])
+
+        # Force MP4 only makes sense in video mode.
+        if self.mode_var.get() == "audio":
+            self.force_mp4_chk.grid_remove()
+        else:
+            self.force_mp4_chk.grid()
+
         self._update_quality_enabled()
 
     def _on_codec_change(self, _value: str | None = None) -> None:
@@ -759,8 +782,12 @@ class App(ctk.CTk):
         quality = self.quality_var.get()
         codec = self.codec_var.get()
         playlist = self.playlist_var.get()
+        force_mp4 = bool(self.force_mp4_var.get()) and mode == "video"
         for url in urls:
-            self.manager.add(url, out_dir, mode, quality, codec, playlist)
+            self.manager.add(
+                url, out_dir, mode, quality, codec, playlist,
+                force_mp4=force_mp4,
+            )
             self._log(self.i18n.t("log.task_added", url=url))
 
         self.url_placeholder.clear()
@@ -938,6 +965,7 @@ class App(ctk.CTk):
             self.settings.audio_codec = self.codec_var.get()
         else:
             self.settings.video_codec = self.codec_var.get()
+        self.settings.force_mp4 = bool(self.force_mp4_var.get())
         self.settings.playlist = bool(self.playlist_var.get())
         self.settings.save()
 
