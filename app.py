@@ -428,6 +428,10 @@ class App(ctk.CTk):
                                       font=ctk.CTkFont(size=12))
         self.empty_lbl.grid(row=0, column=0, padx=20, pady=20)
         self._labels_to_translate.append((self.empty_lbl, "text", "queue.empty"))
+        # The scrollable frame only handles wheel events on its empty canvas
+        # area, so any child widget that intercepts the wheel will stop
+        # scrolling. Forward wheel events from children back to the canvas.
+        self._bind_wheel_to_queue(self.empty_lbl)
 
         # Log label
         self.log_lbl = ctk.CTkLabel(self, text="",
@@ -637,6 +641,34 @@ class App(ctk.CTk):
         row = TaskRow(self.queue_scroll, task, self.i18n, on_cancel=self._cancel_task)
         row.grid(row=task.id, column=0, padx=4, pady=4, sticky="ew")
         self.rows[task.id] = row
+        self._bind_wheel_to_queue(row)
+
+    def _bind_wheel_to_queue(self, widget) -> None:
+        """Forward mouse-wheel events on `widget` (and all its descendants)
+        to the queue's scrollable canvas."""
+        canvas = self.queue_scroll._parent_canvas
+
+        def on_wheel_delta(event):
+            step = int(-event.delta / 120) or (-1 if event.delta > 0 else 1)
+            canvas.yview_scroll(step, "units")
+            return "break"
+
+        def on_wheel_up(_event):
+            canvas.yview_scroll(-3, "units")
+            return "break"
+
+        def on_wheel_down(_event):
+            canvas.yview_scroll(3, "units")
+            return "break"
+
+        def bind_recursive(w):
+            w.bind("<MouseWheel>", on_wheel_delta, add="+")  # Windows / macOS
+            w.bind("<Button-4>", on_wheel_up, add="+")        # Linux scroll-up
+            w.bind("<Button-5>", on_wheel_down, add="+")      # Linux scroll-down
+            for child in w.winfo_children():
+                bind_recursive(child)
+
+        bind_recursive(widget)
 
     def _cancel_task(self, task_id: int) -> None:
         self.manager.cancel(task_id)
