@@ -194,25 +194,66 @@ def _install_text_qol_bindings(widget, *, is_text: bool, get_lang) -> None:
 
     def _show_context_menu(event):
         lang = get_lang()
+        root = widget.winfo_toplevel()
+        close_previous = getattr(root, "_active_context_menu_close", None)
+        if callable(close_previous):
+            close_previous()
+
         menu = tk.Menu(widget, tearoff=0)
+        bind_ids: list[tuple[str, str]] = []
+
+        def _close(_evt=None):
+            for seq, bind_id in bind_ids:
+                try:
+                    root.unbind(seq, bind_id)
+                except tk.TclError:
+                    pass
+            bind_ids.clear()
+            try:
+                menu.unpost()
+                menu.destroy()
+            except tk.TclError:
+                pass
+            if getattr(root, "_active_context_menu_close", None) is _close:
+                setattr(root, "_active_context_menu_close", None)
+            return None
+
+        def _command(action):
+            def _run():
+                try:
+                    action()
+                finally:
+                    _close()
+            return _run
+
         try:
             menu.add_command(
                 label=lang.t("menu.cut"),
-                command=lambda: widget.event_generate("<<Cut>>"),
+                command=_command(lambda: widget.event_generate("<<Cut>>")),
             )
             menu.add_command(
                 label=lang.t("menu.copy"),
-                command=lambda: widget.event_generate("<<Copy>>"),
+                command=_command(lambda: widget.event_generate("<<Copy>>")),
             )
             menu.add_command(
                 label=lang.t("menu.paste"),
-                command=lambda: widget.event_generate("<<Paste>>"),
+                command=_command(lambda: widget.event_generate("<<Paste>>")),
             )
             menu.add_separator()
-            menu.add_command(label=lang.t("menu.select_all"), command=select_all)
-            menu.tk_popup(event.x_root, event.y_root)
-        finally:
-            menu.grab_release()
+            menu.add_command(
+                label=lang.t("menu.select_all"),
+                command=_command(select_all),
+            )
+            setattr(root, "_active_context_menu_close", _close)
+            bind_ids.append(("<ButtonPress>", root.bind(
+                "<ButtonPress>", _close, add="+"
+            )))
+            menu.bind("<Escape>", _close, add="+")
+            menu.bind("<FocusOut>", _close, add="+")
+            menu.post(event.x_root, event.y_root)
+            menu.focus_set()
+        except tk.TclError:
+            _close()
         return "break"
 
     # macOS surfaces right-click as Button-2 on some hardware; Button-3
