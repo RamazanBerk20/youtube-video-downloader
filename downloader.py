@@ -31,13 +31,29 @@ def has_ffmpeg() -> bool:
     return shutil.which("ffmpeg") is not None
 
 
+_JS_RUNTIME_NAMES = ("deno", "node", "bun")
+
+
+def find_js_runtimes() -> dict[str, str]:
+    """Return {runtime_name: full_path} for every yt-dlp-compatible JS
+    runtime found on PATH. We pass these explicitly via `js_runtimes` so
+    yt-dlp doesn't have to re-probe PATH (which on Windows can lag a
+    fresh winget install)."""
+    found: dict[str, str] = {}
+    for name in _JS_RUNTIME_NAMES:
+        path = shutil.which(name)
+        if path:
+            found[name] = path
+    return found
+
+
 def has_js_runtime() -> bool:
-    """True if a JS runtime yt-dlp can use for YouTube's anti-bot challenge
+    """True if any JS runtime yt-dlp can use for YouTube's anti-bot challenge
     solver is on PATH. Without one, yt-dlp can only see image (thumbnail)
     formats on most YouTube videos. yt-dlp wiki: EJS.
 
     Deno is the recommended option (sandboxed); Node and Bun also work."""
-    return any(shutil.which(b) for b in ("deno", "node", "bun"))
+    return bool(find_js_runtimes())
 
 
 # ---- Quality / codec option tables ----------------------------------------
@@ -160,10 +176,40 @@ _AUDIO_CODECS: dict[str, tuple[str | None, bool]] = {
     "m4a (AAC)": ("m4a", True),
     "mp3":       ("mp3", True),
     "opus":      ("opus", True),
+    "vorbis (ogg)": ("vorbis", True),
     "flac":      ("flac", False),
     "wav":       ("wav", False),
+    "alac":      ("alac", False),
+    "ac3":       ("ac3", True),
     "Original":  (None, False),
 }
+
+# Optional container conversion applied via FFmpegVideoConvertor after the
+# download finishes. "None" leaves the natural container as yt-dlp produced
+# it; everything else triggers a re-mux (or re-encode if codecs are
+# incompatible) into the target format. Internal keys are short and stable
+# (i18n table maps them to localised display strings); the value is the
+# `preferedformat` string FFmpegVideoConvertor expects.
+_VIDEO_CONTAINERS: dict[str, str | None] = {
+    "None": None,
+    "MP4":  "mp4",
+    "MKV":  "mkv",
+    "WebM": "webm",
+    "MOV":  "mov",
+    "AVI":  "avi",
+    "FLV":  "flv",
+    "MPEG": "mpeg",
+}
+
+
+def video_container_options() -> list[str]:
+    return list(_VIDEO_CONTAINERS.keys())
+
+
+def _container_target(label: str) -> str | None:
+    """Return the FFmpegVideoConvertor target string for a label, or None
+    if the label means "don't convert"."""
+    return _VIDEO_CONTAINERS.get(label, None)
 
 
 def video_quality_options() -> list[str]:
@@ -224,7 +270,11 @@ class DownloadTask:
     quality: str
     codec: str
     playlist: bool
-    force_mp4: bool = False
+    # Optional output container key (e.g. "MP4", "MKV"). "None" or any
+    # key not in _VIDEO_CONTAINERS means no conversion runs. Replaces the
+    # older `force_mp4` boolean — the field is generic so we don't have
+    # to grow another bool every time a new container gets added.
+    container: str = "None"
     concurrent_fragments: int = 4
     cookies_browser: str = "Off"
     # Bumped by the GUI when it retries a bot-detection failure with auto-
@@ -279,7 +329,7 @@ class DownloadManager:
         quality: str,
         codec: str,
         playlist: bool,
-        force_mp4: bool = False,
+        container: str = "None",
         concurrent_fragments: int = 4,
         cookies_browser: str = "Off",
     ) -> DownloadTask:
@@ -291,7 +341,7 @@ class DownloadManager:
             quality=quality,
             codec=codec,
             playlist=playlist,
-            force_mp4=force_mp4,
+            container=container or "None",
             concurrent_fragments=max(1, int(concurrent_fragments)),
             cookies_browser=cookies_browser or "Off",
             title=url,
@@ -471,7 +521,26 @@ class DownloadManager:
             "concurrent_fragment_downloads": max(1, int(task.concurrent_fragments)),
             "retries": 5,
             "fragment_retries": 5,
+            # YouTube now ships an anti-bot JavaScript challenge that yt-dlp
+            # can only solve when (a) a JS runtime is available AND (b) the
+            # remote EJS challenge-solver script is allowed. Without (b)
+            # downloads silently degrade to image-only formats. We always
+            # opt into ejs:github — it's the recommended option and the
+            # download is cached by yt-dlp after first use.
+            "remote_components": ["ejs:github"],
         }
+
+        # Pass JS runtime paths explicitly. yt-dlp's auto-probe walks PATH
+        # at YDL construction time; passing what we already found avoids a
+        # second probe and makes Windows winget-fresh installs work as soon
+        # as the GUI process inherits the updated PATH (start.bat refresh).
+        # The value MUST be a dict per yt-dlp's contract: it later does
+        # `config.get('path')` on it, so {} works but None crashes.
+        runtimes = find_js_runtimes()
+        if runtimes:
+            opts["js_runtimes"] = {
+                name: {"path": path} for name, path in runtimes.items()
+            }
 
         # Browser cookies bypass YouTube's "Sign in to confirm you're not a
         # bot" rate limit. Resolver translates Off/Auto/<name> to either
@@ -490,12 +559,14 @@ class DownloadManager:
             opts["format"] = _build_video_format(task.quality, task.codec)
             # We deliberately do NOT pass merge_output_format=mp4: it would
             # mux opus audio into mp4 and play silently in some players.
-            # If the user wants a guaranteed-mp4 output, force_mp4 triggers
-            # an FFmpegVideoConvertor pass that re-encodes to H.264 + AAC.
-            # Convertor is a no-op when the merged file is already .mp4.
-            if task.force_mp4:
+            # When the user picks a target container, an FFmpegVideoConvertor
+            # pass remuxes (or re-encodes when codecs aren't compatible).
+            # Convertor is a no-op when the merged file is already that
+            # container, so it's safe to enable even for matching formats.
+            target = _container_target(task.container)
+            if target:
                 opts["postprocessors"] = [
-                    {"key": "FFmpegVideoConvertor", "preferedformat": "mp4"}
+                    {"key": "FFmpegVideoConvertor", "preferedformat": target}
                 ]
         return opts
 

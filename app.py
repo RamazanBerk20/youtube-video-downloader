@@ -30,6 +30,7 @@ from downloader import (
     has_ffmpeg,
     has_js_runtime,
     video_codec_options,
+    video_container_options,
     video_quality_options,
 )
 from i18n import (
@@ -78,6 +79,147 @@ def _parse_fragments(raw: str) -> int:
         return max(1, int((raw or "").strip()))
     except (TypeError, ValueError):
         return 4
+
+
+def _install_text_qol_bindings(widget, *, is_text: bool, get_lang) -> None:
+    """Wire keyboard + right-click QoL onto an Entry or Text widget.
+
+    Bindings added:
+      Ctrl+A          → select all
+      Ctrl+Backspace  → delete previous word
+      Ctrl+Delete     → delete next word
+      Right-click     → context menu (Cut / Copy / Paste / Select all)
+
+    Tk's default bindings for these are inconsistent across platforms and
+    completely missing for Text widgets — without this, the user has to
+    use the mouse for everything. `is_text` switches between the index
+    conventions for Entry (linear int positions) and Text ("line.col").
+    `get_lang` is a zero-arg callable returning the active i18n.I18n so
+    the menu labels follow the language picker."""
+
+    def select_all(_evt=None):
+        try:
+            if is_text:
+                widget.tag_add("sel", "1.0", "end-1c")
+                widget.mark_set("insert", "1.0")
+            else:
+                widget.select_range(0, "end")
+                widget.icursor("end")
+        except tk.TclError:
+            pass
+        return "break"
+
+    def _delete_word_back(_evt=None):
+        try:
+            if is_text:
+                # Walk backward from insertion point: first skip whitespace,
+                # then skip word characters. Anything we cross gets deleted.
+                idx = widget.index("insert")
+                start = idx
+                # Skip trailing whitespace
+                while widget.compare(start, ">", "1.0"):
+                    prev = widget.index(f"{start}-1c")
+                    ch = widget.get(prev, start)
+                    if not ch.strip():
+                        start = prev
+                    else:
+                        break
+                # Skip word chars
+                while widget.compare(start, ">", "1.0"):
+                    prev = widget.index(f"{start}-1c")
+                    ch = widget.get(prev, start)
+                    if ch.isalnum() or ch == "_":
+                        start = prev
+                    else:
+                        break
+                if widget.compare(start, "<", idx):
+                    widget.delete(start, idx)
+            else:
+                pos = widget.index("insert")
+                text = widget.get()
+                cut = pos
+                while cut > 0 and not text[cut - 1].strip():
+                    cut -= 1
+                while cut > 0 and (text[cut - 1].isalnum() or text[cut - 1] == "_"):
+                    cut -= 1
+                if cut < pos:
+                    widget.delete(cut, pos)
+        except tk.TclError:
+            pass
+        return "break"
+
+    def _delete_word_forward(_evt=None):
+        try:
+            if is_text:
+                idx = widget.index("insert")
+                end = idx
+                while widget.compare(end, "<", "end-1c"):
+                    nxt = widget.index(f"{end}+1c")
+                    ch = widget.get(end, nxt)
+                    if not ch.strip():
+                        end = nxt
+                    else:
+                        break
+                while widget.compare(end, "<", "end-1c"):
+                    nxt = widget.index(f"{end}+1c")
+                    ch = widget.get(end, nxt)
+                    if ch.isalnum() or ch == "_":
+                        end = nxt
+                    else:
+                        break
+                if widget.compare(end, ">", idx):
+                    widget.delete(idx, end)
+            else:
+                pos = widget.index("insert")
+                text = widget.get()
+                cut = pos
+                n = len(text)
+                while cut < n and not text[cut].strip():
+                    cut += 1
+                while cut < n and (text[cut].isalnum() or text[cut] == "_"):
+                    cut += 1
+                if cut > pos:
+                    widget.delete(pos, cut)
+        except tk.TclError:
+            pass
+        return "break"
+
+    # Ctrl+A intentionally overrides Tk's default Linux binding (which is
+    # "move to start of line"). Most users today expect "select all".
+    for seq in ("<Control-a>", "<Control-A>"):
+        widget.bind(seq, select_all, add="+")
+    for seq in ("<Control-BackSpace>", "<Control-Key-BackSpace>"):
+        widget.bind(seq, _delete_word_back, add="+")
+    for seq in ("<Control-Delete>", "<Control-Key-Delete>"):
+        widget.bind(seq, _delete_word_forward, add="+")
+
+    def _show_context_menu(event):
+        lang = get_lang()
+        menu = tk.Menu(widget, tearoff=0)
+        try:
+            menu.add_command(
+                label=lang.t("menu.cut"),
+                command=lambda: widget.event_generate("<<Cut>>"),
+            )
+            menu.add_command(
+                label=lang.t("menu.copy"),
+                command=lambda: widget.event_generate("<<Copy>>"),
+            )
+            menu.add_command(
+                label=lang.t("menu.paste"),
+                command=lambda: widget.event_generate("<<Paste>>"),
+            )
+            menu.add_separator()
+            menu.add_command(label=lang.t("menu.select_all"), command=select_all)
+            menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            menu.grab_release()
+        return "break"
+
+    # macOS surfaces right-click as Button-2 on some hardware; Button-3
+    # is the cross-platform standard.
+    widget.bind("<Button-3>", _show_context_menu, add="+")
+    widget.bind("<Button-2>", _show_context_menu, add="+")
 
 
 class _TextboxPlaceholder:
@@ -228,25 +370,26 @@ class TaskRow(ctk.CTkFrame):
 
         self.progress.set(max(0.0, min(1.0, t.percent / 100.0)))
 
+        # The × button has two meanings depending on state:
+        #   running / queued → cancel the task (manager.cancel)
+        #   done / failed / cancelled → remove this row from the queue
+        # In both cases it's always enabled, so the user always has a way
+        # to make the row disappear.
         if t.status == "running":
             self.detail_lbl.configure(
                 text=f"{t.percent:.1f}%   ·   {t.speed}   ·   ETA {t.eta}"
             )
-            self.cancel_btn.configure(state="normal")
         elif t.status == "queued":
             self.detail_lbl.configure(text="")
-            self.cancel_btn.configure(state="normal")
         elif t.status == "done":
             self.detail_lbl.configure(text="100%")
-            self.cancel_btn.configure(state="disabled")
         elif t.status == "failed":
             self.detail_lbl.configure(
                 text=_ellipsize(t.error.replace("\n", " "), 110)
             )
-            self.cancel_btn.configure(state="disabled")
         elif t.status == "cancelled":
             self.detail_lbl.configure(text="")
-            self.cancel_btn.configure(state="disabled")
+        self.cancel_btn.configure(state="normal")
 
 
 def _ellipsize(s: str, n: int) -> str:
@@ -291,7 +434,7 @@ class App(ctk.CTk):
         self._apply_language()
         self._update_quality_enabled()
         if self.mode_var.get() == "audio":
-            self.force_mp4_chk.grid_remove()
+            self.container_frame.grid_remove()
         self.protocol("WM_DELETE_WINDOW", self._on_close)
 
         # Startup checks: show banners for missing ffmpeg and pending updates.
@@ -356,6 +499,9 @@ class App(ctk.CTk):
         self.url_placeholder = _TextboxPlaceholder(
             self.url_box, self.i18n.t("field.url.placeholder")
         )
+        _install_text_qol_bindings(
+            self.url_box, is_text=True, get_lang=lambda: self.i18n
+        )
 
         side = ctk.CTkFrame(url_frame, fg_color="transparent")
         side.grid(row=0, column=2, padx=(8, 0), sticky="ns")
@@ -383,6 +529,9 @@ class App(ctk.CTk):
         )
         self.out_entry = ctk.CTkEntry(out_frame, textvariable=self.out_var)
         self.out_entry.grid(row=0, column=1, sticky="ew")
+        _install_text_qol_bindings(
+            self.out_entry, is_text=False, get_lang=lambda: self.i18n
+        )
         self.browse_btn = ctk.CTkButton(out_frame, text="", width=80,
                                         command=self._on_browse)
         self.browse_btn.grid(row=0, column=2, padx=(8, 0))
@@ -454,19 +603,34 @@ class App(ctk.CTk):
         self.codec_menu.grid(row=1, column=1, columnspan=2, padx=6, pady=4,
                              sticky="w")
 
-        # "Force MP4" applies only to video downloads. It runs an
-        # FFmpegVideoConvertor pass after merging that re-encodes to a
-        # guaranteed-mp4 file (H.264 + AAC). Slow when the source isn't
-        # already mp4-compatible, but always produces a playable .mp4.
-        self.force_mp4_var = tk.BooleanVar(value=self.settings.force_mp4)
-        self.force_mp4_chk = ctk.CTkCheckBox(
-            opts, text="", variable=self.force_mp4_var,
-        )
-        self.force_mp4_chk.grid(row=1, column=3, columnspan=2,
-                                padx=(20, 12), pady=4, sticky="w")
+        # Container dropdown — applies only to video downloads. Picking
+        # anything other than "None" runs an
+        # FFmpegVideoConvertor pass that remuxes (or re-encodes when codecs
+        # don't fit the target container) into the chosen format. Replaces
+        # the older single-purpose "Force MP4" checkbox so the user can
+        # request MKV / MOV / AVI / FLV / MPEG / WebM too.
+        container_frame = ctk.CTkFrame(opts, fg_color="transparent")
+        container_frame.grid(row=1, column=3, columnspan=2,
+                             padx=(20, 12), pady=4, sticky="w")
+        self.container_lbl = ctk.CTkLabel(container_frame, text="")
+        self.container_lbl.pack(side="left", padx=(0, 8))
         self._labels_to_translate.append(
-            (self.force_mp4_chk, "text", "check.force_mp4")
+            (self.container_lbl, "text", "label.container")
         )
+
+        self.container_var = tk.StringVar(
+            value=self.i18n.localize_option(
+                self.settings.container or "None"
+            )
+        )
+        self.container_menu = ctk.CTkOptionMenu(
+            container_frame, variable=self.container_var,
+            values=self._current_container_values(), width=170,
+        )
+        self.container_menu.pack(side="left")
+        # Keep the wrapper frame around so we can show/hide the whole thing
+        # when the user flips between video and audio modes.
+        self.container_frame = container_frame
 
         self.playlist_var = tk.BooleanVar(value=self.settings.playlist)
         self.playlist_chk = ctk.CTkCheckBox(opts, text="", variable=self.playlist_var)
@@ -561,6 +725,34 @@ class App(ctk.CTk):
         self._labels_to_translate.append((self.clear_done_btn, "text", "button.clear_done"))
         self._labels_to_translate.append((self.open_btn, "text", "button.open_folder"))
 
+        # Right-aligned cluster: "Check for Updates" button + auto-update
+        # toggle. Column 3 absorbs leftover space (weight=1) so this group
+        # snaps to the right edge regardless of window width.
+        update_group = ctk.CTkFrame(actions, fg_color="transparent")
+        update_group.grid(row=0, column=3, sticky="e", padx=(6, 0))
+
+        self.auto_update_var = tk.BooleanVar(
+            value=bool(self.settings.auto_update_check)
+        )
+        self.auto_update_chk = ctk.CTkCheckBox(
+            update_group, text="", variable=self.auto_update_var,
+            command=self._on_auto_update_toggle,
+        )
+        self.auto_update_chk.pack(side="left", padx=(0, 8))
+        self._labels_to_translate.append(
+            (self.auto_update_chk, "text", "check.auto_update")
+        )
+
+        self.check_updates_btn = ctk.CTkButton(
+            update_group, text="", height=34, width=150,
+            fg_color="#3a3a3a", hover_color="#2a2a2a",
+            command=self._on_check_updates,
+        )
+        self.check_updates_btn.pack(side="left")
+        self._labels_to_translate.append(
+            (self.check_updates_btn, "text", "button.check_updates")
+        )
+
         # Queue label
         self.queue_lbl = ctk.CTkLabel(self, text="",
                                       font=ctk.CTkFont(size=13, weight="bold"),
@@ -595,6 +787,11 @@ class App(ctk.CTk):
                                   font=ctk.CTkFont(family=mono, size=11))
         self.log.grid(row=9, column=0, padx=20, pady=(0, 16), sticky="nsew")
         self.log.configure(state="disabled")
+        # The log is read-only but we still want copy + select-all via
+        # keyboard / right-click. is_text=True for index handling.
+        _install_text_qol_bindings(
+            self.log, is_text=True, get_lang=lambda: self.i18n
+        )
 
         self._log(self.i18n.t("log.ready"))
 
@@ -629,6 +826,17 @@ class App(ctk.CTk):
     def _cookies_internal(self) -> str:
         return self.i18n.delocalize_option(
             self.cookies_var.get(), self._internal_cookies_options()
+        )
+
+    def _internal_container_options(self) -> list[str]:
+        return video_container_options()
+
+    def _current_container_values(self) -> list[str]:
+        return [self.i18n.localize_option(k) for k in self._internal_container_options()]
+
+    def _container_internal(self) -> str:
+        return self.i18n.delocalize_option(
+            self.container_var.get(), self._internal_container_options()
         )
 
     def _quality_internal(self) -> str:
@@ -876,6 +1084,52 @@ class App(ctk.CTk):
         self._log(self.i18n.t("log.update_running"))
         threading.Thread(target=self._run_update_bg, daemon=True).start()
 
+    def _on_check_updates(self) -> None:
+        """Manual "Check for Updates" button. Same logic as the startup
+        check but always logs a result (so the user knows the click did
+        something even when there's nothing to update)."""
+        self._log(self.i18n.t("log.update_checking"))
+        threading.Thread(
+            target=self._manual_check_updates_bg, daemon=True
+        ).start()
+
+    def _manual_check_updates_bg(self) -> None:
+        if updater.can_enable_auto_update():
+            self.after(0, lambda: self._show_banner(
+                "git-init",
+                message=self.i18n.t("banner.no_git_checkout"),
+                action=self.i18n.t("button.enable_auto_update"),
+                on_action=self._on_enable_auto_update,
+                accent="#2a4a78",
+            ))
+            return
+        behind, err = updater.commits_behind()
+        if err is not None:
+            self.after(0, lambda e=err: self._log(
+                self.i18n.t("log.update_failed", error=e)))
+            return
+        if behind <= 0:
+            self.after(0, lambda: self._log(self.i18n.t("log.update_uptodate")))
+            return
+        self.after(0, lambda n=behind: self._show_banner(
+            "update",
+            message=self.i18n.t("banner.update_available", n=n),
+            action=self.i18n.t("button.update_now"),
+            on_action=self._on_update_now,
+            accent="#2a4a78",
+        ))
+
+    def _on_auto_update_toggle(self) -> None:
+        """User flipped the "Auto-update at startup" checkbox. Persist and
+        log so the change is visible."""
+        enabled = bool(self.auto_update_var.get())
+        self.settings.auto_update_check = enabled
+        self.settings.save()
+        self._log(self.i18n.t(
+            "log.auto_update_toggled",
+            state=self.i18n.t("auto_update.on" if enabled else "auto_update.off"),
+        ))
+
     def _run_update_bg(self) -> None:
         ok, output = updater.pull()
         for line in (output or "").splitlines():
@@ -932,15 +1186,48 @@ class App(ctk.CTk):
         )
 
     def _prompt_restart(self) -> None:
-        if messagebox.askyesno(
+        if not messagebox.askyesno(
             self.i18n.t("msg.restart.title"),
             self.i18n.t("msg.restart.body"),
         ):
-            self._persist_user_prefs()
-            try:
-                os.execv(sys.executable, [sys.executable, *sys.argv])
-            except OSError as e:
-                self._log(f"Failed to restart: {e}")
+            return
+        self._persist_user_prefs()
+        # os.execv replaces the current process but on Windows under a GUI
+        # parent that races with Tk teardown and the user sees the window
+        # vanish without a new one appearing. Spawn a detached child first,
+        # then quit the current process. The new instance comes up clean.
+        try:
+            kwargs: dict = {"close_fds": True}
+            if sys.platform == "win32":
+                # DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP — keeps the
+                # child alive after this process exits and detaches it
+                # from any parent console.
+                kwargs["creationflags"] = 0x00000008 | 0x00000200
+            else:
+                kwargs["start_new_session"] = True
+            subprocess.Popen(
+                [sys.executable, *sys.argv],
+                cwd=str(Path(__file__).resolve().parent),
+                **kwargs,
+            )
+        except OSError as e:
+            self._log(f"Failed to spawn restart process: {e}")
+            return
+        # Tear down the current Tk loop after Tk has finished returning
+        # from this callback. quit() exits mainloop; destroy() releases
+        # widgets. Doing it via after(0, ...) avoids killing the dialog
+        # while it's still on the stack.
+        self.after(50, self._destroy_for_restart)
+
+    def _destroy_for_restart(self) -> None:
+        try:
+            self.destroy()
+        except tk.TclError:
+            pass
+        # If destroy didn't take the interpreter down (e.g. mainloop
+        # already exited for some reason), exit explicitly so the parent
+        # batch / shell doesn't hold a zombie.
+        sys.exit(0)
 
     # ---- Language ---------------------------------------------------------
 
@@ -985,6 +1272,14 @@ class App(ctk.CTk):
             self.cookies_menu.configure(values=self._current_cookies_values())
             self.cookies_var.set(self.i18n.localize_option(current_internal))
 
+        if hasattr(self, "container_menu"):
+            cn_keys = self._internal_container_options()
+            current_internal = self._container_internal()
+            if current_internal not in cn_keys:
+                current_internal = "None"
+            self.container_menu.configure(values=self._current_container_values())
+            self.container_var.set(self.i18n.localize_option(current_internal))
+
         for row in self.rows.values():
             row.refresh()
 
@@ -1013,11 +1308,11 @@ class App(ctk.CTk):
         preferred = self.i18n.localize_option(preferred_internal)
         self.codec_var.set(preferred if preferred in c_values else c_values[0])
 
-        # Force MP4 only makes sense in video mode.
+        # Container conversion only applies to video downloads.
         if self.mode_var.get() == "audio":
-            self.force_mp4_chk.grid_remove()
+            self.container_frame.grid_remove()
         else:
-            self.force_mp4_chk.grid()
+            self.container_frame.grid()
 
         self._update_quality_enabled()
 
@@ -1076,13 +1371,16 @@ class App(ctk.CTk):
         quality = self._quality_internal()
         codec = self._codec_internal()
         playlist = self.playlist_var.get()
-        force_mp4 = bool(self.force_mp4_var.get()) and mode == "video"
+        container = (
+            self._container_internal() if mode == "video"
+            else "None"
+        )
         fragments = _parse_fragments(self.fragments_var.get())
         cookies_browser = self._cookies_internal()
         for url in urls:
             self.manager.add(
                 url, out_dir, mode, quality, codec, playlist,
-                force_mp4=force_mp4,
+                container=container,
                 concurrent_fragments=fragments,
                 cookies_browser=cookies_browser,
             )
@@ -1235,6 +1533,33 @@ class App(ctk.CTk):
         bind_recursive(widget)
 
     def _cancel_task(self, task_id: int) -> None:
+        """× button handler — meaning depends on current task state.
+
+        For active tasks (queued/running) we cancel and let the manager
+        emit the lifecycle event. For terminal tasks (done/failed/
+        cancelled) we remove the row from the queue immediately, since
+        cancelling them is meaningless and the user clearly wants the
+        row gone."""
+        task = self.manager.tasks.get(task_id)
+        if task is None:
+            # Task already cleaned out — still try to drop a stale row.
+            row = self.rows.pop(task_id, None)
+            if row is not None:
+                row.destroy()
+                self._update_empty_visibility()
+            return
+        if task.status in ("done", "failed", "cancelled"):
+            # Remove this specific task from the manager + GUI without
+            # touching the others (clear_done would nuke them all).
+            with self.manager._lock:
+                self.manager.tasks.pop(task_id, None)
+            row = self.rows.pop(task_id, None)
+            if row is not None:
+                row.destroy()
+            self._update_empty_visibility()
+            return
+        # queued / running → cancel; manager emits a task_done event that
+        # the regular event handler will use to refresh this row.
         self.manager.cancel(task_id)
         row = self.rows.get(task_id)
         if row:
@@ -1271,7 +1596,7 @@ class App(ctk.CTk):
             self.settings.audio_codec = codec_internal
         else:
             self.settings.video_codec = codec_internal
-        self.settings.force_mp4 = bool(self.force_mp4_var.get())
+        self.settings.container = self._container_internal()
         self.settings.playlist = bool(self.playlist_var.get())
         self.settings.concurrent_fragments = _parse_fragments(self.fragments_var.get())
         self.settings.cookies_browser = self._cookies_internal()

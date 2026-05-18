@@ -35,7 +35,11 @@ class Settings:
     quality: str = "Best"
     video_codec: str = "Auto"
     audio_codec: str = "m4a (AAC)"
-    force_mp4: bool = False
+    # Optional output container for video downloads. "None" leaves yt-dlp's
+    # natural output (.mp4 for H.264, .webm/.mkv otherwise); any other key
+    # (MP4, MKV, MOV, AVI, FLV, MPEG, WebM) triggers an FFmpegVideoConvertor
+    # remux/re-encode pass.
+    container: str = "None"
     playlist: bool = False
     auto_update_check: bool = True
     # Per-video parallel HTTP fragment downloads. YouTube throttles each
