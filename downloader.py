@@ -133,6 +133,11 @@ def cookies_browser_options() -> list[str]:
 # the terminal / locale, and a substring without it matches both.
 BOT_DETECTION_SIGNATURE = "sign in to confirm you"
 
+# yt-dlp's failure mode when it can't read a Chromium-based browser's
+# cookies on Windows (App-Bound Encryption since Chrome 127). When this
+# fires under Auto mode, the GUI moves on to the next candidate browser.
+COOKIES_DECRYPT_FAILED_SIGNATURE = "failed to decrypt"
+
 
 # Audio codec → (ffmpeg preferredcodec, supports_bitrate).
 # None codec = "Original" mode: no FFmpegExtractAudio postprocessor at all,

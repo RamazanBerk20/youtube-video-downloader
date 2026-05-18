@@ -19,6 +19,7 @@ import installer
 import updater
 from downloader import (
     BOT_DETECTION_SIGNATURE,
+    COOKIES_DECRYPT_FAILED_SIGNATURE,
     DownloadManager,
     DownloadTask,
     audio_codec_options,
@@ -272,6 +273,11 @@ class App(ctk.CTk):
         # Show the "enable browser cookies" banner at most once per session
         # so repeated failed tasks don't pile up duplicate banners.
         self._bot_detection_banner_shown = False
+        # Browsers Auto-mode has already tried and exhausted this session
+        # (either DPAPI-failed or bot-check still fired with their cookies).
+        # Used to step through `browser_detect.candidate_browsers()` without
+        # going in circles.
+        self._auto_cookies_tried: set[str] = set()
 
         self.title(self.i18n.t("app.title"))
         self.geometry("900x800")
@@ -822,40 +828,42 @@ class App(ctk.CTk):
             self.after(0, lambda: self._log(self.i18n.t(
                 "log.update_failed", error=output or "unknown")))
 
-    def _handle_bot_detection(self, task: DownloadTask) -> None:
-        """Decide what to do when YouTube's bot-check rate-limit fires.
+    def _handle_cookies_failure(self, task: DownloadTask) -> None:
+        """Decide what to do when a download fails for a cookies-related
+        reason — either YouTube's bot-check rate-limit or a yt-dlp DPAPI
+        decryption failure on a Chromium-based browser.
 
-        Three branches:
-          - Task was on "Auto" and we've never retried it: auto-detect the
-            user's browser, switch the manager to use it, retry the task
-            silently. If detection finds nothing, fall through to banner.
-          - Task was on "Auto" but retry already happened (browser cookies
-            didn't help): show banner so the user can pick a different
-            browser manually.
-          - Task had explicit cookies setting (Off or a specific browser):
-            show the existing banner.
+        In "Auto" mode this walks the candidate-browser list, retrying the
+        task with each browser at most once per session. When candidates
+        are exhausted (or we're not on Auto) it falls back to the manual-
+        pick banner.
         """
         per_task = (task.cookies_browser or "Off")
 
-        if per_task == "Auto" and task.retry_attempts == 0:
-            detected = browser_detect.detect_default_browser()
-            if detected:
-                self.manager.set_auto_cookies_browser(detected)
+        if per_task == "Auto":
+            # Walk to the next candidate browser we haven't tried yet.
+            for candidate in browser_detect.candidate_browsers():
+                if candidate in self._auto_cookies_tried:
+                    continue
+                self._auto_cookies_tried.add(candidate)
+                self.manager.set_auto_cookies_browser(candidate)
                 self._log(self.i18n.t(
                     "log.auto_cookies_switched",
-                    browser=browser_detect.display_name_for(detected),
+                    browser=browser_detect.display_name_for(candidate),
                 ))
                 if self.manager.retry_task(task.id):
-                    return  # task is back in the queue with cookies wired up
+                    return  # retried; row will refresh as queued→running
+                break  # task wasn't retryable — fall through to banner
             else:
+                # No untried candidate has a cookie jar — nothing left to try.
                 self._log(self.i18n.t("log.auto_cookies_no_browser"))
 
-        # Either we exhausted Auto, or cookies are Off, or no browser
-        # detected — surface the manual-pick banner (once per session).
+        # Either Auto is exhausted, or the user explicitly chose Off/a
+        # specific browser — surface the manual-pick banner once.
         if self._bot_detection_banner_shown:
             return
         if self._cookies_internal() not in ("Off", "Auto"):
-            return  # user already enabled cookies explicitly — banner moot
+            return  # user already picked a specific browser; banner moot
         self._bot_detection_banner_shown = True
         self._show_banner(
             "bot-detection",
@@ -1115,8 +1123,10 @@ class App(ctk.CTk):
                         for line in task.error.splitlines()[1:]:
                             if line.strip():
                                 self._log(f"   {line}")
-                    if BOT_DETECTION_SIGNATURE in (task.error or "").lower():
-                        self._handle_bot_detection(task)
+                    err_lower = (task.error or "").lower()
+                    if (BOT_DETECTION_SIGNATURE in err_lower
+                            or COOKIES_DECRYPT_FAILED_SIGNATURE in err_lower):
+                        self._handle_cookies_failure(task)
                 elif task.status == "cancelled":
                     self._log(self.i18n.t("log.task_cancelled",
                                           title=task.title or task.url))

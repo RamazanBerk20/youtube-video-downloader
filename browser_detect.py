@@ -156,34 +156,59 @@ def _windows_default_browser() -> str | None:
 def detect_default_browser() -> str | None:
     """Return a lowercase yt-dlp browser key for the user's default browser.
 
-    Prefers the OS-registered default; falls back to the first browser in a
-    priority list whose cookie jar exists on disk. Returns None when no
-    candidate has any data we could send."""
+    Convenience wrapper that returns just the first candidate from
+    `candidate_browsers()` — useful when caller only needs one guess."""
+    cands = candidate_browsers()
+    return cands[0] if cands else None
+
+
+# Chromium-based browser keys whose cookies use App-Bound Encryption on
+# Windows since Chrome 127 (yt-dlp issue #10927). yt-dlp's DPAPI decrypt
+# fails for these, so Auto-mode should deprioritise them on Windows.
+_WINDOWS_DPAPI_BLOCKED: frozenset[str] = frozenset({
+    "chrome", "edge", "brave", "chromium", "vivaldi", "opera",
+})
+
+
+def candidate_browsers() -> list[str]:
+    """Return browsers with cookie jars on disk, in the order Auto should
+    try them. Each browser appears at most once.
+
+    Windows-specific twist: Chromium-based browsers (Chrome, Edge, Brave,
+    etc.) almost always fail with "Failed to decrypt with DPAPI" since
+    Chrome 127 added App-Bound Encryption. So on Windows, Firefox is
+    promoted to first place when it's available, regardless of which
+    browser the OS reports as default."""
     candidates: list[str] = []
 
+    # OS-registered default first — usually what the user is logged into.
     if sys.platform == "linux":
-        d = _linux_default_browser()
-        if d:
-            candidates.append(d)
+        default = _linux_default_browser()
     elif sys.platform == "win32":
-        d = _windows_default_browser()
-        if d:
-            candidates.append(d)
-    # macOS: no clean shell command for the default browser. Skip — the
-    # cookie-jar scan below covers it well enough.
+        default = _windows_default_browser()
+    else:
+        default = None  # macOS skipped; cookie-jar scan below handles it
 
-    # Priority order for the fallback scan. Firefox first because it's
-    # the most widely-used non-Chrome browser with predictable paths;
-    # Safari last because it only has a chance on macOS.
+    # Windows DPAPI workaround: if the default is Chromium-based AND
+    # Firefox is installed, jump Firefox to the front. Otherwise leave
+    # the default where it is.
+    if (sys.platform == "win32"
+            and default in _WINDOWS_DPAPI_BLOCKED
+            and _has_cookie_jar("firefox")):
+        candidates.append("firefox")
+
+    if default and default not in candidates and _has_cookie_jar(default):
+        candidates.append(default)
+
+    # Generic priority for the remainder. Firefox first because it's the
+    # one browser whose cookie jar yt-dlp can actually read on every OS;
+    # Safari last because it only matters on macOS.
     for b in ("firefox", "chrome", "brave", "chromium", "edge",
               "vivaldi", "opera", "safari"):
-        if b not in candidates:
+        if b not in candidates and _has_cookie_jar(b):
             candidates.append(b)
 
-    for browser in candidates:
-        if _has_cookie_jar(browser):
-            return browser
-    return None
+    return candidates
 
 
 def display_name_for(yt_dlp_key: str) -> str:
