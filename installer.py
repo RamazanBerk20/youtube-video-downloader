@@ -52,6 +52,28 @@ _COMMANDS: dict[str, dict[str, list[str]]] = {
         DNF: ["dnf", "install", "-y", "python3", "python3-pip"],
         ZYPPER: ["zypper", "--non-interactive", "install", "python3", "python3-pip"],
     },
+    # Deno — yt-dlp's recommended JS runtime for solving YouTube's anti-bot
+    # JavaScript challenges (yt-dlp wiki: EJS). Only Arch ships it in stock
+    # repos among the Linux PMs we recognise; Debian/Fedora/openSUSE users
+    # fall through to a manual hint pointing at the official install script.
+    "deno": {
+        WINGET: [
+            "winget", "install", "--silent",
+            "--accept-source-agreements", "--accept-package-agreements",
+            "DenoLand.Deno",
+        ],
+        BREW: ["brew", "install", "deno"],
+        PACMAN: ["pacman", "-S", "--noconfirm", "deno"],
+    },
+}
+
+
+# Manual install hints per-package when no automated PM recipe exists for
+# the current OS. Keeps the generic fallback message useful instead of
+# just saying "no recipe".
+_MANUAL_HINTS: dict[str, str] = {
+    "deno": ("Run this in a terminal to install Deno:\n"
+             "  curl -fsSL https://deno.land/install.sh | sh"),
 }
 
 
@@ -110,10 +132,14 @@ def plan_install(package: str) -> InstallPlan:
         )
     cmd_map = _COMMANDS.get(package)
     if cmd_map is None or pm not in cmd_map:
+        hint = _MANUAL_HINTS.get(
+            package,
+            f"No automated install recipe for {package} via {pm}.",
+        )
         return InstallPlan(
             package=package, pm=pm, command=[],
             requires_manual=True,
-            manual_hint=f"No automated install recipe for {package} via {pm}.",
+            manual_hint=hint,
         )
     cmd = list(cmd_map[pm])
     if _needs_elevation(pm):

@@ -20,6 +20,7 @@ import updater
 from downloader import (
     BOT_DETECTION_SIGNATURE,
     COOKIES_DECRYPT_FAILED_SIGNATURE,
+    NO_VIDEO_FORMAT_SIGNATURE,
     DownloadManager,
     DownloadTask,
     audio_codec_options,
@@ -27,6 +28,7 @@ from downloader import (
     audio_quality_options,
     cookies_browser_options,
     has_ffmpeg,
+    has_js_runtime,
     video_codec_options,
     video_quality_options,
 )
@@ -273,6 +275,8 @@ class App(ctk.CTk):
         # Show the "enable browser cookies" banner at most once per session
         # so repeated failed tasks don't pile up duplicate banners.
         self._bot_detection_banner_shown = False
+        # Same one-shot guard for the "install Deno (JS runtime)" banner.
+        self._js_runtime_banner_shown = False
         # Browsers Auto-mode has already tried and exhausted this session
         # (either DPAPI-failed or bot-check still fired with their cookies).
         # Used to step through `browser_detect.candidate_browsers()` without
@@ -759,6 +763,45 @@ class App(ctk.CTk):
 
     # ---- Install + update actions ----------------------------------------
 
+    def _maybe_show_js_runtime_banner(self) -> None:
+        """Surface the "install Deno" banner when a task failed because no
+        JS runtime is on PATH. One-shot per session."""
+        if self._js_runtime_banner_shown:
+            return
+        self._js_runtime_banner_shown = True
+
+        plan = installer.plan_install("deno")
+        if plan.pm is None or plan.requires_manual:
+            hint = plan.manual_hint or self.i18n.t("banner.no_pm")
+            self._show_banner(
+                "js-runtime",
+                message=self.i18n.t("banner.js_runtime_missing") + "  " + hint,
+                accent="#7a3030",
+            )
+            return
+        self._show_banner(
+            "js-runtime",
+            message=self.i18n.t("banner.js_runtime_missing"),
+            action=self.i18n.t("button.install"),
+            on_action=self._on_install_deno,
+            accent="#7a3030",
+        )
+
+    def _on_install_deno(self) -> None:
+        plan = installer.plan_install("deno")
+        if plan.requires_manual:
+            self._log(self.i18n.t("banner.manual_install"))
+            self._log("  " + (plan.manual_hint or "manual install required"))
+            return
+        self._log(self.i18n.t("log.installing", package="deno"))
+        self._log(self.i18n.t("log.install_running", cmd=" ".join(plan.command)))
+        self._dismiss_banner("js-runtime")
+        threading.Thread(
+            target=self._run_install_bg,
+            args=(plan, "deno"),
+            daemon=True,
+        ).start()
+
     def _on_install_ffmpeg(self) -> None:
         plan = installer.plan_install("ffmpeg")
         if plan.requires_manual:
@@ -781,16 +824,33 @@ class App(ctk.CTk):
         def log_line(line: str) -> None:
             self.after(0, lambda l=line: self._log(l))
         ok, summary = installer.run_install(plan, log_line)
-        if ok and (package != "ffmpeg" or has_ffmpeg()):
+        # Per-package post-install probe: even if the PM returns 0, the
+        # binary might not be on PATH for this Python process yet (Windows
+        # PATH refresh quirk, etc.). Probe explicitly.
+        probe_failed = False
+        if ok:
+            if package == "ffmpeg":
+                probe_failed = not has_ffmpeg()
+            elif package == "deno":
+                probe_failed = not has_js_runtime()
+        if ok and not probe_failed:
             self.after(0, lambda: self._log(self.i18n.t("log.install_done",
                                                         package=package)))
         else:
             err = summary if not ok else "binary still not on PATH"
             self.after(0, lambda e=err: self._log(self.i18n.t(
                 "log.install_failed", error=e)))
-            # Restore the banner so the user can try again
+            # Restore the banner so the user can try again.
             if package == "ffmpeg" and not has_ffmpeg():
                 self.after(0, self._check_ffmpeg_at_startup)
+            elif package == "deno" and not has_js_runtime():
+                self.after(0, self._reshow_js_runtime_banner)
+
+    def _reshow_js_runtime_banner(self) -> None:
+        """Re-arm and re-display the JS-runtime banner after an install
+        attempt failed, so the user can try again."""
+        self._js_runtime_banner_shown = False
+        self._maybe_show_js_runtime_banner()
 
     def _on_enable_auto_update(self) -> None:
         self._dismiss_banner("git-init")
@@ -1127,6 +1187,9 @@ class App(ctk.CTk):
                     if (BOT_DETECTION_SIGNATURE in err_lower
                             or COOKIES_DECRYPT_FAILED_SIGNATURE in err_lower):
                         self._handle_cookies_failure(task)
+                    elif (NO_VIDEO_FORMAT_SIGNATURE in err_lower
+                          and not has_js_runtime()):
+                        self._maybe_show_js_runtime_banner()
                 elif task.status == "cancelled":
                     self._log(self.i18n.t("log.task_cancelled",
                                           title=task.title or task.url))

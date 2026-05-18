@@ -31,6 +31,15 @@ def has_ffmpeg() -> bool:
     return shutil.which("ffmpeg") is not None
 
 
+def has_js_runtime() -> bool:
+    """True if a JS runtime yt-dlp can use for YouTube's anti-bot challenge
+    solver is on PATH. Without one, yt-dlp can only see image (thumbnail)
+    formats on most YouTube videos. yt-dlp wiki: EJS.
+
+    Deno is the recommended option (sandboxed); Node and Bun also work."""
+    return any(shutil.which(b) for b in ("deno", "node", "bun"))
+
+
 # ---- Quality / codec option tables ----------------------------------------
 #
 # Quality is the user-visible resolution / bitrate label. Codec is the
@@ -137,6 +146,11 @@ BOT_DETECTION_SIGNATURE = "sign in to confirm you"
 # cookies on Windows (App-Bound Encryption since Chrome 127). When this
 # fires under Auto mode, the GUI moves on to the next candidate browser.
 COOKIES_DECRYPT_FAILED_SIGNATURE = "failed to decrypt"
+
+# yt-dlp error string when the JS challenge couldn't be solved and the
+# only formats left are images (thumbnails). The GUI uses this together
+# with `has_js_runtime()` to offer to install Deno.
+NO_VIDEO_FORMAT_SIGNATURE = "requested format is not available"
 
 
 # Audio codec → (ffmpeg preferredcodec, supports_bitrate).
