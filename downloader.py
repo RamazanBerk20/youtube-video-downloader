@@ -199,6 +199,7 @@ _VIDEO_CONTAINERS: dict[str, str | None] = {
     "AVI":  "avi",
     "FLV":  "flv",
     "MPEG": "mpeg",
+    "WMV":  "wmv",
 }
 
 
