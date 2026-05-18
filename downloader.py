@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 import yt_dlp
+from yt_dlp.postprocessor.ffmpeg import FFmpegPostProcessor
 
 
 _ANSI_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
@@ -262,6 +263,55 @@ class _CancelledError(Exception):
     pass
 
 
+class _ReencodeH264MP4PP(FFmpegPostProcessor):
+    """Re-encode the downloaded video to H.264 video + AAC audio in an
+    MP4 container. Used when the user enables "Re-encode for max
+    compatibility" — slow (real encode, not stream-copy) but produces a
+    file every player on Earth understands. yt-dlp's built-in
+    FFmpegVideoConvertor only remuxes, so we can't reuse it here.
+
+    Replaces the source file in-place: the .mp4 lands alongside the
+    original and the original is removed."""
+
+    # Codec defaults chosen for "broadly compatible, sensible quality":
+    #   - libx264 with CRF 20 + medium preset = a good mid-range quality/
+    #     speed/size trade-off. CRF lower than the typical 23 because the
+    #     source is already compressed once (YouTube transcode); going
+    #     too aggressive on CRF compounds the visible artifacts.
+    #   - AAC at 192 kbps is high enough that nobody can tell it from the
+    #     original opus/AAC source by ear.
+    #   - +faststart moves the moov atom to the file head so the result
+    #     starts playing immediately when streamed (handy for the user's
+    #     downloaded copies too).
+    _ENCODE_ARGS = (
+        "-map", "0", "-dn", "-ignore_unknown",
+        "-c:v", "libx264", "-preset", "medium", "-crf", "20",
+        "-c:a", "aac", "-b:a", "192k",
+        "-movflags", "+faststart",
+    )
+
+    def run(self, info):
+        in_path = Path(info["filepath"])
+        out_path = in_path.with_suffix(".mp4")
+
+        # If the source is already .mp4 we still need to re-encode (the
+        # whole point), so write to a temp file and atomic-rename over
+        # the original. Otherwise out_path differs from in_path and we
+        # can write directly.
+        if out_path == in_path:
+            tmp_path = in_path.with_suffix(".reencoding.mp4")
+            self.run_ffmpeg(str(in_path), str(tmp_path), list(self._ENCODE_ARGS))
+            in_path.unlink(missing_ok=True)
+            tmp_path.replace(out_path)
+        else:
+            self.run_ffmpeg(str(in_path), str(out_path), list(self._ENCODE_ARGS))
+            in_path.unlink(missing_ok=True)
+
+        info["filepath"] = str(out_path)
+        info["ext"] = "mp4"
+        return [], info
+
+
 @dataclass
 class DownloadTask:
     id: int
@@ -276,6 +326,12 @@ class DownloadTask:
     # older `force_mp4` boolean — the field is generic so we don't have
     # to grow another bool every time a new container gets added.
     container: str = "None"
+    # When True, force a real re-encode to H.264/AAC/MP4 after the
+    # download. Wins over `container` (output is always .mp4) because
+    # this is the explicit "max compatibility" path — slow, lossy, but
+    # plays everywhere including ancient Windows / Apple players that
+    # can't decode VP9-in-mp4 or opus-in-mp4.
+    reencode_h264: bool = False
     concurrent_fragments: int = 4
     cookies_browser: str = "Off"
     # Bumped by the GUI when it retries a bot-detection failure with auto-
@@ -331,6 +387,7 @@ class DownloadManager:
         codec: str,
         playlist: bool,
         container: str = "None",
+        reencode_h264: bool = False,
         concurrent_fragments: int = 4,
         cookies_browser: str = "Off",
     ) -> DownloadTask:
@@ -343,6 +400,7 @@ class DownloadManager:
             codec=codec,
             playlist=playlist,
             container=container or "None",
+            reencode_h264=bool(reencode_h264) and mode == "video",
             concurrent_fragments=max(1, int(concurrent_fragments)),
             cookies_browser=cookies_browser or "Off",
             title=url,
@@ -441,6 +499,14 @@ class DownloadManager:
             task.output_dir.mkdir(parents=True, exist_ok=True)
             opts = self._build_opts(task)
             with yt_dlp.YoutubeDL(opts) as ydl:
+                # The "Re-encode for max compatibility" custom PP can't be
+                # specified in opts['postprocessors'] (yt-dlp resolves keys
+                # to its built-in classes only). Register it explicitly so
+                # it runs after the FFmpegFD merger, last in the chain.
+                if task.reencode_h264 and task.mode == "video":
+                    ydl.add_post_processor(
+                        _ReencodeH264MP4PP(downloader=ydl), when="post_process"
+                    )
                 ydl.download([task.url])
             task.status = "done"
             task.percent = 100.0
@@ -564,11 +630,17 @@ class DownloadManager:
             # pass remuxes (or re-encodes when codecs aren't compatible).
             # Convertor is a no-op when the merged file is already that
             # container, so it's safe to enable even for matching formats.
-            target = _container_target(task.container)
-            if target:
-                opts["postprocessors"] = [
-                    {"key": "FFmpegVideoConvertor", "preferedformat": target}
-                ]
+            #
+            # Re-encode mode is mutually exclusive with the container PP:
+            # the custom _ReencodeH264MP4PP forces .mp4 output via a real
+            # encode pass, so a preceding remux to e.g. .mkv would just
+            # be wasted work. _run() attaches the re-encode PP separately.
+            if not task.reencode_h264:
+                target = _container_target(task.container)
+                if target:
+                    opts["postprocessors"] = [
+                        {"key": "FFmpegVideoConvertor", "preferedformat": target}
+                    ]
         return opts
 
 

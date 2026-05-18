@@ -112,6 +112,7 @@ _T: dict[str, dict[str, str]] = {
         "menu.copy": "Copy",
         "menu.paste": "Paste",
         "menu.select_all": "Select all",
+        "check.reencode_h264": "Re-encode to H.264/MP4 (slow, max compatibility)",
         "check.playlist": "Download as playlist",
         "label.max_concurrent": "Max concurrent",
         "label.fragments": "Parallel parts",
@@ -208,6 +209,7 @@ _T: dict[str, dict[str, str]] = {
         "menu.copy": "Kopyala",
         "menu.paste": "Yapıştır",
         "menu.select_all": "Tümünü seç",
+        "check.reencode_h264": "H.264/MP4'e yeniden kodla (yavaş, en geniş uyumluluk)",
         "check.playlist": "Oynatma listesi olarak indir",
         "label.max_concurrent": "Eş zamanlı sayısı",
         "label.fragments": "Paralel parça",
@@ -311,6 +313,7 @@ _T: dict[str, dict[str, str]] = {
         "menu.copy": "Copiar",
         "menu.paste": "Pegar",
         "menu.select_all": "Seleccionar todo",
+        "check.reencode_h264": "Recodificar a H.264/MP4 (lento, máxima compatibilidad)",
 
         "queue.empty": "No hay descargas en cola. Pegue URLs arriba y pulse Añadir.",
 
@@ -407,6 +410,7 @@ _T: dict[str, dict[str, str]] = {
         "menu.copy": "Copier",
         "menu.paste": "Coller",
         "menu.select_all": "Tout sélectionner",
+        "check.reencode_h264": "Réencoder en H.264/MP4 (lent, compatibilité maximale)",
 
         "queue.empty": "Aucun téléchargement en file. Collez des URL ci-dessus et cliquez sur Ajouter.",
 
@@ -503,6 +507,7 @@ _T: dict[str, dict[str, str]] = {
         "menu.copy": "Kopieren",
         "menu.paste": "Einfügen",
         "menu.select_all": "Alles markieren",
+        "check.reencode_h264": "In H.264/MP4 neu kodieren (langsam, maximale Kompatibilität)",
 
         "queue.empty": "Keine Downloads in der Warteschlange. URLs oben einfügen und Hinzufügen klicken.",
 
@@ -599,6 +604,7 @@ _T: dict[str, dict[str, str]] = {
         "menu.copy": "Копировать",
         "menu.paste": "Вставить",
         "menu.select_all": "Выделить всё",
+        "check.reencode_h264": "Перекодировать в H.264/MP4 (медленно, макс. совместимость)",
 
         "queue.empty": "Очередь пуста. Вставьте ссылки выше и нажмите Добавить.",
 
@@ -695,6 +701,7 @@ _T: dict[str, dict[str, str]] = {
         "menu.copy": "نسخ",
         "menu.paste": "لصق",
         "menu.select_all": "تحديد الكل",
+        "check.reencode_h264": "إعادة الترميز إلى H.264/MP4 (بطيء، أقصى توافق)",
 
         "queue.empty": "لا توجد تحميلات في القائمة. ألصق الروابط في الأعلى وانقر إضافة.",
 
@@ -791,6 +798,7 @@ _T: dict[str, dict[str, str]] = {
         "menu.copy": "复制",
         "menu.paste": "粘贴",
         "menu.select_all": "全选",
+        "check.reencode_h264": "重新编码为 H.264/MP4(较慢,最广兼容)",
 
         "queue.empty": "队列为空。请在上方粘贴网址并点击添加。",
 
@@ -887,6 +895,7 @@ _T: dict[str, dict[str, str]] = {
         "menu.copy": "コピー",
         "menu.paste": "貼り付け",
         "menu.select_all": "すべて選択",
+        "check.reencode_h264": "H.264/MP4 に再エンコード(遅い、最大互換)",
 
         "queue.empty": "キューは空です。上に URL を貼り付けて追加をクリックしてください。",
 

@@ -37,9 +37,14 @@ class Settings:
     audio_codec: str = "m4a (AAC)"
     # Optional output container for video downloads. "None" leaves yt-dlp's
     # natural output (.mp4 for H.264, .webm/.mkv otherwise); any other key
-    # (MP4, MKV, MOV, AVI, FLV, MPEG, WebM) triggers an FFmpegVideoConvertor
-    # remux/re-encode pass.
+    # (MP4, MKV, MOV, AVI, FLV, MPEG, WebM, WMV) triggers an
+    # FFmpegVideoConvertor remux pass.
     container: str = "None"
+    # When True, video downloads run through a real ffmpeg re-encode pass
+    # (H.264 + AAC + mp4) for maximum playback compatibility. Slow and
+    # somewhat lossy, but the result plays in every player including
+    # ancient Windows / Apple ones. Overrides `container` (always .mp4).
+    reencode_h264: bool = False
     playlist: bool = False
     auto_update_check: bool = True
     # Per-video parallel HTTP fragment downloads. YouTube throttles each

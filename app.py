@@ -628,6 +628,20 @@ class App(ctk.CTk):
             values=self._current_container_values(), width=170,
         )
         self.container_menu.pack(side="left")
+
+        # Re-encode-to-H.264/MP4 checkbox — guaranteed-compatible output
+        # at the cost of a slow CPU pass. Wins over the container choice
+        # (output is always .mp4). Lives in the same row as the container
+        # dropdown so it's visually tied to the container concept.
+        self.reencode_var = tk.BooleanVar(value=bool(self.settings.reencode_h264))
+        self.reencode_chk = ctk.CTkCheckBox(
+            container_frame, text="", variable=self.reencode_var,
+        )
+        self.reencode_chk.pack(side="left", padx=(16, 0))
+        self._labels_to_translate.append(
+            (self.reencode_chk, "text", "check.reencode_h264")
+        )
+
         # Keep the wrapper frame around so we can show/hide the whole thing
         # when the user flips between video and audio modes.
         self.container_frame = container_frame
@@ -1375,12 +1389,14 @@ class App(ctk.CTk):
             self._container_internal() if mode == "video"
             else "None"
         )
+        reencode_h264 = bool(self.reencode_var.get()) and mode == "video"
         fragments = _parse_fragments(self.fragments_var.get())
         cookies_browser = self._cookies_internal()
         for url in urls:
             self.manager.add(
                 url, out_dir, mode, quality, codec, playlist,
                 container=container,
+                reencode_h264=reencode_h264,
                 concurrent_fragments=fragments,
                 cookies_browser=cookies_browser,
             )
@@ -1597,6 +1613,7 @@ class App(ctk.CTk):
         else:
             self.settings.video_codec = codec_internal
         self.settings.container = self._container_internal()
+        self.settings.reencode_h264 = bool(self.reencode_var.get())
         self.settings.playlist = bool(self.playlist_var.get())
         self.settings.concurrent_fragments = _parse_fragments(self.fragments_var.get())
         self.settings.cookies_browser = self._cookies_internal()
