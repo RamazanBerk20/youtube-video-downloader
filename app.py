@@ -683,9 +683,23 @@ class App(ctk.CTk):
         )
 
     def _check_updates_bg(self) -> None:
+        # Case 1: git is installed but this folder isn't a checkout (ZIP
+        # install). Offer to convert it so future updates can be pulled.
+        # This check is local-only, so do it before the network fetch.
+        if updater.can_enable_auto_update():
+            self.after(0, lambda: self._show_banner(
+                "git-init",
+                message=self.i18n.t("banner.no_git_checkout"),
+                action=self.i18n.t("button.enable_auto_update"),
+                on_action=self._on_enable_auto_update,
+                accent="#2a4a78",
+            ))
+            return
+
+        # Case 2: real git checkout — check upstream commit count.
         behind, err = updater.commits_behind()
         if err is not None:
-            return  # silent: not a git checkout / no network / etc.
+            return  # silent: no git installed / no network / etc.
         if behind <= 0:
             return  # up to date
         # Hop back to the main thread to mutate widgets
@@ -731,6 +745,25 @@ class App(ctk.CTk):
             # Restore the banner so the user can try again
             if package == "ffmpeg" and not has_ffmpeg():
                 self.after(0, self._check_ffmpeg_at_startup)
+
+    def _on_enable_auto_update(self) -> None:
+        self._dismiss_banner("git-init")
+        self._log(self.i18n.t("log.auto_update_enabling"))
+        threading.Thread(target=self._run_enable_auto_update_bg, daemon=True).start()
+
+    def _run_enable_auto_update_bg(self) -> None:
+        ok, output = updater.enable_auto_update()
+        for line in (output or "").splitlines():
+            if line.strip():
+                self.after(0, lambda l=line: self._log(l))
+        if ok:
+            self.after(0, lambda: self._log(self.i18n.t("log.auto_update_enabled")))
+            # Files may have changed (reset --hard pulled origin/main).
+            # Same restart prompt as a regular update.
+            self.after(0, self._prompt_restart)
+        else:
+            self.after(0, lambda e=output or "unknown": self._log(self.i18n.t(
+                "log.auto_update_enable_failed", error=e)))
 
     def _on_update_now(self) -> None:
         self._dismiss_banner("update")
