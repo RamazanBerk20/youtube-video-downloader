@@ -39,6 +39,10 @@ PLACEHOLDER_COLOR = "#6e6e6e"
 INFINITY_LABEL = "∞"
 INFINITY_VALUE = 9999  # effectively unlimited; manager just starts everything queued
 MAX_CONCURRENT_PRESETS = ["1", "2", "3", "4", "5", "10", INFINITY_LABEL]
+# Per-video parallel HTTP fragments. Higher = more wall-clock speed on fast
+# connections (YouTube throttles each TCP stream individually). 4 is yt-dlp-
+# friendly; 16–32 saturates a gigabit link; users can type any positive int.
+FRAGMENT_PRESETS = ["1", "2", "4", "8", "16", "32", "64"]
 
 
 def _parse_concurrent(raw: str) -> int:
@@ -58,6 +62,16 @@ def _format_concurrent(value: int) -> str:
     if value >= INFINITY_VALUE or value <= 0:
         return INFINITY_LABEL
     return str(value)
+
+
+def _parse_fragments(raw: str) -> int:
+    """Coerce the fragment combobox text to a positive int. Empty/garbage
+    falls back to 4 (the same default we ship). No upper cap — a user with
+    a fat pipe might want 64 or more, and yt-dlp handles it fine."""
+    try:
+        return max(1, int((raw or "").strip()))
+    except (TypeError, ValueError):
+        return 4
 
 
 class _TextboxPlaceholder:
@@ -447,8 +461,7 @@ class App(ctk.CTk):
         # Max-concurrent label + combobox in a sub-frame, aligned with the
         # Quality and Force-MP4 groups above (same column 3 left edge).
         mc_frame = ctk.CTkFrame(opts, fg_color="transparent")
-        mc_frame.grid(row=2, column=3, columnspan=2,
-                      padx=(20, 12), pady=(4, 12), sticky="w")
+        mc_frame.grid(row=2, column=3, padx=(20, 12), pady=(4, 12), sticky="w")
         self.mc_lbl = ctk.CTkLabel(mc_frame, text="")
         self.mc_lbl.pack(side="left", padx=(0, 8))
         self._labels_to_translate.append((self.mc_lbl, "text", "label.max_concurrent"))
@@ -461,6 +474,26 @@ class App(ctk.CTk):
             values=MAX_CONCURRENT_PRESETS, width=110,
         )
         self.max_concurrent_menu.pack(side="left")
+
+        # Parallel HTTP fragments per video — sits in a NEW column right
+        # next to Max-concurrent on the same row. This is the single biggest
+        # knob for raw download speed: YouTube throttles each TCP stream,
+        # so splitting across N connections is what unlocks fast pipes.
+        # Combobox accepts any positive int the user types in.
+        frag_frame = ctk.CTkFrame(opts, fg_color="transparent")
+        frag_frame.grid(row=2, column=4, padx=(12, 12), pady=(4, 12), sticky="w")
+        self.frag_lbl = ctk.CTkLabel(frag_frame, text="")
+        self.frag_lbl.pack(side="left", padx=(0, 8))
+        self._labels_to_translate.append((self.frag_lbl, "text", "label.fragments"))
+
+        self.fragments_var = tk.StringVar(
+            value=str(max(1, int(self.settings.concurrent_fragments)))
+        )
+        self.fragments_menu = ctk.CTkComboBox(
+            frag_frame, variable=self.fragments_var,
+            values=FRAGMENT_PRESETS, width=110,
+        )
+        self.fragments_menu.pack(side="left")
 
         # Action row
         actions = ctk.CTkFrame(self, fg_color="transparent")
@@ -854,10 +887,12 @@ class App(ctk.CTk):
         codec = self._codec_internal()
         playlist = self.playlist_var.get()
         force_mp4 = bool(self.force_mp4_var.get()) and mode == "video"
+        fragments = _parse_fragments(self.fragments_var.get())
         for url in urls:
             self.manager.add(
                 url, out_dir, mode, quality, codec, playlist,
                 force_mp4=force_mp4,
+                concurrent_fragments=fragments,
             )
             self._log(self.i18n.t("log.task_added", url=url))
 
@@ -1039,6 +1074,7 @@ class App(ctk.CTk):
             self.settings.video_codec = codec_internal
         self.settings.force_mp4 = bool(self.force_mp4_var.get())
         self.settings.playlist = bool(self.playlist_var.get())
+        self.settings.concurrent_fragments = _parse_fragments(self.fragments_var.get())
         self.settings.save()
 
 

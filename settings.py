@@ -38,6 +38,10 @@ class Settings:
     force_mp4: bool = False
     playlist: bool = False
     auto_update_check: bool = True
+    # Per-video parallel HTTP fragment downloads. YouTube throttles each
+    # single TCP stream, so splitting one file across N connections is what
+    # actually unlocks >2 MB/s on fast home connections. yt-dlp default is 1.
+    concurrent_fragments: int = 4
 
     @classmethod
     def load(cls) -> "Settings":

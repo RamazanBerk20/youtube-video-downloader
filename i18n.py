@@ -101,6 +101,7 @@ _T: dict[str, dict[str, str]] = {
         "check.force_mp4": "Force MP4 (re-encode if needed — slow)",
         "check.playlist": "Download as playlist",
         "label.max_concurrent": "Max concurrent",
+        "label.fragments": "Parallel parts",
 
         "label.queue": "Queue",
         "label.log": "Log",
@@ -175,6 +176,7 @@ _T: dict[str, dict[str, str]] = {
         "check.force_mp4": "MP4'e zorla (gerekirse yeniden kodla — yavaş)",
         "check.playlist": "Oynatma listesi olarak indir",
         "label.max_concurrent": "Eş zamanlı sayısı",
+        "label.fragments": "Paralel parça",
 
         "label.queue": "Kuyruk",
         "label.log": "Günlük",
@@ -244,6 +246,7 @@ _T: dict[str, dict[str, str]] = {
         "check.force_mp4": "Forzar MP4 (recodificar si es necesario — lento)",
         "check.playlist": "Descargar como lista de reproducción",
         "label.max_concurrent": "Máx. simultáneas",
+        "label.fragments": "Partes paralelas",
 
         "label.queue": "Cola",
         "label.log": "Registro",
@@ -318,6 +321,7 @@ _T: dict[str, dict[str, str]] = {
         "check.force_mp4": "Forcer MP4 (réencoder si nécessaire — lent)",
         "check.playlist": "Télécharger comme playlist",
         "label.max_concurrent": "Téléch. simultanés max",
+        "label.fragments": "Parties parallèles",
 
         "label.queue": "File d'attente",
         "label.log": "Journal",
@@ -392,6 +396,7 @@ _T: dict[str, dict[str, str]] = {
         "check.force_mp4": "MP4 erzwingen (ggf. neu kodieren — langsam)",
         "check.playlist": "Als Playlist herunterladen",
         "label.max_concurrent": "Max. gleichzeitig",
+        "label.fragments": "Parallele Teile",
 
         "label.queue": "Warteschlange",
         "label.log": "Protokoll",
@@ -466,6 +471,7 @@ _T: dict[str, dict[str, str]] = {
         "check.force_mp4": "Принудительно MP4 (перекодировать при необходимости — медленно)",
         "check.playlist": "Скачать как плейлист",
         "label.max_concurrent": "Макс. одновременно",
+        "label.fragments": "Парал. частей",
 
         "label.queue": "Очередь",
         "label.log": "Журнал",
@@ -540,6 +546,7 @@ _T: dict[str, dict[str, str]] = {
         "check.force_mp4": "إجبار MP4 (إعادة الترميز عند الحاجة — بطيء)",
         "check.playlist": "تحميل كقائمة تشغيل",
         "label.max_concurrent": "الحد الأقصى المتزامن",
+        "label.fragments": "أجزاء متوازية",
 
         "label.queue": "القائمة",
         "label.log": "السجل",
@@ -614,6 +621,7 @@ _T: dict[str, dict[str, str]] = {
         "check.force_mp4": "强制 MP4(必要时重新编码 — 较慢)",
         "check.playlist": "作为播放列表下载",
         "label.max_concurrent": "最大并发",
+        "label.fragments": "并行分段数",
 
         "label.queue": "队列",
         "label.log": "日志",
@@ -688,6 +696,7 @@ _T: dict[str, dict[str, str]] = {
         "check.force_mp4": "MP4 を強制(必要なら再エンコード — 遅い)",
         "check.playlist": "プレイリストとしてダウンロード",
         "label.max_concurrent": "最大同時数",
+        "label.fragments": "並列パート数",
 
         "label.queue": "キュー",
         "label.log": "ログ",

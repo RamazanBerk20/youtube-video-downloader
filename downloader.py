@@ -173,6 +173,7 @@ class DownloadTask:
     codec: str
     playlist: bool
     force_mp4: bool = False
+    concurrent_fragments: int = 4
 
     status: str = "queued"   # queued | running | done | failed | cancelled
     title: str = ""
@@ -217,6 +218,7 @@ class DownloadManager:
         codec: str,
         playlist: bool,
         force_mp4: bool = False,
+        concurrent_fragments: int = 4,
     ) -> DownloadTask:
         task = DownloadTask(
             id=next(self._id_seq),
@@ -227,6 +229,7 @@ class DownloadManager:
             codec=codec,
             playlist=playlist,
             force_mp4=force_mp4,
+            concurrent_fragments=max(1, int(concurrent_fragments)),
             title=url,
         )
         with self._lock:
@@ -363,7 +366,7 @@ class DownloadManager:
             "logger": _TaskLogger(self.events, task.id),
             "windowsfilenames": True,
             "restrictfilenames": False,
-            "concurrent_fragment_downloads": 4,
+            "concurrent_fragment_downloads": max(1, int(task.concurrent_fragments)),
             "retries": 5,
             "fragment_retries": 5,
         }
