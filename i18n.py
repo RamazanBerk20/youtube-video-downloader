@@ -56,7 +56,7 @@ LANGUAGE_DISPLAY_NAMES: dict[str, str] = {
 # Internal option keys that should be translated for display. Everything not
 # in this set is technical (codec names, resolutions, bitrates) and stays
 # English in every language.
-LOCALIZED_OPTIONS: frozenset[str] = frozenset({"Best", "Worst", "Auto", "Original"})
+LOCALIZED_OPTIONS: frozenset[str] = frozenset({"Best", "Worst", "Auto", "Original", "Off"})
 
 # locale.getlocale() / $LANG values that should map to each language. Order
 # matters — the first matching prefix wins. Lowercase comparison.
@@ -98,10 +98,12 @@ _T: dict[str, dict[str, str]] = {
         "option.worst": "Worst",
         "option.auto": "Auto",
         "option.original": "Original",
+        "option.off": "Off",
         "check.force_mp4": "Force MP4 (re-encode if needed — slow)",
         "check.playlist": "Download as playlist",
         "label.max_concurrent": "Max concurrent",
         "label.fragments": "Parallel parts",
+        "label.cookies": "Browser cookies",
 
         "label.queue": "Queue",
         "label.log": "Log",
@@ -131,6 +133,7 @@ _T: dict[str, dict[str, str]] = {
         "banner.ffmpeg_missing": "ffmpeg is not installed. Audio extraction and high-quality video merging will fail.",
         "banner.update_available": "An update is available ({n} new commit(s) on origin/main).",
         "banner.no_git_checkout": "Auto-update is disabled — this folder isn't a git checkout. Connect to GitHub to enable updates? (Local file edits will be overwritten.)",
+        "banner.bot_detection": "YouTube is rate-limiting this IP (\"Sign in to confirm you're not a bot\"). Pick your browser under \"Browser cookies\" below to send your YouTube session and bypass the check.",
         "banner.no_pm": "ffmpeg is not installed and no supported package manager was found on this system. Install it manually and restart the app.",
         "banner.manual_install": "Run this command yourself to install:",
         "button.install": "Install",
@@ -149,6 +152,8 @@ _T: dict[str, dict[str, str]] = {
         "log.auto_update_enabling": "Connecting this folder to GitHub origin/main…",
         "log.auto_update_enabled": "Auto-update enabled. Files synced to latest origin/main.",
         "log.auto_update_enable_failed": "Failed to enable auto-update: {error}",
+        "log.auto_cookies_switched": "Bot-check fired — switching to {browser} cookies and retrying.",
+        "log.auto_cookies_no_browser": "Bot-check fired but no usable browser was detected for cookies. Pick one under \"Browser cookies\" manually.",
         "msg.restart.title": "Restart required",
         "msg.restart.body": "The app has been updated. Restart now to use the new version?",
     },
@@ -178,10 +183,12 @@ _T: dict[str, dict[str, str]] = {
         "option.worst": "En kötü",
         "option.auto": "Otomatik",
         "option.original": "Orijinal",
+        "option.off": "Kapalı",
         "check.force_mp4": "MP4'e zorla (gerekirse yeniden kodla — yavaş)",
         "check.playlist": "Oynatma listesi olarak indir",
         "label.max_concurrent": "Eş zamanlı sayısı",
         "label.fragments": "Paralel parça",
+        "label.cookies": "Tarayıcı çerezleri",
 
         "label.queue": "Kuyruk",
         "label.log": "Günlük",
@@ -211,6 +218,7 @@ _T: dict[str, dict[str, str]] = {
         "banner.ffmpeg_missing": "ffmpeg kurulu değil. Ses çıkarma ve yüksek kaliteli video birleştirme başarısız olur.",
         "banner.update_available": "Bir güncelleme mevcut (origin/main'de {n} yeni commit).",
         "banner.no_git_checkout": "Otomatik güncelleme devre dışı — bu klasör bir git deposu değil. Güncellemeleri etkinleştirmek için GitHub'a bağlanılsın mı? (Yerel dosya düzenlemeleri üzerine yazılır.)",
+        "banner.bot_detection": "YouTube bu IP'yi sınırlandırıyor (\"Sign in to confirm you're not a bot\"). Doğrulamayı atlamak için aşağıdaki \"Tarayıcı çerezleri\"nden tarayıcınızı seçin.",
         "banner.no_pm": "ffmpeg kurulu değil ve sisteminizde desteklenen bir paket yöneticisi bulunamadı. Lütfen elle kurun ve uygulamayı yeniden başlatın.",
         "banner.manual_install": "Kurmak için bu komutu kendiniz çalıştırın:",
         "button.install": "Kur",
@@ -229,6 +237,8 @@ _T: dict[str, dict[str, str]] = {
         "log.auto_update_enabling": "Bu klasör GitHub origin/main'e bağlanıyor…",
         "log.auto_update_enabled": "Otomatik güncelleme etkin. Dosyalar en son origin/main ile eşitlendi.",
         "log.auto_update_enable_failed": "Otomatik güncelleme etkinleştirilemedi: {error}",
+        "log.auto_cookies_switched": "Bot doğrulaması tetiklendi — {browser} çerezlerine geçiliyor ve yeniden deneniyor.",
+        "log.auto_cookies_no_browser": "Bot doğrulaması tetiklendi ancak kullanılabilir tarayıcı bulunamadı. \"Tarayıcı çerezleri\" altından elle bir tarayıcı seçin.",
         "msg.restart.title": "Yeniden başlatma gerekli",
         "msg.restart.body": "Uygulama güncellendi. Yeni sürümü kullanmak için şimdi yeniden başlatılsın mı?",
     },
@@ -257,6 +267,7 @@ _T: dict[str, dict[str, str]] = {
         "check.playlist": "Descargar como lista de reproducción",
         "label.max_concurrent": "Máx. simultáneas",
         "label.fragments": "Partes paralelas",
+        "label.cookies": "Cookies del navegador",
 
         "label.queue": "Cola",
         "label.log": "Registro",
@@ -265,6 +276,7 @@ _T: dict[str, dict[str, str]] = {
         "option.worst": "Peor",
         "option.auto": "Automático",
         "option.original": "Original",
+        "option.off": "Desactivado",
 
         "queue.empty": "No hay descargas en cola. Pegue URLs arriba y pulse Añadir.",
 
@@ -291,6 +303,7 @@ _T: dict[str, dict[str, str]] = {
         "banner.ffmpeg_missing": "ffmpeg no está instalado. La extracción de audio y la combinación de vídeo de alta calidad fallarán.",
         "banner.update_available": "Hay una actualización disponible ({n} commit(s) nuevos en origin/main).",
         "banner.no_git_checkout": "Auto-actualización deshabilitada — esta carpeta no es un repositorio git. ¿Conectar a GitHub para habilitar actualizaciones? (Las ediciones locales serán sobrescritas.)",
+        "banner.bot_detection": "YouTube está limitando esta IP (\"Sign in to confirm you're not a bot\"). Elija su navegador en \"Cookies del navegador\" para enviar su sesión y omitir la comprobación.",
         "banner.no_pm": "ffmpeg no está instalado y no se encontró un gestor de paquetes compatible. Instálelo manualmente y reinicie la app.",
         "banner.manual_install": "Ejecute este comando para instalar:",
         "button.install": "Instalar",
@@ -309,6 +322,8 @@ _T: dict[str, dict[str, str]] = {
         "log.auto_update_enabling": "Conectando esta carpeta a GitHub origin/main…",
         "log.auto_update_enabled": "Auto-actualización habilitada. Archivos sincronizados con origin/main.",
         "log.auto_update_enable_failed": "No se pudo habilitar la auto-actualización: {error}",
+        "log.auto_cookies_switched": "Verificación de bot activada — cambiando a cookies de {browser} y reintentando.",
+        "log.auto_cookies_no_browser": "Verificación de bot activada pero no se detectó ningún navegador utilizable. Elija uno manualmente en \"Cookies del navegador\".",
         "msg.restart.title": "Reinicio requerido",
         "msg.restart.body": "La app se ha actualizado. ¿Reiniciar ahora para usar la nueva versión?",
     },
@@ -337,6 +352,7 @@ _T: dict[str, dict[str, str]] = {
         "check.playlist": "Télécharger comme playlist",
         "label.max_concurrent": "Téléch. simultanés max",
         "label.fragments": "Parties parallèles",
+        "label.cookies": "Cookies du navigateur",
 
         "label.queue": "File d'attente",
         "label.log": "Journal",
@@ -345,6 +361,7 @@ _T: dict[str, dict[str, str]] = {
         "option.worst": "Pire",
         "option.auto": "Auto",
         "option.original": "Original",
+        "option.off": "Désactivé",
 
         "queue.empty": "Aucun téléchargement en file. Collez des URL ci-dessus et cliquez sur Ajouter.",
 
@@ -371,6 +388,7 @@ _T: dict[str, dict[str, str]] = {
         "banner.ffmpeg_missing": "ffmpeg n'est pas installé. L'extraction audio et la fusion vidéo haute qualité échoueront.",
         "banner.update_available": "Une mise à jour est disponible ({n} nouveau(x) commit(s) sur origin/main).",
         "banner.no_git_checkout": "Auto-mise à jour désactivée — ce dossier n'est pas un dépôt git. Se connecter à GitHub pour activer les mises à jour ? (Les modifications locales seront écrasées.)",
+        "banner.bot_detection": "YouTube limite cette IP (\"Sign in to confirm you're not a bot\"). Choisissez votre navigateur sous \"Cookies du navigateur\" pour envoyer votre session et contourner la vérification.",
         "banner.no_pm": "ffmpeg n'est pas installé et aucun gestionnaire de paquets compatible n'a été trouvé. Installez-le manuellement et relancez l'app.",
         "banner.manual_install": "Exécutez cette commande pour installer :",
         "button.install": "Installer",
@@ -389,6 +407,8 @@ _T: dict[str, dict[str, str]] = {
         "log.auto_update_enabling": "Connexion de ce dossier à GitHub origin/main…",
         "log.auto_update_enabled": "Auto-mise à jour activée. Fichiers synchronisés avec origin/main.",
         "log.auto_update_enable_failed": "Échec de l'activation de l'auto-mise à jour : {error}",
+        "log.auto_cookies_switched": "Vérification anti-bot déclenchée — passage aux cookies de {browser} et nouvel essai.",
+        "log.auto_cookies_no_browser": "Vérification anti-bot déclenchée mais aucun navigateur utilisable détecté. Choisissez-en un manuellement sous \"Cookies du navigateur\".",
         "msg.restart.title": "Redémarrage requis",
         "msg.restart.body": "L'app a été mise à jour. Redémarrer maintenant pour utiliser la nouvelle version ?",
     },
@@ -417,6 +437,7 @@ _T: dict[str, dict[str, str]] = {
         "check.playlist": "Als Playlist herunterladen",
         "label.max_concurrent": "Max. gleichzeitig",
         "label.fragments": "Parallele Teile",
+        "label.cookies": "Browser-Cookies",
 
         "label.queue": "Warteschlange",
         "label.log": "Protokoll",
@@ -425,6 +446,7 @@ _T: dict[str, dict[str, str]] = {
         "option.worst": "Schlechteste",
         "option.auto": "Automatisch",
         "option.original": "Original",
+        "option.off": "Aus",
 
         "queue.empty": "Keine Downloads in der Warteschlange. URLs oben einfügen und Hinzufügen klicken.",
 
@@ -451,6 +473,7 @@ _T: dict[str, dict[str, str]] = {
         "banner.ffmpeg_missing": "ffmpeg ist nicht installiert. Audio-Extraktion und hochqualitative Video-Zusammenführung schlagen fehl.",
         "banner.update_available": "Ein Update ist verfügbar ({n} neue(r) Commit(s) auf origin/main).",
         "banner.no_git_checkout": "Auto-Update deaktiviert — dieser Ordner ist kein git-Checkout. Mit GitHub verbinden, um Updates zu aktivieren? (Lokale Dateiänderungen werden überschrieben.)",
+        "banner.bot_detection": "YouTube drosselt diese IP (\"Sign in to confirm you're not a bot\"). Wählen Sie Ihren Browser unter \"Browser-Cookies\" aus, um Ihre Sitzung zu senden und die Prüfung zu umgehen.",
         "banner.no_pm": "ffmpeg ist nicht installiert und kein unterstützter Paketmanager wurde gefunden. Bitte manuell installieren und die App neu starten.",
         "banner.manual_install": "Führen Sie diesen Befehl selbst aus, um zu installieren:",
         "button.install": "Installieren",
@@ -469,6 +492,8 @@ _T: dict[str, dict[str, str]] = {
         "log.auto_update_enabling": "Verbinde diesen Ordner mit GitHub origin/main…",
         "log.auto_update_enabled": "Auto-Update aktiviert. Dateien mit origin/main synchronisiert.",
         "log.auto_update_enable_failed": "Auto-Update konnte nicht aktiviert werden: {error}",
+        "log.auto_cookies_switched": "Bot-Prüfung ausgelöst — wechsle zu {browser}-Cookies und versuche erneut.",
+        "log.auto_cookies_no_browser": "Bot-Prüfung ausgelöst, aber kein nutzbarer Browser für Cookies erkannt. Wählen Sie manuell unter \"Browser-Cookies\" aus.",
         "msg.restart.title": "Neustart erforderlich",
         "msg.restart.body": "Die App wurde aktualisiert. Jetzt neu starten, um die neue Version zu verwenden?",
     },
@@ -497,6 +522,7 @@ _T: dict[str, dict[str, str]] = {
         "check.playlist": "Скачать как плейлист",
         "label.max_concurrent": "Макс. одновременно",
         "label.fragments": "Парал. частей",
+        "label.cookies": "Cookies браузера",
 
         "label.queue": "Очередь",
         "label.log": "Журнал",
@@ -505,6 +531,7 @@ _T: dict[str, dict[str, str]] = {
         "option.worst": "Худшее",
         "option.auto": "Авто",
         "option.original": "Оригинал",
+        "option.off": "Выкл.",
 
         "queue.empty": "Очередь пуста. Вставьте ссылки выше и нажмите Добавить.",
 
@@ -531,6 +558,7 @@ _T: dict[str, dict[str, str]] = {
         "banner.ffmpeg_missing": "ffmpeg не установлен. Извлечение аудио и слияние видео высокого качества не сработают.",
         "banner.update_available": "Доступно обновление ({n} новых коммитов в origin/main).",
         "banner.no_git_checkout": "Автообновление отключено — эта папка не является git-репозиторием. Подключить к GitHub для включения обновлений? (Локальные правки файлов будут перезаписаны.)",
+        "banner.bot_detection": "YouTube ограничивает этот IP (\"Sign in to confirm you're not a bot\"). Выберите ваш браузер в \"Cookies браузера\" ниже, чтобы отправить сессию и обойти проверку.",
         "banner.no_pm": "ffmpeg не установлен, и поддерживаемый пакетный менеджер не найден. Установите вручную и перезапустите приложение.",
         "banner.manual_install": "Выполните эту команду для установки:",
         "button.install": "Установить",
@@ -549,6 +577,8 @@ _T: dict[str, dict[str, str]] = {
         "log.auto_update_enabling": "Подключение этой папки к GitHub origin/main…",
         "log.auto_update_enabled": "Автообновление включено. Файлы синхронизированы с origin/main.",
         "log.auto_update_enable_failed": "Не удалось включить автообновление: {error}",
+        "log.auto_cookies_switched": "Сработала проверка на бота — переключаюсь на cookies {browser} и повторяю попытку.",
+        "log.auto_cookies_no_browser": "Сработала проверка на бота, но подходящий браузер не обнаружен. Выберите вручную в \"Cookies браузера\".",
         "msg.restart.title": "Требуется перезапуск",
         "msg.restart.body": "Приложение обновлено. Перезапустить сейчас, чтобы использовать новую версию?",
     },
@@ -577,6 +607,7 @@ _T: dict[str, dict[str, str]] = {
         "check.playlist": "تحميل كقائمة تشغيل",
         "label.max_concurrent": "الحد الأقصى المتزامن",
         "label.fragments": "أجزاء متوازية",
+        "label.cookies": "ملفات تعريف الارتباط للمتصفح",
 
         "label.queue": "القائمة",
         "label.log": "السجل",
@@ -585,6 +616,7 @@ _T: dict[str, dict[str, str]] = {
         "option.worst": "الأسوأ",
         "option.auto": "تلقائي",
         "option.original": "الأصلي",
+        "option.off": "إيقاف",
 
         "queue.empty": "لا توجد تحميلات في القائمة. ألصق الروابط في الأعلى وانقر إضافة.",
 
@@ -611,6 +643,7 @@ _T: dict[str, dict[str, str]] = {
         "banner.ffmpeg_missing": "ffmpeg غير مثبَّت. سيفشل استخراج الصوت ودمج الفيديو عالي الجودة.",
         "banner.update_available": "يتوفر تحديث ({n} commit جديد على origin/main).",
         "banner.no_git_checkout": "التحديث التلقائي معطّل — هذا المجلد ليس مستودع git. هل تريد الاتصال بـ GitHub لتمكين التحديثات؟ (سيتم استبدال أي تعديلات محلية على الملفات.)",
+        "banner.bot_detection": "يفرض يوتيوب حدًّا على هذا الـ IP (\"Sign in to confirm you're not a bot\"). اختر متصفحك من \"ملفات تعريف الارتباط للمتصفح\" أدناه لإرسال جلستك وتجاوز الفحص.",
         "banner.no_pm": "ffmpeg غير مثبَّت ولم يُعثر على مدير حزم مدعوم. ثبّته يدويًا وأعد تشغيل التطبيق.",
         "banner.manual_install": "نفّذ هذا الأمر للتثبيت بنفسك:",
         "button.install": "تثبيت",
@@ -629,6 +662,8 @@ _T: dict[str, dict[str, str]] = {
         "log.auto_update_enabling": "ربط هذا المجلد بـ GitHub origin/main…",
         "log.auto_update_enabled": "تم تمكين التحديث التلقائي. تمت مزامنة الملفات مع origin/main.",
         "log.auto_update_enable_failed": "فشل تمكين التحديث التلقائي: {error}",
+        "log.auto_cookies_switched": "تم تفعيل فحص البوت — التبديل إلى ملفات تعريف الارتباط لـ {browser} وإعادة المحاولة.",
+        "log.auto_cookies_no_browser": "تم تفعيل فحص البوت ولكن لم يتم اكتشاف متصفح قابل للاستخدام. اختر متصفحًا يدويًا من \"ملفات تعريف الارتباط للمتصفح\".",
         "msg.restart.title": "يلزم إعادة التشغيل",
         "msg.restart.body": "تم تحديث التطبيق. هل تريد إعادة التشغيل الآن لاستخدام الإصدار الجديد؟",
     },
@@ -657,6 +692,7 @@ _T: dict[str, dict[str, str]] = {
         "check.playlist": "作为播放列表下载",
         "label.max_concurrent": "最大并发",
         "label.fragments": "并行分段数",
+        "label.cookies": "浏览器 Cookie",
 
         "label.queue": "队列",
         "label.log": "日志",
@@ -665,6 +701,7 @@ _T: dict[str, dict[str, str]] = {
         "option.worst": "最差",
         "option.auto": "自动",
         "option.original": "原始",
+        "option.off": "关闭",
 
         "queue.empty": "队列为空。请在上方粘贴网址并点击添加。",
 
@@ -691,6 +728,7 @@ _T: dict[str, dict[str, str]] = {
         "banner.ffmpeg_missing": "未安装 ffmpeg。音频提取和高质量视频合并将失败。",
         "banner.update_available": "有可用更新(origin/main 上有 {n} 个新提交)。",
         "banner.no_git_checkout": "自动更新已禁用 — 此文件夹不是 git 仓库。连接到 GitHub 以启用更新?(本地文件修改将被覆盖。)",
+        "banner.bot_detection": "YouTube 正在限制此 IP(\"Sign in to confirm you're not a bot\")。请在下方“浏览器 Cookie”中选择您的浏览器以发送 YouTube 会话并绕过验证。",
         "banner.no_pm": "未安装 ffmpeg,且未找到支持的包管理器。请手动安装并重新启动应用。",
         "banner.manual_install": "请自行运行此命令以安装:",
         "button.install": "安装",
@@ -709,6 +747,8 @@ _T: dict[str, dict[str, str]] = {
         "log.auto_update_enabling": "正在将此文件夹连接到 GitHub origin/main…",
         "log.auto_update_enabled": "自动更新已启用。文件已与 origin/main 同步。",
         "log.auto_update_enable_failed": "启用自动更新失败:{error}",
+        "log.auto_cookies_switched": "触发机器人验证 — 切换到 {browser} 的 Cookie 并重试。",
+        "log.auto_cookies_no_browser": "触发机器人验证,但未检测到可用的浏览器。请在“浏览器 Cookie”中手动选择。",
         "msg.restart.title": "需要重启",
         "msg.restart.body": "应用已更新。是否立即重启以使用新版本?",
     },
@@ -737,6 +777,7 @@ _T: dict[str, dict[str, str]] = {
         "check.playlist": "プレイリストとしてダウンロード",
         "label.max_concurrent": "最大同時数",
         "label.fragments": "並列パート数",
+        "label.cookies": "ブラウザの Cookie",
 
         "label.queue": "キュー",
         "label.log": "ログ",
@@ -745,6 +786,7 @@ _T: dict[str, dict[str, str]] = {
         "option.worst": "最低",
         "option.auto": "自動",
         "option.original": "オリジナル",
+        "option.off": "オフ",
 
         "queue.empty": "キューは空です。上に URL を貼り付けて追加をクリックしてください。",
 
@@ -771,6 +813,7 @@ _T: dict[str, dict[str, str]] = {
         "banner.ffmpeg_missing": "ffmpeg がインストールされていません。音声抽出と高品質動画のマージは失敗します。",
         "banner.update_available": "アップデートがあります(origin/main に新しいコミットが {n} 件)。",
         "banner.no_git_checkout": "自動更新は無効です — このフォルダは git チェックアウトではありません。更新を有効にするには GitHub に接続しますか?(ローカルのファイル編集は上書きされます。)",
+        "banner.bot_detection": "YouTube がこの IP を制限しています(\"Sign in to confirm you're not a bot\")。下の「ブラウザの Cookie」からブラウザを選択して YouTube セッションを送信し、確認を回避してください。",
         "banner.no_pm": "ffmpeg がインストールされておらず、対応するパッケージマネージャも見つかりません。手動でインストールしてアプリを再起動してください。",
         "banner.manual_install": "次のコマンドを自分で実行してインストールしてください:",
         "button.install": "インストール",
@@ -789,6 +832,8 @@ _T: dict[str, dict[str, str]] = {
         "log.auto_update_enabling": "このフォルダを GitHub origin/main に接続しています…",
         "log.auto_update_enabled": "自動更新が有効になりました。ファイルは origin/main と同期されました。",
         "log.auto_update_enable_failed": "自動更新の有効化に失敗しました: {error}",
+        "log.auto_cookies_switched": "ボット検証が発生しました — {browser} の Cookie に切り替えて再試行します。",
+        "log.auto_cookies_no_browser": "ボット検証が発生しましたが、使用可能なブラウザが見つかりませんでした。「ブラウザの Cookie」から手動で選択してください。",
         "msg.restart.title": "再起動が必要",
         "msg.restart.body": "アプリが更新されました。新しいバージョンを使うために今すぐ再起動しますか?",
     },

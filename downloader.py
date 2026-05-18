@@ -101,6 +101,39 @@ _VIDEO_CODEC_CHAINS: dict[str, list[str]] = {
     ],
 }
 
+# Browsers that yt-dlp can pull a cookie jar from. "Off" sends no cookies.
+# "Auto" also sends no cookies by default, but the GUI swaps it for a real
+# browser the moment YouTube's bot-detection fires (see _resolve_cookies
+# + DownloadManager.set_auto_cookies_browser). The yt-dlp option takes a
+# lowercase browser name, so we lowercase at use time rather than
+# maintaining two parallel lists.
+_COOKIES_BROWSERS: tuple[str, ...] = (
+    "Auto",
+    "Off",
+    "Firefox",
+    "Chrome",
+    "Brave",
+    "Chromium",
+    "Edge",
+    "Opera",
+    "Safari",
+    "Vivaldi",
+)
+
+
+def cookies_browser_options() -> list[str]:
+    return list(_COOKIES_BROWSERS)
+
+
+# Substring (case-insensitive) yt-dlp surfaces when YouTube's bot-check
+# rate-limit kicks in. The GUI checks task.error against this to decide
+# whether to show the "enable browser cookies" banner. We deliberately
+# drop the apostrophe from the match string because the surrounding error
+# text can use either ASCII (') or Unicode curly (’) form depending on
+# the terminal / locale, and a substring without it matches both.
+BOT_DETECTION_SIGNATURE = "sign in to confirm you"
+
+
 # Audio codec → (ffmpeg preferredcodec, supports_bitrate).
 # None codec = "Original" mode: no FFmpegExtractAudio postprocessor at all,
 # so the source audio file is kept as-is (.webm/.m4a/etc.).
@@ -174,6 +207,11 @@ class DownloadTask:
     playlist: bool
     force_mp4: bool = False
     concurrent_fragments: int = 4
+    cookies_browser: str = "Off"
+    # Bumped by the GUI when it retries a bot-detection failure with auto-
+    # detected cookies. Used to cap retries at 1 so a bad cookie jar (e.g.
+    # browser not logged in) can't infinite-loop.
+    retry_attempts: int = 0
 
     status: str = "queued"   # queued | running | done | failed | cancelled
     title: str = ""
@@ -206,6 +244,11 @@ class DownloadManager:
         self.events: queue.Queue[dict[str, Any]] = queue.Queue()
         self._id_seq = itertools.count(1)
         self._lock = threading.Lock()
+        # Set by the GUI once it detects the user's browser (lazy, on first
+        # bot-detection failure when cookies_browser="Auto"). Once set, any
+        # task with cookies_browser="Auto" will start passing this browser
+        # to yt-dlp. None = Auto behaves like Off.
+        self._auto_cookies_browser: str | None = None
 
     # ---- Public API ---------------------------------------------------
 
@@ -219,6 +262,7 @@ class DownloadManager:
         playlist: bool,
         force_mp4: bool = False,
         concurrent_fragments: int = 4,
+        cookies_browser: str = "Off",
     ) -> DownloadTask:
         task = DownloadTask(
             id=next(self._id_seq),
@@ -230,6 +274,7 @@ class DownloadManager:
             playlist=playlist,
             force_mp4=force_mp4,
             concurrent_fragments=max(1, int(concurrent_fragments)),
+            cookies_browser=cookies_browser or "Off",
             title=url,
         )
         with self._lock:
@@ -263,6 +308,44 @@ class DownloadManager:
             for tid in removed:
                 del self.tasks[tid]
         return removed
+
+    def set_auto_cookies_browser(self, name: str | None) -> None:
+        """Tell the manager which browser to use when a task's cookies_browser
+        is "Auto". Pass None to disable."""
+        self._auto_cookies_browser = (name or None)
+
+    def retry_task(self, task_id: int) -> bool:
+        """Reset a failed/cancelled task back to queued so the scheduler
+        picks it up again. Returns False if the task isn't retryable.
+
+        Used by the GUI to silently retry a bot-detection failure once
+        Auto has resolved to a real browser."""
+        with self._lock:
+            task = self.tasks.get(task_id)
+            if task is None or task.status not in ("failed", "cancelled"):
+                return False
+            task.status = "queued"
+            task.error = ""
+            task.percent = 0.0
+            task.speed = "—"
+            task.eta = "—"
+            task.retry_attempts += 1
+            task._cancel.clear()
+        # Push a progress event so the row re-renders to the queued state.
+        self.events.put({"type": "task_progress", "task_id": task.id})
+        return True
+
+    def _resolve_cookies(self, task: DownloadTask) -> str | None:
+        """Translate task.cookies_browser to the actual yt-dlp browser name
+        (lowercase) or None for "don't send cookies". "Auto" resolves to
+        the manager's session-wide auto browser, which is None until the
+        GUI activates it via set_auto_cookies_browser()."""
+        val = (task.cookies_browser or "Off").strip()
+        if val == "Auto":
+            return self._auto_cookies_browser  # None until activated
+        if val.lower() == "off":
+            return None
+        return val.lower()
 
     def schedule(self, max_concurrent: int) -> None:
         """Start as many queued tasks as fit under `max_concurrent`."""
@@ -370,6 +453,13 @@ class DownloadManager:
             "retries": 5,
             "fragment_retries": 5,
         }
+
+        # Browser cookies bypass YouTube's "Sign in to confirm you're not a
+        # bot" rate limit. Resolver translates Off/Auto/<name> to either
+        # None (don't send) or a lowercase yt-dlp browser key.
+        browser = self._resolve_cookies(task)
+        if browser:
+            opts["cookiesfrombrowser"] = (browser,)
 
         if task.mode == "audio":
             opts["format"] = "bestaudio/best"

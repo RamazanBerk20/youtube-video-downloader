@@ -42,6 +42,12 @@ class Settings:
     # single TCP stream, so splitting one file across N connections is what
     # actually unlocks >2 MB/s on fast home connections. yt-dlp default is 1.
     concurrent_fragments: int = 4
+    # Browser whose cookie jar yt-dlp should send with each request.
+    # "Auto" = no cookies normally, but the app auto-detects the user's
+    # browser and switches mid-session when YouTube's bot-check fires.
+    # "Off" = never send cookies. An explicit browser name forces that
+    # browser's cookies on every request.
+    cookies_browser: str = "Auto"
 
     @classmethod
     def load(cls) -> "Settings":

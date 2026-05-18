@@ -14,14 +14,17 @@ from tkinter import filedialog, messagebox
 
 import customtkinter as ctk
 
+import browser_detect
 import installer
 import updater
 from downloader import (
+    BOT_DETECTION_SIGNATURE,
     DownloadManager,
     DownloadTask,
     audio_codec_options,
     audio_codec_uses_bitrate,
     audio_quality_options,
+    cookies_browser_options,
     has_ffmpeg,
     video_codec_options,
     video_quality_options,
@@ -266,6 +269,9 @@ class App(ctk.CTk):
         self._last_output_dir: Path | None = None
         self._labels_to_translate: list[tuple[ctk.CTkBaseClass, str, str]] = []
         # entries: (widget, attr, key) — attr is "text" or "placeholder_text"
+        # Show the "enable browser cookies" banner at most once per session
+        # so repeated failed tasks don't pile up duplicate banners.
+        self._bot_detection_banner_shown = False
 
         self.title(self.i18n.t("app.title"))
         self.geometry("900x800")
@@ -481,7 +487,7 @@ class App(ctk.CTk):
         # so splitting across N connections is what unlocks fast pipes.
         # Combobox accepts any positive int the user types in.
         frag_frame = ctk.CTkFrame(opts, fg_color="transparent")
-        frag_frame.grid(row=2, column=4, padx=(12, 12), pady=(4, 12), sticky="w")
+        frag_frame.grid(row=2, column=4, padx=(12, 12), pady=(4, 4), sticky="w")
         self.frag_lbl = ctk.CTkLabel(frag_frame, text="")
         self.frag_lbl.pack(side="left", padx=(0, 8))
         self._labels_to_translate.append((self.frag_lbl, "text", "label.fragments"))
@@ -494,6 +500,29 @@ class App(ctk.CTk):
             values=FRAGMENT_PRESETS, width=110,
         )
         self.fragments_menu.pack(side="left")
+
+        # Row 3 — browser cookie source. yt-dlp will read the chosen
+        # browser's cookie jar off disk and send the user's YouTube session
+        # with each request, bypassing "Sign in to confirm you're not a
+        # bot" rate-limiting. "Off" sends no cookies (default).
+        cookies_frame = ctk.CTkFrame(opts, fg_color="transparent")
+        cookies_frame.grid(row=3, column=3, columnspan=2,
+                           padx=(20, 12), pady=(4, 12), sticky="w")
+        self.cookies_lbl = ctk.CTkLabel(cookies_frame, text="")
+        self.cookies_lbl.pack(side="left", padx=(0, 8))
+        self._labels_to_translate.append((self.cookies_lbl, "text", "label.cookies"))
+
+        # Initial display string is the localised form of the saved internal
+        # key (e.g. "Off" → "Kapalı" in Turkish, "Firefox" stays "Firefox").
+        self.cookies_var = tk.StringVar(
+            value=self.i18n.localize_option(self.settings.cookies_browser or "Off")
+        )
+        self.cookies_menu = ctk.CTkOptionMenu(
+            cookies_frame, variable=self.cookies_var,
+            values=self._current_cookies_values(),
+            width=160,
+        )
+        self.cookies_menu.pack(side="left")
 
         # Action row
         actions = ctk.CTkFrame(self, fg_color="transparent")
@@ -580,6 +609,17 @@ class App(ctk.CTk):
 
     def _current_codec_values(self) -> list[str]:
         return [self.i18n.localize_option(k) for k in self._internal_codec_options()]
+
+    def _internal_cookies_options(self) -> list[str]:
+        return cookies_browser_options()
+
+    def _current_cookies_values(self) -> list[str]:
+        return [self.i18n.localize_option(k) for k in self._internal_cookies_options()]
+
+    def _cookies_internal(self) -> str:
+        return self.i18n.delocalize_option(
+            self.cookies_var.get(), self._internal_cookies_options()
+        )
 
     def _quality_internal(self) -> str:
         return self.i18n.delocalize_option(
@@ -782,6 +822,47 @@ class App(ctk.CTk):
             self.after(0, lambda: self._log(self.i18n.t(
                 "log.update_failed", error=output or "unknown")))
 
+    def _handle_bot_detection(self, task: DownloadTask) -> None:
+        """Decide what to do when YouTube's bot-check rate-limit fires.
+
+        Three branches:
+          - Task was on "Auto" and we've never retried it: auto-detect the
+            user's browser, switch the manager to use it, retry the task
+            silently. If detection finds nothing, fall through to banner.
+          - Task was on "Auto" but retry already happened (browser cookies
+            didn't help): show banner so the user can pick a different
+            browser manually.
+          - Task had explicit cookies setting (Off or a specific browser):
+            show the existing banner.
+        """
+        per_task = (task.cookies_browser or "Off")
+
+        if per_task == "Auto" and task.retry_attempts == 0:
+            detected = browser_detect.detect_default_browser()
+            if detected:
+                self.manager.set_auto_cookies_browser(detected)
+                self._log(self.i18n.t(
+                    "log.auto_cookies_switched",
+                    browser=browser_detect.display_name_for(detected),
+                ))
+                if self.manager.retry_task(task.id):
+                    return  # task is back in the queue with cookies wired up
+            else:
+                self._log(self.i18n.t("log.auto_cookies_no_browser"))
+
+        # Either we exhausted Auto, or cookies are Off, or no browser
+        # detected — surface the manual-pick banner (once per session).
+        if self._bot_detection_banner_shown:
+            return
+        if self._cookies_internal() not in ("Off", "Auto"):
+            return  # user already enabled cookies explicitly — banner moot
+        self._bot_detection_banner_shown = True
+        self._show_banner(
+            "bot-detection",
+            message=self.i18n.t("banner.bot_detection"),
+            accent="#7a5a30",
+        )
+
     def _prompt_restart(self) -> None:
         if messagebox.askyesno(
             self.i18n.t("msg.restart.title"),
@@ -827,6 +908,14 @@ class App(ctk.CTk):
                 current_internal = c_keys[0]
             self.codec_menu.configure(values=self._current_codec_values())
             self.codec_var.set(self.i18n.localize_option(current_internal))
+
+        if hasattr(self, "cookies_menu"):
+            ck_keys = self._internal_cookies_options()
+            current_internal = self._cookies_internal()
+            if current_internal not in ck_keys:
+                current_internal = "Off"
+            self.cookies_menu.configure(values=self._current_cookies_values())
+            self.cookies_var.set(self.i18n.localize_option(current_internal))
 
         for row in self.rows.values():
             row.refresh()
@@ -921,11 +1010,13 @@ class App(ctk.CTk):
         playlist = self.playlist_var.get()
         force_mp4 = bool(self.force_mp4_var.get()) and mode == "video"
         fragments = _parse_fragments(self.fragments_var.get())
+        cookies_browser = self._cookies_internal()
         for url in urls:
             self.manager.add(
                 url, out_dir, mode, quality, codec, playlist,
                 force_mp4=force_mp4,
                 concurrent_fragments=fragments,
+                cookies_browser=cookies_browser,
             )
             self._log(self.i18n.t("log.task_added", url=url))
 
@@ -1024,6 +1115,8 @@ class App(ctk.CTk):
                         for line in task.error.splitlines()[1:]:
                             if line.strip():
                                 self._log(f"   {line}")
+                    if BOT_DETECTION_SIGNATURE in (task.error or "").lower():
+                        self._handle_bot_detection(task)
                 elif task.status == "cancelled":
                     self._log(self.i18n.t("log.task_cancelled",
                                           title=task.title or task.url))
@@ -1108,6 +1201,7 @@ class App(ctk.CTk):
         self.settings.force_mp4 = bool(self.force_mp4_var.get())
         self.settings.playlist = bool(self.playlist_var.get())
         self.settings.concurrent_fragments = _parse_fragments(self.fragments_var.get())
+        self.settings.cookies_browser = self._cookies_internal()
         self.settings.save()
 
 
