@@ -9,6 +9,7 @@ lifecycle events are published through a single thread-safe queue.
 from __future__ import annotations
 
 import itertools
+import math
 import queue
 import re
 import shutil
@@ -185,12 +186,12 @@ _AUDIO_CODECS: dict[str, tuple[str | None, bool]] = {
     "Original":  (None, False),
 }
 
-# Optional container conversion applied via FFmpegVideoConvertor after the
-# download finishes. "None" leaves the natural container as yt-dlp produced
-# it; everything else triggers a re-mux (or re-encode if codecs are
-# incompatible) into the target format. Internal keys are short and stable
-# (i18n table maps them to localised display strings); the value is the
-# `preferedformat` string FFmpegVideoConvertor expects.
+# Optional container conversion after the download finishes. "None" leaves
+# the natural container as yt-dlp produced it. Modern containers use
+# yt-dlp's FFmpegVideoConvertor remux path unless the user requests a real
+# compatibility re-encode. Legacy containers always get a real transcode
+# because stream-copying YouTube's H.264/AAC, VP9/Opus, or AV1/Opus into
+# MPEG/AVI/FLV/WMV is either invalid or unreliable.
 _VIDEO_CONTAINERS: dict[str, str | None] = {
     "None": None,
     "MP4":  "mp4",
@@ -209,9 +210,67 @@ def video_container_options() -> list[str]:
 
 
 def _container_target(label: str) -> str | None:
-    """Return the FFmpegVideoConvertor target string for a label, or None
-    if the label means "don't convert"."""
+    """Return the target extension for a label, or None if the label means
+    "don't convert"."""
     return _VIDEO_CONTAINERS.get(label, None)
+
+
+_LEGACY_TRANSCODE_CONTAINERS: frozenset[str] = frozenset({
+    "avi", "flv", "mpeg", "wmv",
+})
+
+
+# Target container -> ffmpeg codec profile. Profiles are intentionally
+# conservative: they favor files that old players understand over preserving
+# YouTube's modern codecs.
+_TRANSCODE_PROFILES: dict[str, tuple[str, ...]] = {
+    "mp4": (
+        "-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn", "-ignore_unknown",
+        "-c:v", "libx264", "-preset", "medium", "-crf", "20",
+        "-pix_fmt", "yuv420p",
+        "-c:a", "aac", "-b:a", "192k",
+        "-movflags", "+faststart",
+    ),
+    "mov": (
+        "-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn", "-ignore_unknown",
+        "-c:v", "libx264", "-preset", "medium", "-crf", "20",
+        "-pix_fmt", "yuv420p",
+        "-c:a", "aac", "-b:a", "192k",
+        "-movflags", "+faststart",
+    ),
+    "mkv": (
+        "-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn", "-ignore_unknown",
+        "-c:v", "libx264", "-preset", "medium", "-crf", "20",
+        "-pix_fmt", "yuv420p",
+        "-c:a", "aac", "-b:a", "192k",
+    ),
+    "webm": (
+        "-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn", "-ignore_unknown",
+        "-c:v", "libvpx-vp9", "-crf", "32", "-b:v", "0",
+        "-c:a", "libopus", "-b:a", "160k",
+    ),
+    "avi": (
+        "-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn", "-ignore_unknown",
+        "-c:v", "libxvid", "-q:v", "4",
+        "-c:a", "libmp3lame", "-b:a", "192k",
+    ),
+    "flv": (
+        "-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn", "-ignore_unknown",
+        "-c:v", "flv", "-q:v", "5",
+        "-c:a", "libmp3lame", "-b:a", "192k",
+    ),
+    "mpeg": (
+        "-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn", "-ignore_unknown",
+        "-c:v", "mpeg2video", "-q:v", "3",
+        "-c:a", "mp2", "-b:a", "192k",
+        "-f", "mpeg",
+    ),
+    "wmv": (
+        "-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn", "-ignore_unknown",
+        "-c:v", "wmv2", "-q:v", "4",
+        "-c:a", "wmav2", "-b:a", "192k",
+    ),
+}
 
 
 def video_quality_options() -> list[str]:
@@ -233,6 +292,13 @@ def audio_codec_options() -> list[str]:
 def audio_codec_uses_bitrate(codec_key: str) -> bool:
     """True iff the audio codec has a meaningful bitrate setting."""
     return _AUDIO_CODECS.get(codec_key, (None, False))[1]
+
+
+def _positive_int(value: object, default: int = 1) -> int:
+    try:
+        return max(1, int(value))
+    except (TypeError, ValueError):
+        return default
 
 
 def _build_video_format(quality: str, codec: str) -> str:
@@ -263,47 +329,26 @@ class _CancelledError(Exception):
     pass
 
 
-class _ReencodeH264PP(FFmpegPostProcessor):
-    """Re-encode the downloaded video to H.264 video + AAC audio in a
-    user-chosen container. Used when the user enables "Re-encode for max
-    compatibility" — slow (real encode, not stream-copy) but produces a
-    file every player on Earth can decode. yt-dlp's built-in
-    FFmpegVideoConvertor only stream-copies, so we can't reuse it here.
+class _ContainerTranscodePP(FFmpegPostProcessor):
+    """Re-encode the downloaded video with codecs that fit the target
+    container. Used for the explicit compatibility checkbox and implicitly
+    for legacy containers where stream-copy conversion would be invalid.
 
     Replaces the source file in-place: the re-encoded copy lands with
     the chosen extension and the original is removed."""
 
-    # Codec defaults chosen for "broadly compatible, sensible quality":
-    #   - libx264 with CRF 20 + medium preset is a good middle ground
-    #     for quality/speed/size. CRF lower than the typical 23 because
-    #     the source is already compressed once (YouTube transcode);
-    #     pushing CRF higher compounds visible artifacts.
-    #   - AAC at 192 kbps is high enough that the lossy re-encode is
-    #     inaudible to the human ear vs. the original opus/AAC source.
-    _ENCODE_ARGS_BASE = (
-        "-map", "0", "-dn", "-ignore_unknown",
-        "-c:v", "libx264", "-preset", "medium", "-crf", "20",
-        "-c:a", "aac", "-b:a", "192k",
-    )
-
     def __init__(self, downloader=None, target_ext: str = "mp4"):
         super().__init__(downloader)
-        # Lowercase, with a "" / None fallback to "mp4" — this is the
-        # default that ships with "Container = None" + re-encode on
-        # since re-encode is meaningless without a defined output ext.
+        # Lowercase, with a "" / None fallback to "mp4": "Container = None"
+        # plus compatibility re-encode still needs a concrete file type.
         self.target_ext = (target_ext or "mp4").lower()
 
     def run(self, info):
         in_path = Path(info["filepath"])
         out_path = in_path.with_suffix(f".{self.target_ext}")
-
-        args = list(self._ENCODE_ARGS_BASE)
-        # +faststart only makes sense for ISO-BMFF style containers; it
-        # moves the moov atom to the file head so the file starts
-        # playing immediately when streamed. Adding it to e.g. .mkv is
-        # silently ignored by ffmpeg, but no point sending dead flags.
-        if self.target_ext in ("mp4", "mov", "m4a"):
-            args.extend(("-movflags", "+faststart"))
+        args = list(_TRANSCODE_PROFILES.get(
+            self.target_ext, _TRANSCODE_PROFILES["mp4"]
+        ))
 
         # If the source is already the target extension we still need
         # to re-encode (the whole point), so write to a temp file and
@@ -336,12 +381,11 @@ class DownloadTask:
     # older `force_mp4` boolean — the field is generic so we don't have
     # to grow another bool every time a new container gets added.
     container: str = "None"
-    # When True, force a real re-encode of the downloaded streams to
-    # H.264 video + AAC audio after the download finishes. Output goes
-    # into whatever `container` says (mp4 / mkv / avi / ...), with mp4
-    # as the fallback when container is "None". Slow, lossy, but the
-    # result plays in every player including ancient Windows / Apple
-    # ones that can't decode VP9-in-mp4 or opus-in-mp4.
+    # When True, force a real re-encode of the downloaded streams after the
+    # download finishes. Codec choice follows the target container (H.264/AAC
+    # for MP4/MOV/MKV, MPEG-2/MP2 for MPEG, Xvid/MP3 for AVI, etc.). Output
+    # goes into whatever `container` says, with mp4 as the fallback when
+    # container is "None".
     reencode_h264: bool = False
     concurrent_fragments: int = 4
     cookies_browser: str = "Off"
@@ -412,7 +456,7 @@ class DownloadManager:
             playlist=playlist,
             container=container or "None",
             reencode_h264=bool(reencode_h264) and mode == "video",
-            concurrent_fragments=max(1, int(concurrent_fragments)),
+            concurrent_fragments=_positive_int(concurrent_fragments, 4),
             cookies_browser=cookies_browser or "Off",
             title=url,
         )
@@ -480,7 +524,7 @@ class DownloadManager:
         the manager's session-wide auto browser, which is None until the
         GUI activates it via set_auto_cookies_browser()."""
         val = (task.cookies_browser or "Off").strip()
-        if val == "Auto":
+        if val.lower() == "auto":
             return self._auto_cookies_browser  # None until activated
         if val.lower() == "off":
             return None
@@ -510,17 +554,14 @@ class DownloadManager:
             task.output_dir.mkdir(parents=True, exist_ok=True)
             opts = self._build_opts(task)
             with yt_dlp.YoutubeDL(opts) as ydl:
-                # The "Re-encode for max compatibility" custom PP can't be
+                # The "Re-encode for compatibility" custom PP can't be
                 # specified in opts['postprocessors'] (yt-dlp resolves keys
                 # to its built-in classes only). Register it explicitly so
                 # it runs after the FFmpegFD merger, last in the chain.
-                if task.reencode_h264 and task.mode == "video":
-                    # Re-encode follows the user's container choice;
-                    # "None" → default to mp4 since "no container" plus
-                    # "force re-encode" can't both be true at once.
-                    target_ext = _container_target(task.container) or "mp4"
+                target_ext = self._transcode_target(task)
+                if target_ext:
                     ydl.add_post_processor(
-                        _ReencodeH264PP(downloader=ydl, target_ext=target_ext),
+                        _ContainerTranscodePP(downloader=ydl, target_ext=target_ext),
                         when="post_process",
                     )
                 ydl.download([task.url])
@@ -552,6 +593,18 @@ class DownloadManager:
                 "Original: " + raw
             )
         return raw
+
+    def _transcode_target(self, task: DownloadTask) -> str | None:
+        """Return a target extension when this task needs a real ffmpeg
+        encode pass, or None when remux/no-conversion is enough."""
+        if task.mode != "video":
+            return None
+        target = _container_target(task.container)
+        if task.reencode_h264:
+            return target or "mp4"
+        if target in _LEGACY_TRANSCODE_CONTAINERS:
+            return target
+        return None
 
     def _build_opts(self, task: DownloadTask) -> dict[str, Any]:
         if task.playlist:
@@ -601,7 +654,7 @@ class DownloadManager:
             "logger": _TaskLogger(self.events, task.id),
             "windowsfilenames": True,
             "restrictfilenames": False,
-            "concurrent_fragment_downloads": max(1, int(task.concurrent_fragments)),
+            "concurrent_fragment_downloads": _positive_int(task.concurrent_fragments, 4),
             "retries": 5,
             "fragment_retries": 5,
             # YouTube now ships an anti-bot JavaScript challenge that yt-dlp
@@ -642,16 +695,15 @@ class DownloadManager:
             opts["format"] = _build_video_format(task.quality, task.codec)
             # We deliberately do NOT pass merge_output_format=mp4: it would
             # mux opus audio into mp4 and play silently in some players.
-            # When the user picks a target container, an FFmpegVideoConvertor
-            # pass remuxes (or re-encodes when codecs aren't compatible).
+            # When the user picks a modern target container, an
+            # FFmpegVideoConvertor pass remuxes the downloaded streams.
             # Convertor is a no-op when the merged file is already that
             # container, so it's safe to enable even for matching formats.
             #
-            # Re-encode mode is mutually exclusive with the container PP:
-            # the custom _ReencodeH264MP4PP forces .mp4 output via a real
-            # encode pass, so a preceding remux to e.g. .mkv would just
-            # be wasted work. _run() attaches the re-encode PP separately.
-            if not task.reencode_h264:
+            # Real transcode mode is mutually exclusive with this remux PP:
+            # _run() attaches _ContainerTranscodePP separately for the
+            # compatibility checkbox and for legacy containers.
+            if self._transcode_target(task) is None:
                 target = _container_target(task.container)
                 if target:
                     opts["postprocessors"] = [
@@ -695,7 +747,12 @@ class _TaskLogger:
 def _fmt_speed(speed: float | None) -> str:
     if not speed:
         return "—"
-    value = float(speed)
+    try:
+        value = float(speed)
+    except (TypeError, ValueError):
+        return "—"
+    if not math.isfinite(value) or value <= 0:
+        return "—"
     for unit in ("B/s", "KB/s", "MB/s", "GB/s"):
         if value < 1024:
             return f"{value:.1f} {unit}"
@@ -706,7 +763,13 @@ def _fmt_speed(speed: float | None) -> str:
 def _fmt_eta(seconds: int | None) -> str:
     if seconds is None:
         return "—"
-    m, s = divmod(int(seconds), 60)
+    try:
+        total_seconds = int(seconds)
+    except (TypeError, ValueError):
+        return "—"
+    if total_seconds < 0:
+        return "—"
+    m, s = divmod(total_seconds, 60)
     h, m = divmod(m, 60)
     if h:
         return f"{h}h {m:02d}m"

@@ -8,10 +8,11 @@ Linux and Windows.
 ## Features
 
 - **Concurrent downloads** — paste many URLs (one per line), pick a max-
-  simultaneous count (1–5), and they run in parallel with a per-task
-  progress row
-- **English + Türkçe** — toggle EN / TR in the top-right; the choice is
-  remembered. Auto-detects from your system locale on first launch.
+  simultaneous count (1–5, 10, `∞`, or a custom number), and they run in
+  parallel with a per-task progress row
+- **Multilingual UI** — choose English, Türkçe, Español, Français, Deutsch,
+  Русский, العربية, 中文, or 日本語 in the top-right; the choice is remembered.
+  Auto-detects from your system locale on first launch.
 - **Video or audio** — toggle with a single radio button
 - **Codec selector** — for video: Auto (mp4 if possible, else webm/mkv) /
   MP4 (H.264) / WebM (VP9) / WebM (AV1). For audio: m4a (AAC, default) /
@@ -19,8 +20,14 @@ Linux and Windows.
   default — YouTube serves AAC natively up to 1080p so no re-encoding is
   needed, files are smaller than mp3, and quality is higher.
 - **Quality selector** — Best / 4K / 1440p / 1080p / 720p / 480p / 360p /
-  Worst for video; 320 / 256 / 192 / 128 / 96 kbps for lossy audio. The
-  bitrate dropdown auto-disables for flac/wav/Original.
+  Worst for video; Best / 320 / 256 / 192 / 128 / 96 kbps for lossy audio.
+  The bitrate dropdown auto-disables for flac/wav/alac/Original.
+- **Container and compatibility controls** — keep the original container,
+  remux to MP4/MKV/WebM/MOV, or transcode to legacy-friendly AVI/FLV/MPEG/WMV.
+  The compatibility re-encode uses codecs that fit the selected container.
+- **Browser cookies + JS runtime support** — can use browser cookies when
+  YouTube asks for sign-in, and checks for Deno/Node/Bun for yt-dlp's
+  YouTube anti-bot challenge support.
 - **Playlist support** — entire playlists download into a folder named after
   the playlist, with zero-padded index prefixes
 - **Per-task cancel + Cancel all + Clear finished** — fine-grained control
@@ -28,7 +35,8 @@ Linux and Windows.
 - **Session log** — timestamped panel showing each completed file and any
   warnings/errors
 - **Remembers preferences** — language, max-concurrent, output folder,
-  format, quality, playlist toggle persist in a config file:
+  format, quality, codecs, container, playlist toggle, fragments, and
+  cookie source persist in a config file:
   `%APPDATA%\youtube-downloader\config.json` (Windows) /
   `~/.config/youtube-downloader/config.json` (Linux) /
   `~/Library/Application Support/youtube-downloader/config.json` (macOS)
@@ -39,6 +47,8 @@ Linux and Windows.
 - Python 3.10+
 - [`ffmpeg`](https://ffmpeg.org/) on `PATH` (required for audio extraction and
   for merging high-quality video+audio streams)
+- A JavaScript runtime on `PATH` — Deno recommended, Node/Bun also work
+  (needed by yt-dlp for YouTube's anti-bot challenge solver)
 
 ## Install & Run
 
@@ -92,7 +102,7 @@ Install Python from the link above and try again, or disable the alias at
 2. Pick an output folder (defaults to `~/Downloads`)
 3. Choose **Video** or **Audio**, then a **Codec** and a **Quality**
 4. Tick **Download as playlist** if a URL is a playlist
-5. Pick **Max concurrent** (1–5, or type a custom number, or `∞`)
+5. Pick **Max concurrent** (1–5, 10, or type a custom number, or `∞`)
 6. Click **Add to queue** — downloads start immediately
 
 Each download gets its own row showing status, progress, speed and ETA, plus
@@ -107,9 +117,9 @@ named after the playlist.
 ```
 app.py             # CustomTkinter GUI: queue list, language toggle, polling loop
 downloader.py      # DownloadManager + DownloadTask (concurrent yt-dlp threads)
-i18n.py            # English + Turkish translation tables
+i18n.py            # Translation tables and dropdown option localization
 settings.py        # JSON-backed user preferences
-requirements.txt   # yt-dlp, customtkinter
+requirements.txt   # Python dependencies
 start.sh           # Linux/macOS launcher
 start.bat          # Windows launcher
 LICENSE            # MIT

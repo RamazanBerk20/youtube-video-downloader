@@ -177,7 +177,7 @@ fi
 
 VENV_PY="$VENV_DIR/bin/python"
 
-if ! "$VENV_PY" -c "import yt_dlp, customtkinter" >/dev/null 2>&1; then
+if ! "$VENV_PY" -c "import yt_dlp, customtkinter, arabic_reshaper; import bidi.algorithm" >/dev/null 2>&1; then
     echo "Installing Python dependencies…"
     "$VENV_PY" -m pip install --upgrade pip >/dev/null
     "$VENV_PY" -m pip install -r requirements.txt

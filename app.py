@@ -34,8 +34,7 @@ from downloader import (
     video_quality_options,
 )
 from i18n import (
-    I18n, LANGUAGES, LANGUAGE_DISPLAY_NAMES,
-    autodetect_language, code_for_display, display_name,
+    I18n, LANGUAGES, autodetect_language, code_for_display, display_name,
 )
 from settings import Settings
 
@@ -570,8 +569,8 @@ class App(ctk.CTk):
         self._labels_to_translate.append((self.audio_rb, "text", "radio.audio"))
 
         # Quality label + dropdown live in a sub-frame so they sit flush
-        # against each other and the whole pair aligns with the Force-MP4
-        # checkbox (row 1) and the Max-concurrent group (row 2). All three
+        # against each other and the whole pair aligns with the container
+        # controls (row 1) and the Max-concurrent group (row 2). All three
         # use column 3 with padx=(20, 12) sticky="w".
         quality_frame = ctk.CTkFrame(opts, fg_color="transparent")
         quality_frame.grid(row=0, column=3, columnspan=2,
@@ -634,10 +633,9 @@ class App(ctk.CTk):
         )
         self.container_menu.pack(side="left")
 
-        # Re-encode-to-H.264/MP4 checkbox — guaranteed-compatible output
-        # at the cost of a slow CPU pass. Wins over the container choice
-        # (output is always .mp4). Lives in the same row as the container
-        # dropdown so it's visually tied to the container concept.
+        # Compatibility re-encode checkbox — slow CPU pass, but writes codecs
+        # that match the selected container (H.264/AAC for MP4/MOV/MKV,
+        # MPEG-2/MP2 for MPEG, Xvid/MP3 for AVI, etc.).
         self.reencode_var = tk.BooleanVar(value=bool(self.settings.reencode_h264))
         self.reencode_chk = ctk.CTkCheckBox(
             container_frame, text="", variable=self.reencode_var,
@@ -658,7 +656,7 @@ class App(ctk.CTk):
         self._labels_to_translate.append((self.playlist_chk, "text", "check.playlist"))
 
         # Max-concurrent label + combobox in a sub-frame, aligned with the
-        # Quality and Force-MP4 groups above (same column 3 left edge).
+        # Quality and container groups above (same column 3 left edge).
         mc_frame = ctk.CTkFrame(opts, fg_color="transparent")
         mc_frame.grid(row=2, column=3, padx=(20, 12), pady=(4, 12), sticky="w")
         self.mc_lbl = ctk.CTkLabel(mc_frame, text="")
@@ -686,7 +684,7 @@ class App(ctk.CTk):
         self._labels_to_translate.append((self.frag_lbl, "text", "label.fragments"))
 
         self.fragments_var = tk.StringVar(
-            value=str(max(1, int(self.settings.concurrent_fragments)))
+            value=str(_parse_fragments(str(self.settings.concurrent_fragments)))
         )
         self.fragments_menu = ctk.CTkComboBox(
             frag_frame, variable=self.fragments_var,

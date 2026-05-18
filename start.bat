@@ -230,7 +230,7 @@ if not exist "%VENV_DIR%\Scripts\python.exe" (
 
 set "VENV_PY=%VENV_DIR%\Scripts\python.exe"
 
-"%VENV_PY%" -c "import yt_dlp, customtkinter" >nul 2>nul
+"%VENV_PY%" -c "import yt_dlp, customtkinter, arabic_reshaper; import bidi.algorithm" >nul 2>nul
 if errorlevel 1 (
     echo Installing Python dependencies...
     "%VENV_PY%" -m pip install --upgrade pip

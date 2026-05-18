@@ -16,6 +16,43 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 
+_LANGUAGES = {"", "en", "tr", "es", "fr", "de", "ru", "ar", "zh", "ja"}
+_MODES = {"video", "audio"}
+_QUALITIES = {
+    "Best", "4K (2160p)", "1440p", "1080p", "720p", "480p", "360p",
+    "Worst", "320 kbps", "256 kbps", "192 kbps", "128 kbps", "96 kbps",
+}
+_VIDEO_CODECS = {"Auto", "MP4 (H.264)", "WebM (VP9)", "WebM (AV1)"}
+_AUDIO_CODECS = {
+    "m4a (AAC)", "mp3", "opus", "vorbis (ogg)", "flac", "wav", "alac",
+    "ac3", "Original",
+}
+_CONTAINERS = {"None", "MP4", "MKV", "WebM", "MOV", "AVI", "FLV", "MPEG", "WMV"}
+_COOKIE_BROWSERS = {
+    "Auto", "Off", "Firefox", "Chrome", "Brave", "Chromium", "Edge",
+    "Opera", "Safari", "Vivaldi",
+}
+
+
+def _coerce_int(value: object, default: int, *, minimum: int = 1) -> int:
+    try:
+        return max(minimum, int(value))
+    except (TypeError, ValueError):
+        return default
+
+
+def _coerce_bool(value: object) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes", "on"}
+    return bool(value)
+
+
+def _choice(value: object, valid: set[str], default: str) -> str:
+    return value if isinstance(value, str) and value in valid else default
+
+
 def config_path() -> Path:
     if sys.platform == "win32":
         base = Path(os.environ.get("APPDATA") or (Path.home() / "AppData" / "Roaming"))
@@ -37,14 +74,13 @@ class Settings:
     audio_codec: str = "m4a (AAC)"
     # Optional output container for video downloads. "None" leaves yt-dlp's
     # natural output (.mp4 for H.264, .webm/.mkv otherwise); any other key
-    # (MP4, MKV, MOV, AVI, FLV, MPEG, WebM, WMV) triggers an
-    # FFmpegVideoConvertor remux pass.
+    # (MP4, MKV, MOV, AVI, FLV, MPEG, WebM, WMV) triggers either a remux or,
+    # for legacy containers, a compatibility transcode.
     container: str = "None"
-    # When True, video downloads run through a real ffmpeg re-encode pass
-    # to H.264 video + AAC audio. The output container follows the
-    # `container` setting (mp4 / mkv / avi / ...), defaulting to mp4 when
-    # container is "None". Slow and somewhat lossy, but the result plays
-    # in every player including ancient Windows / Apple ones.
+    # When True, video downloads run through a real ffmpeg re-encode pass.
+    # Codec choice follows the target container: H.264/AAC for MP4/MOV/MKV,
+    # MPEG-2/MP2 for MPEG, Xvid/MP3 for AVI, etc. Defaults to mp4 when
+    # container is "None".
     reencode_h264: bool = False
     playlist: bool = False
     auto_update_check: bool = True
@@ -58,6 +94,23 @@ class Settings:
     # "Off" = never send cookies. An explicit browser name forces that
     # browser's cookies on every request.
     cookies_browser: str = "Auto"
+
+    def __post_init__(self) -> None:
+        # Treat the config file as user-editable input. Bad values should
+        # fall back to defaults instead of crashing UI construction.
+        self.language = _choice(self.language, _LANGUAGES, "")
+        self.max_concurrent = _coerce_int(self.max_concurrent, 2)
+        self.output_dir = self.output_dir if isinstance(self.output_dir, str) else ""
+        self.mode = _choice(self.mode, _MODES, "video")
+        self.quality = _choice(self.quality, _QUALITIES, "Best")
+        self.video_codec = _choice(self.video_codec, _VIDEO_CODECS, "Auto")
+        self.audio_codec = _choice(self.audio_codec, _AUDIO_CODECS, "m4a (AAC)")
+        self.container = _choice(self.container, _CONTAINERS, "None")
+        self.reencode_h264 = _coerce_bool(self.reencode_h264)
+        self.playlist = _coerce_bool(self.playlist)
+        self.auto_update_check = _coerce_bool(self.auto_update_check)
+        self.concurrent_fragments = _coerce_int(self.concurrent_fragments, 4)
+        self.cookies_browser = _choice(self.cookies_browser, _COOKIE_BROWSERS, "Auto")
 
     @classmethod
     def load(cls) -> "Settings":
