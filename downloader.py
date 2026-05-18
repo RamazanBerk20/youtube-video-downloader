@@ -263,52 +263,62 @@ class _CancelledError(Exception):
     pass
 
 
-class _ReencodeH264MP4PP(FFmpegPostProcessor):
-    """Re-encode the downloaded video to H.264 video + AAC audio in an
-    MP4 container. Used when the user enables "Re-encode for max
+class _ReencodeH264PP(FFmpegPostProcessor):
+    """Re-encode the downloaded video to H.264 video + AAC audio in a
+    user-chosen container. Used when the user enables "Re-encode for max
     compatibility" — slow (real encode, not stream-copy) but produces a
-    file every player on Earth understands. yt-dlp's built-in
-    FFmpegVideoConvertor only remuxes, so we can't reuse it here.
+    file every player on Earth can decode. yt-dlp's built-in
+    FFmpegVideoConvertor only stream-copies, so we can't reuse it here.
 
-    Replaces the source file in-place: the .mp4 lands alongside the
-    original and the original is removed."""
+    Replaces the source file in-place: the re-encoded copy lands with
+    the chosen extension and the original is removed."""
 
     # Codec defaults chosen for "broadly compatible, sensible quality":
-    #   - libx264 with CRF 20 + medium preset = a good mid-range quality/
-    #     speed/size trade-off. CRF lower than the typical 23 because the
-    #     source is already compressed once (YouTube transcode); going
-    #     too aggressive on CRF compounds the visible artifacts.
-    #   - AAC at 192 kbps is high enough that nobody can tell it from the
-    #     original opus/AAC source by ear.
-    #   - +faststart moves the moov atom to the file head so the result
-    #     starts playing immediately when streamed (handy for the user's
-    #     downloaded copies too).
-    _ENCODE_ARGS = (
+    #   - libx264 with CRF 20 + medium preset is a good middle ground
+    #     for quality/speed/size. CRF lower than the typical 23 because
+    #     the source is already compressed once (YouTube transcode);
+    #     pushing CRF higher compounds visible artifacts.
+    #   - AAC at 192 kbps is high enough that the lossy re-encode is
+    #     inaudible to the human ear vs. the original opus/AAC source.
+    _ENCODE_ARGS_BASE = (
         "-map", "0", "-dn", "-ignore_unknown",
         "-c:v", "libx264", "-preset", "medium", "-crf", "20",
         "-c:a", "aac", "-b:a", "192k",
-        "-movflags", "+faststart",
     )
+
+    def __init__(self, downloader=None, target_ext: str = "mp4"):
+        super().__init__(downloader)
+        # Lowercase, with a "" / None fallback to "mp4" — this is the
+        # default that ships with "Container = None" + re-encode on
+        # since re-encode is meaningless without a defined output ext.
+        self.target_ext = (target_ext or "mp4").lower()
 
     def run(self, info):
         in_path = Path(info["filepath"])
-        out_path = in_path.with_suffix(".mp4")
+        out_path = in_path.with_suffix(f".{self.target_ext}")
 
-        # If the source is already .mp4 we still need to re-encode (the
-        # whole point), so write to a temp file and atomic-rename over
-        # the original. Otherwise out_path differs from in_path and we
-        # can write directly.
+        args = list(self._ENCODE_ARGS_BASE)
+        # +faststart only makes sense for ISO-BMFF style containers; it
+        # moves the moov atom to the file head so the file starts
+        # playing immediately when streamed. Adding it to e.g. .mkv is
+        # silently ignored by ffmpeg, but no point sending dead flags.
+        if self.target_ext in ("mp4", "mov", "m4a"):
+            args.extend(("-movflags", "+faststart"))
+
+        # If the source is already the target extension we still need
+        # to re-encode (the whole point), so write to a temp file and
+        # atomic-rename over the original.
         if out_path == in_path:
-            tmp_path = in_path.with_suffix(".reencoding.mp4")
-            self.run_ffmpeg(str(in_path), str(tmp_path), list(self._ENCODE_ARGS))
+            tmp_path = in_path.with_suffix(f".reencoding.{self.target_ext}")
+            self.run_ffmpeg(str(in_path), str(tmp_path), args)
             in_path.unlink(missing_ok=True)
             tmp_path.replace(out_path)
         else:
-            self.run_ffmpeg(str(in_path), str(out_path), list(self._ENCODE_ARGS))
+            self.run_ffmpeg(str(in_path), str(out_path), args)
             in_path.unlink(missing_ok=True)
 
         info["filepath"] = str(out_path)
-        info["ext"] = "mp4"
+        info["ext"] = self.target_ext
         return [], info
 
 
@@ -326,11 +336,12 @@ class DownloadTask:
     # older `force_mp4` boolean — the field is generic so we don't have
     # to grow another bool every time a new container gets added.
     container: str = "None"
-    # When True, force a real re-encode to H.264/AAC/MP4 after the
-    # download. Wins over `container` (output is always .mp4) because
-    # this is the explicit "max compatibility" path — slow, lossy, but
-    # plays everywhere including ancient Windows / Apple players that
-    # can't decode VP9-in-mp4 or opus-in-mp4.
+    # When True, force a real re-encode of the downloaded streams to
+    # H.264 video + AAC audio after the download finishes. Output goes
+    # into whatever `container` says (mp4 / mkv / avi / ...), with mp4
+    # as the fallback when container is "None". Slow, lossy, but the
+    # result plays in every player including ancient Windows / Apple
+    # ones that can't decode VP9-in-mp4 or opus-in-mp4.
     reencode_h264: bool = False
     concurrent_fragments: int = 4
     cookies_browser: str = "Off"
@@ -504,8 +515,13 @@ class DownloadManager:
                 # to its built-in classes only). Register it explicitly so
                 # it runs after the FFmpegFD merger, last in the chain.
                 if task.reencode_h264 and task.mode == "video":
+                    # Re-encode follows the user's container choice;
+                    # "None" → default to mp4 since "no container" plus
+                    # "force re-encode" can't both be true at once.
+                    target_ext = _container_target(task.container) or "mp4"
                     ydl.add_post_processor(
-                        _ReencodeH264MP4PP(downloader=ydl), when="post_process"
+                        _ReencodeH264PP(downloader=ydl, target_ext=target_ext),
+                        when="post_process",
                     )
                 ydl.download([task.url])
             task.status = "done"

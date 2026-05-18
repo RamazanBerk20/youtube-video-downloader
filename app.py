@@ -427,8 +427,13 @@ class App(ctk.CTk):
         self._auto_cookies_tried: set[str] = set()
 
         self.title(self.i18n.t("app.title"))
-        self.geometry("900x800")
-        self.minsize(720, 640)
+        # Default size bumped to fit the longest translations of the
+        # options row without horizontal overflow — German's "Re-encode"
+        # checkbox label is the worst offender at ~50 chars. minsize is
+        # below that on purpose so the user can still shrink the window
+        # if they accept some text being clipped.
+        self.geometry("1100x880")
+        self.minsize(820, 700)
 
         self._build_ui()
         self._apply_language()

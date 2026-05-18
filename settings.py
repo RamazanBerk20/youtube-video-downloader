@@ -41,9 +41,10 @@ class Settings:
     # FFmpegVideoConvertor remux pass.
     container: str = "None"
     # When True, video downloads run through a real ffmpeg re-encode pass
-    # (H.264 + AAC + mp4) for maximum playback compatibility. Slow and
-    # somewhat lossy, but the result plays in every player including
-    # ancient Windows / Apple ones. Overrides `container` (always .mp4).
+    # to H.264 video + AAC audio. The output container follows the
+    # `container` setting (mp4 / mkv / avi / ...), defaulting to mp4 when
+    # container is "None". Slow and somewhat lossy, but the result plays
+    # in every player including ancient Windows / Apple ones.
     reencode_h264: bool = False
     playlist: bool = False
     auto_update_check: bool = True
