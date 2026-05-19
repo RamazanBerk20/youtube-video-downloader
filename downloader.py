@@ -113,6 +113,8 @@ _VIDEO_CODEC_CHAINS: dict[str, list[str]] = {
     ],
     "MP4 (H.264)": [
         "bestvideo{h}[vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]",
+        "bestvideo{h}[vcodec^=avc1][ext=mp4]+bestaudio",
+        "best{h}[vcodec^=avc1][ext=mp4]",
         "bestvideo{h}[ext=mp4]+bestaudio[ext=m4a]",
         "best{h}[ext=mp4]",
         "best{h}",
@@ -252,6 +254,7 @@ _TARGET_CODECS: dict[str, tuple[set[str], set[str]]] = {
 # Cached result of `ffmpeg -encoders` parsed for H.264 variants. Probed
 # once on first use and reused — encoders list doesn't change at runtime.
 _H264_ENCODER_CACHE: list[str] | None = None
+_CUDA_DECODER_CACHE: set[str] | None = None
 
 # Encoders that hit a runtime failure (or watchdog timeout) during a real
 # encode get added here for the rest of the session, so subsequent encodes
@@ -306,7 +309,7 @@ def _ffmpeg_env() -> dict[str, str] | None:
     or non-NVIDIA machines so callers fall through to default env."""
     if sys.platform != "linux":
         return None
-    if not os.path.exists("/proc/driver/nvidia/version"):
+    if not _has_nvidia_runtime():
         return None
     env = os.environ.copy()
     env["__NV_PRIME_RENDER_OFFLOAD"] = (
@@ -319,6 +322,28 @@ def _ffmpeg_env() -> dict[str, str] | None:
         _NVIDIA_OFFLOAD_VARS.get("__VK_LAYER_NV_optimus") or "NVIDIA_only"
     )
     return env
+
+
+def _has_nvidia_runtime() -> bool:
+    """True when this Linux process can plausibly initialize NVENC.
+
+    `ffmpeg -encoders` only tells us the binary was compiled with NVENC;
+    many distro builds include it even on machines with no NVIDIA driver.
+    Trying h264_nvenc there just produces noisy "Cannot load libcuda" errors
+    before falling back. Filter it out up front unless a driver/device is
+    visible."""
+    if sys.platform != "linux":
+        return True
+    if (
+        _NVIDIA_OFFLOAD_VARS.get("__NV_PRIME_RENDER_OFFLOAD") == "1"
+        or _NVIDIA_OFFLOAD_VARS.get("__GLX_VENDOR_LIBRARY_NAME") == "nvidia"
+    ):
+        return True
+    return any(os.path.exists(p) for p in (
+        "/dev/nvidiactl",
+        "/dev/nvidia0",
+        "/dev/dxg",  # WSL2 GPU paravirtual device
+    ))
 
 
 def _detect_h264_encoders() -> list[str]:
@@ -353,6 +378,9 @@ def _detect_h264_encoders() -> list[str]:
     except (OSError, subprocess.SubprocessError):
         pass
 
+    if "h264_nvenc" in available and not _has_nvidia_runtime():
+        available.remove("h264_nvenc")
+
     if not available:
         # Probe failed (ffmpeg missing?) — assume libx264 and let yt-dlp's
         # own error path surface a clearer message later.
@@ -386,6 +414,46 @@ def _detect_h264_encoders() -> list[str]:
     return final
 
 
+def _detect_cuda_decoders() -> set[str]:
+    """Return available NVIDIA CUVID decoders. These are input-side hardware
+    decoders; pairing vp9_cuvid/av1_cuvid with h264_nvenc keeps the expensive
+    YouTube 4K decode path on the GPU instead of bottlenecking on CPU."""
+    global _CUDA_DECODER_CACHE
+    if _CUDA_DECODER_CACHE is not None:
+        return set(_CUDA_DECODER_CACHE)
+    if not _has_nvidia_runtime():
+        _CUDA_DECODER_CACHE = set()
+        return set()
+
+    found: set[str] = set()
+    try:
+        r = subprocess.run(
+            ["ffmpeg", "-decoders", "-hide_banner", "-loglevel", "error"],
+            capture_output=True, text=True, timeout=8,
+        )
+        text = (r.stdout or "") + (r.stderr or "")
+        for name in ("vp9_cuvid", "av1_cuvid", "h264_cuvid", "hevc_cuvid"):
+            if name in text:
+                found.add(name)
+    except (OSError, subprocess.SubprocessError):
+        pass
+    _CUDA_DECODER_CACHE = set(found)
+    return found
+
+
+def _cuda_decoder_for(codec: str | None) -> str | None:
+    mapping = {
+        "vp9": "vp9_cuvid",
+        "av1": "av1_cuvid",
+        "h264": "h264_cuvid",
+        "hevc": "hevc_cuvid",
+    }
+    decoder = mapping.get(codec or "")
+    if decoder and decoder in _detect_cuda_decoders():
+        return decoder
+    return None
+
+
 # Per-encoder speed/quality preset table. Each row is keyed by encoder
 # name + quality preset ("fast" / "balanced" / "quality") and stores the
 # ffmpeg argv tokens that select the matching tradeoff for that codec.
@@ -405,10 +473,14 @@ _H264_ENCODER_PRESETS: dict[str, dict[str, tuple[str, ...]]] = {
         #      the original NVENC rate-control mode (2014, all generations),
         #      vbr+cq is newer and silently fails on some Pascal builds
         #      with no useful error — manifests as "no packets in output".
+        #   3. Do not use legacy `slow` for Quality: ffmpeg maps it to
+        #      "hq 2 passes", which is often slower than CPU decode speed
+        #      on YouTube VP9/AV1 inputs. Balanced uses legacy fast for the
+        #      high-performance path; Quality uses medium with a lower QP.
         # qp scale is 0-51, lower = better quality.
         "fast":     ("-c:v", "h264_nvenc", "-preset", "fast",   "-rc", "constqp", "-qp", "24"),
-        "balanced": ("-c:v", "h264_nvenc", "-preset", "medium", "-rc", "constqp", "-qp", "22"),
-        "quality":  ("-c:v", "h264_nvenc", "-preset", "slow",   "-rc", "constqp", "-qp", "20"),
+        "balanced": ("-c:v", "h264_nvenc", "-preset", "fast",   "-rc", "constqp", "-qp", "22"),
+        "quality":  ("-c:v", "h264_nvenc", "-preset", "medium", "-rc", "constqp", "-qp", "20"),
     },
     "h264_qsv": {
         "fast":     ("-c:v", "h264_qsv", "-preset", "veryfast", "-global_quality", "24"),
@@ -452,7 +524,39 @@ def _build_remux_args(target_ext: str) -> list[str]:
     """ffmpeg args for a pure container swap with no re-encoding. Used
     when the source codecs already match the target profile — only the
     extension changes."""
-    args = ["-map", "0", "-c", "copy"]
+    args = [
+        "-map", "0:v:0", "-map", "0:a:0?",
+        "-sn", "-dn", "-ignore_unknown",
+        "-c", "copy",
+    ]
+    if target_ext in ("mp4", "mov", "m4a"):
+        args.extend(["-movflags", "+faststart"])
+    if target_ext == "mpeg":
+        args.extend(["-f", "mpeg"])
+    return args
+
+
+_AUDIO_TRANSCODE_ARGS: dict[str, tuple[str, ...]] = {
+    "mp4":  ("-c:a", "aac", "-b:a", "192k"),
+    "mov":  ("-c:a", "aac", "-b:a", "192k"),
+    "mkv":  ("-c:a", "aac", "-b:a", "192k"),
+    "webm": ("-c:a", "libopus", "-b:a", "160k"),
+    "avi":  ("-c:a", "libmp3lame", "-b:a", "192k"),
+    "flv":  ("-c:a", "libmp3lame", "-b:a", "192k"),
+    "mpeg": ("-c:a", "mp2", "-b:a", "192k"),
+    "wmv":  ("-c:a", "wmav2", "-b:a", "192k"),
+}
+
+
+def _build_video_copy_audio_transcode_args(target_ext: str) -> list[str]:
+    """ffmpeg args for the smart-skip middle path: keep an already-compatible
+    video stream untouched and only convert audio to fit the target."""
+    args = [
+        "-map", "0:v:0", "-map", "0:a:0?",
+        "-sn", "-dn", "-ignore_unknown",
+        "-c:v", "copy",
+        *_AUDIO_TRANSCODE_ARGS.get(target_ext, _AUDIO_TRANSCODE_ARGS["mp4"]),
+    ]
     if target_ext in ("mp4", "mov", "m4a"):
         args.extend(["-movflags", "+faststart"])
     if target_ext == "mpeg":
@@ -481,6 +585,8 @@ def _build_transcode_args(
     target_ext: str,
     h264_encoder: str = "libx264",
     quality_preset: str = "balanced",
+    *,
+    cuda_input: bool = False,
 ) -> list[str]:
     """ffmpeg args for a full re-encode into `target_ext`. `h264_encoder`
     is only consulted for H.264-based containers (mp4/mov/mkv); legacy
@@ -490,7 +596,8 @@ def _build_transcode_args(
     base = ["-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn", "-ignore_unknown"]
     if target_ext in ("mp4", "mov", "mkv"):
         args = list(base) + _h264_encoder_args(h264_encoder, qp)
-        args.extend(["-pix_fmt", "yuv420p"])
+        if not cuda_input:
+            args.extend(["-pix_fmt", "yuv420p"])
         args.extend(["-c:a", "aac", "-b:a", "192k"])
         if target_ext in ("mp4", "mov"):
             args.extend(["-movflags", "+faststart"])
@@ -530,6 +637,19 @@ def _build_transcode_args(
     return _build_transcode_args("mp4", h264_encoder, qp)
 
 
+def _video_encoder_label(target_ext: str, h264_encoder: str) -> str:
+    """Human-readable video encoder name for logs."""
+    if target_ext in ("mp4", "mov", "mkv"):
+        return h264_encoder
+    return {
+        "webm": "libvpx-vp9",
+        "avi": "libxvid",
+        "flv": "flv",
+        "mpeg": "mpeg2video",
+        "wmv": "wmv2",
+    }.get(target_ext, h264_encoder)
+
+
 def _probe_codecs(path: Path) -> tuple[str | None, str | None]:
     """Return (video_codec_name, audio_codec_name) via ffprobe. Either may
     be None if the stream is absent or the probe failed."""
@@ -564,15 +684,26 @@ def _codecs_match(target_ext: str, vcodec: str | None, acodec: str | None) -> bo
     """True iff the source codecs already fit `target_ext`'s profile.
     Audio is treated as optional — a video-only source still qualifies
     if its video codec matches."""
+    video_ok, audio_ok = _codec_match_parts(target_ext, vcodec, acodec)
+    return video_ok and audio_ok
+
+
+def _codec_match_parts(
+    target_ext: str,
+    vcodec: str | None,
+    acodec: str | None,
+) -> tuple[bool, bool]:
+    """Return separate (video_ok, audio_ok) flags for the target profile.
+
+    This lets compatibility mode avoid re-encoding H.264 video just because
+    the audio stream needs conversion."""
     profile = _TARGET_CODECS.get(target_ext)
     if profile is None:
-        return False
+        return False, False
     ok_v, ok_a = profile
-    if vcodec not in ok_v:
-        return False
-    if acodec is None:
-        return True
-    return acodec in ok_a
+    video_ok = vcodec in ok_v
+    audio_ok = acodec is None or acodec in ok_a
+    return video_ok, audio_ok
 
 
 def _probe_duration(path: Path) -> float | None:
@@ -604,6 +735,7 @@ def _probe_duration(path: Path) -> float | None:
 def _run_ffmpeg_with_progress(
     in_path: Path,
     out_path: Path,
+    input_args: list[str],
     args: list[str],
     duration_seconds: float | None,
     task: "DownloadTask",
@@ -618,6 +750,7 @@ def _run_ffmpeg_with_progress(
     `subprocess.CalledProcessError` on non-zero ffmpeg exit."""
     cmd: list[str] = [
         "ffmpeg", "-hide_banner", "-nostats", "-loglevel", "error", "-y",
+        *input_args,
         "-i", str(in_path),
         *args,
         "-progress", "pipe:1",
@@ -785,6 +918,33 @@ def _run_ffmpeg_with_progress(
         raise subprocess.CalledProcessError(proc.returncode, cmd, stderr=err)
 
 
+def _run_ffmpeg_plain(
+    in_path: Path,
+    out_path: Path,
+    input_args: list[str],
+    args: list[str],
+) -> None:
+    """Non-GUI/test ffmpeg runner that supports pre-input args such as
+    `-hwaccel cuda -c:v vp9_cuvid`."""
+    cmd = [
+        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+        *input_args,
+        "-i", str(in_path),
+        *args,
+        str(out_path),
+    ]
+    r = subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+        env=_ffmpeg_env(),
+    )
+    if r.returncode != 0:
+        raise subprocess.CalledProcessError(
+            r.returncode, cmd, output=r.stdout, stderr=r.stderr
+        )
+
+
 def video_quality_options() -> list[str]:
     return list(_QUALITY_HEIGHT.keys())
 
@@ -794,7 +954,7 @@ def audio_quality_options() -> list[str]:
 
 
 def video_codec_options() -> list[str]:
-    return list(_VIDEO_CODEC_CHAINS.keys())
+    return [key for key in _VIDEO_CODEC_CHAINS.keys() if not key.startswith("Auto (")]
 
 
 def audio_codec_options() -> list[str]:
@@ -813,13 +973,51 @@ def _positive_int(value: object, default: int = 1) -> int:
         return default
 
 
-def _build_video_format(quality: str, codec: str) -> str:
+def _build_video_format(
+    quality: str,
+    codec: str,
+    *,
+    prefer_h264_source: bool = False,
+    prefer_vp9_source: bool = False,
+) -> str:
     spec = _QUALITY_HEIGHT.get(quality)
     if spec == "worst":
         return "worstvideo+worstaudio/worst"
+    if codec == "Auto" and prefer_vp9_source:
+        return _build_high_res_compat_format(spec)
     h = f"[height<={spec}]" if isinstance(spec, int) else ""
-    chain = _VIDEO_CODEC_CHAINS.get(codec) or _VIDEO_CODEC_CHAINS["Auto"]
+    chain_key = codec
+    if codec == "Auto":
+        if prefer_h264_source:
+            chain_key = "MP4 (H.264)"
+    chain = _VIDEO_CODEC_CHAINS.get(chain_key) or _VIDEO_CODEC_CHAINS["Auto"]
     return "/".join(s.replace("{h}", h) for s in chain)
+
+
+def _build_high_res_compat_format(spec: int | None | str) -> str:
+    """Auto + compatibility selector for Best/1440p/4K.
+
+    Prefer GPU-friendly VP9/WebM only when it actually preserves a resolution
+    above YouTube's H.264 range. If the chosen video tops out at 1080p, fall
+    back to H.264 MP4 so smart-skip can avoid a pointless re-encode.
+    """
+    high = "[height>1080]"
+    if isinstance(spec, int):
+        high += f"[height<={spec}]"
+    h264 = "[height<=1080]"
+    chain = [
+        f"bestvideo{high}[vcodec^=vp09][dynamic_range=SDR]+bestaudio[acodec=opus]",
+        f"bestvideo{high}[vcodec^=vp09]+bestaudio[acodec=opus]",
+        f"bestvideo{high}[ext=webm]+bestaudio[ext=webm]",
+        f"bestvideo{high}+bestaudio",
+        f"best{high}",
+        f"bestvideo{h264}[vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]",
+        f"bestvideo{h264}[vcodec^=avc1][ext=mp4]+bestaudio",
+        f"best{h264}[vcodec^=avc1][ext=mp4]",
+        "bestvideo+bestaudio",
+        "best",
+    ]
+    return "/".join(chain)
 
 
 def _build_audio_postprocessor(codec_key: str, bitrate_key: str) -> dict | None:
@@ -877,6 +1075,28 @@ class _ContainerTranscodePP(FFmpegPostProcessor):
         self._task = task
         self._events = events
 
+    def _log(self, message: str) -> None:
+        """Send a postprocessor decision to the app log. `to_screen()` is
+        still called for non-GUI/test contexts, but GUI users need direct
+        task_log events because yt-dlp is running quiet."""
+        try:
+            self.to_screen(message)
+        except Exception:  # noqa: BLE001
+            pass
+        if self._task is not None and self._events is not None:
+            self._events.put({
+                "type": "task_log",
+                "task_id": self._task.id,
+                "message": message,
+            })
+
+    def _warn(self, message: str) -> None:
+        try:
+            self.report_warning(message)
+        except Exception:  # noqa: BLE001
+            pass
+        self._log("warning: " + message)
+
     def run(self, info):
         in_path = Path(info["filepath"])
         target_ext = self.target_ext
@@ -886,13 +1106,18 @@ class _ContainerTranscodePP(FFmpegPostProcessor):
         # laptops where the dGPU just spun up via prime-run there can be
         # a multi-second pause before its first response. Tell the user
         # something's happening before the actual encoder runs.
-        self.to_screen(f"Inspecting {in_path.name}…")
+        self._log(f"Inspecting {in_path.name}…")
         vcodec, acodec = _probe_codecs(in_path)
-        codecs_match = _codecs_match(target_ext, vcodec, acodec)
+        self._log(
+            "Detected source codecs: "
+            f"{vcodec or 'unknown'}{('/' + acodec) if acodec else ''}"
+        )
+        video_ok, audio_ok = _codec_match_parts(target_ext, vcodec, acodec)
+        codecs_match = video_ok and audio_ok
 
         # Case 1: already perfect — skip entirely.
         if src_ext == target_ext and codecs_match:
-            self.to_screen(
+            self._log(
                 f"Re-encode skipped: {in_path.name} is already "
                 f"{target_ext}/{vcodec}{('/' + acodec) if acodec else ''}"
             )
@@ -902,21 +1127,41 @@ class _ContainerTranscodePP(FFmpegPostProcessor):
 
         # Case 2: codecs match, container doesn't — fast remux.
         if codecs_match:
-            self.to_screen(
+            self._log(
                 f"Remuxing to {target_ext} (codecs already compatible)"
             )
             self._set_phase("remux")
-            self._encode(in_path, out_path, target_ext,
+            self._encode(in_path, out_path, target_ext, [],
                          _build_remux_args(target_ext),
                          duration_seconds=None)
+            self._log(f"Saved output: {out_path.name}")
+            info["filepath"] = str(out_path)
+            info["ext"] = target_ext
+            return [], info
+
+        # Case 2b: video is already compatible but audio is not. Keep the
+        # video stream byte-for-byte and only convert audio. This is the
+        # important "smart skip" behavior for H.264 downloads that should
+        # not pay a second lossy video encode.
+        if video_ok:
+            self._log(
+                f"Copying {vcodec} video; converting audio to fit {target_ext}"
+            )
+            self._set_phase("remux")
+            self._encode(in_path, out_path, target_ext, [],
+                         _build_video_copy_audio_transcode_args(target_ext),
+                         duration_seconds=None)
+            self._log(f"Saved output: {out_path.name}")
             info["filepath"] = str(out_path)
             info["ext"] = target_ext
             return [], info
 
         # Case 3: full transcode. For H.264 targets try HW first, fall
         # back to libx264 on runtime failure (driver mismatch, etc.).
-        if target_ext in ("mp4", "mov", "mkv"):
+        h264_target = target_ext in ("mp4", "mov", "mkv")
+        if h264_target:
             encoders = _detect_h264_encoders() or ["libx264"]
+            self._log("Available H.264 encoders: " + ", ".join(encoders))
         else:
             encoders = ["libx264"]  # value unused for non-H.264 profiles
 
@@ -933,66 +1178,112 @@ class _ContainerTranscodePP(FFmpegPostProcessor):
 
         last_err: Exception | None = None
         for encoder in encoders:
-            args = _build_transcode_args(target_ext, encoder, self.quality_preset)
-            self.to_screen(
-                f"Re-encoding to {target_ext} with {encoder} "
-                f"({self.quality_preset})"
-            )
-            try:
-                self._encode(in_path, out_path, target_ext, args,
-                             duration_seconds=duration)
-                info["filepath"] = str(out_path)
-                info["ext"] = target_ext
-                return [], info
-            except _CancelledError:
-                # User cancelled mid-encode — don't fall through to the
-                # next encoder, just propagate so the manager marks the
-                # task as cancelled.
-                raise
-            except Exception as e:  # noqa: BLE001
-                last_err = e
-                # The CalledProcessError's __str__ only shows the command
-                # + exit code — useless for diagnosing why NVENC refused.
-                # Pull the captured stderr (set on the exception by
-                # _run_ffmpeg_with_progress) and surface it line by line.
-                #
-                # Important: ffmpeg's most useful error is usually the
-                # FIRST non-banner line (the actual init failure), not
-                # the last (which is typically just "Nothing was written"
-                # — the downstream symptom). Show up to 3 lines so we
-                # capture both the root cause and any follow-up context.
-                stderr = (getattr(e, "stderr", "") or "").strip()
-                if stderr:
-                    for line in stderr.splitlines()[:3]:
-                        line = line.strip()
-                        if line:
-                            self.report_warning(
-                                f"{encoder} ffmpeg: {line[:300]}"
-                            )
-                self.report_warning(
-                    f"{encoder} failed; trying next encoder"
+            encoder_label = _video_encoder_label(target_ext, encoder)
+            attempts: list[tuple[list[str], bool, str | None]] = [([], False, None)]
+            if encoder == "h264_nvenc":
+                decoder = _cuda_decoder_for(vcodec)
+                if decoder:
+                    attempts = [
+                        (
+                            [
+                                "-hwaccel", "cuda",
+                                "-hwaccel_output_format", "cuda",
+                                "-c:v", decoder,
+                            ],
+                            True,
+                            f"Using NVIDIA hardware decode: {decoder}",
+                        ),
+                        ([], False, "Retrying NVENC with CPU decode"),
+                    ]
+                else:
+                    attempts = [(
+                        [],
+                        False,
+                        "NVIDIA hardware decode unavailable for "
+                        f"{vcodec or 'unknown'}; using CPU decode + NVENC",
+                    )]
+
+            for idx, (input_args, cuda_input, decode_log) in enumerate(attempts):
+                args = _build_transcode_args(
+                    target_ext,
+                    encoder,
+                    self.quality_preset,
+                    cuda_input=cuda_input,
                 )
-                # Add to the session blacklist so future encodes skip
-                # this encoder directly — no point retrying a NVENC
-                # init that just failed because the dGPU is parked.
-                # libx264 is the universal fallback and never gets
-                # blacklisted (a libx264 failure is a real problem
-                # we'd want surfaced, not silenced).
-                if encoder != "libx264":
-                    _mark_encoder_broken(encoder)
-                # Clean up whatever the failed pass left behind so the
-                # retry starts from a clean slate.
-                if out_path != in_path and out_path.exists():
-                    try:
-                        out_path.unlink()
-                    except OSError:
-                        pass
-                tmp = in_path.with_suffix(f".reencoding.{target_ext}")
-                if tmp.exists():
-                    try:
-                        tmp.unlink()
-                    except OSError:
-                        pass
+                if decode_log:
+                    self._log(decode_log)
+                self._log(
+                    f"Re-encoding to {target_ext} with {encoder_label} "
+                    f"({self.quality_preset})"
+                )
+                try:
+                    self._encode(
+                        in_path, out_path, target_ext, input_args, args,
+                        duration_seconds=duration,
+                    )
+                    self._log(f"Saved output: {out_path.name}")
+                    info["filepath"] = str(out_path)
+                    info["ext"] = target_ext
+                    return [], info
+                except _CancelledError:
+                    # User cancelled mid-encode — don't fall through to the
+                    # next encoder, just propagate so the manager marks the
+                    # task as cancelled.
+                    raise
+                except Exception as e:  # noqa: BLE001
+                    last_err = e
+                    # The CalledProcessError's __str__ only shows the command
+                    # + exit code — useless for diagnosing why NVENC refused.
+                    # Pull the captured stderr (set on the exception by
+                    # _run_ffmpeg_with_progress) and surface it line by line.
+                    #
+                    # Important: ffmpeg's most useful error is usually the
+                    # FIRST non-banner line (the actual init failure), not
+                    # the last (which is typically just "Nothing was written"
+                    # — the downstream symptom). Show up to 3 lines so we
+                    # capture both the root cause and any follow-up context.
+                    stderr = (getattr(e, "stderr", "") or "").strip()
+                    if stderr:
+                        for line in stderr.splitlines()[:3]:
+                            line = line.strip()
+                            if line:
+                                self._warn(
+                                    f"{encoder_label} ffmpeg: {line[:300]}"
+                                )
+
+                    # Clean up whatever the failed pass left behind so the
+                    # retry starts from a clean slate.
+                    if out_path != in_path and out_path.exists():
+                        try:
+                            out_path.unlink()
+                        except OSError:
+                            pass
+                    tmp = in_path.with_suffix(f".reencoding.{target_ext}")
+                    if tmp.exists():
+                        try:
+                            tmp.unlink()
+                        except OSError:
+                            pass
+
+                    if input_args and idx + 1 < len(attempts):
+                        self._warn(
+                            "NVIDIA hardware decode failed; retrying NVENC "
+                            "with CPU decode"
+                        )
+                        continue
+
+                    self._warn(
+                        f"{encoder_label} failed; trying next encoder"
+                    )
+                    # Add to the session blacklist so future encodes skip
+                    # this encoder directly — no point retrying a NVENC
+                    # init that just failed because the dGPU is parked.
+                    # libx264 is the universal fallback and never gets
+                    # blacklisted (a libx264 failure is a real problem
+                    # we'd want surfaced, not silenced).
+                    if encoder != "libx264":
+                        _mark_encoder_broken(encoder)
+                    break
         if last_err is not None:
             raise last_err
         return [], info
@@ -1015,6 +1306,7 @@ class _ContainerTranscodePP(FFmpegPostProcessor):
         in_path: Path,
         out_path: Path,
         target_ext: str,
+        input_args: list[str],
         args: list[str],
         *,
         duration_seconds: float | None,
@@ -1025,14 +1317,15 @@ class _ContainerTranscodePP(FFmpegPostProcessor):
         caller handles retry / cleanup) or `_CancelledError` if the
         user pressed ×."""
         if self._task is None or self._events is None:
-            # Test / no-GUI path: use yt-dlp's silent wrapper as before.
+            # Test / no-GUI path: drive ffmpeg directly so hardware decode
+            # input args work in both GUI and headless contexts.
             if out_path == in_path:
                 tmp_path = in_path.with_suffix(f".reencoding.{target_ext}")
-                self.run_ffmpeg(str(in_path), str(tmp_path), args)
+                _run_ffmpeg_plain(in_path, tmp_path, input_args, args)
                 in_path.unlink(missing_ok=True)
                 tmp_path.replace(out_path)
             else:
-                self.run_ffmpeg(str(in_path), str(out_path), args)
+                _run_ffmpeg_plain(in_path, out_path, input_args, args)
                 in_path.unlink(missing_ok=True)
             return
 
@@ -1040,14 +1333,14 @@ class _ContainerTranscodePP(FFmpegPostProcessor):
         if out_path == in_path:
             tmp_path = in_path.with_suffix(f".reencoding.{target_ext}")
             _run_ffmpeg_with_progress(
-                in_path, tmp_path, args, duration_seconds,
+                in_path, tmp_path, input_args, args, duration_seconds,
                 self._task, self._events,
             )
             in_path.unlink(missing_ok=True)
             tmp_path.replace(out_path)
         else:
             _run_ffmpeg_with_progress(
-                in_path, out_path, args, duration_seconds,
+                in_path, out_path, input_args, args, duration_seconds,
                 self._task, self._events,
             )
             in_path.unlink(missing_ok=True)
@@ -1317,6 +1610,33 @@ class DownloadManager:
             return target
         return None
 
+    def _should_prefer_h264_source(self, task: DownloadTask) -> bool:
+        """When compatibility mode targets H.264 and the requested quality is
+        within YouTube's H.264 range, prefer downloading H.264 directly so
+        the smart-skip path can avoid re-encoding.
+
+        Do not do this for 1440p/4K/Best: YouTube normally has no H.264 above
+        1080p, and preferring H.264 there would silently downgrade the user's
+        selected quality instead of downloading VP9/AV1 and converting it."""
+        if task.mode != "video" or task.codec != "Auto":
+            return False
+        if self._transcode_target(task) not in ("mp4", "mov", "mkv"):
+            return False
+        spec = _QUALITY_HEIGHT.get(task.quality)
+        return isinstance(spec, int) and spec <= 1080
+
+    def _should_prefer_vp9_source(self, task: DownloadTask) -> bool:
+        """For H.264 compatibility re-encode above 1080p, prefer VP9/WebM
+        over YouTube's MP4 source. 4K MP4 is commonly AV1, and AV1 hardware
+        decode is not available on many NVIDIA GPUs; VP9 CUVID is much more
+        broadly available and is usually the faster transcode input."""
+        if task.mode != "video" or task.codec != "Auto":
+            return False
+        if self._transcode_target(task) not in ("mp4", "mov", "mkv"):
+            return False
+        spec = _QUALITY_HEIGHT.get(task.quality)
+        return spec is None or (isinstance(spec, int) and spec > 1080)
+
     def _build_opts(self, task: DownloadTask) -> dict[str, Any]:
         if task.playlist:
             outtmpl = str(
@@ -1403,7 +1723,12 @@ class DownloadManager:
                 opts["postprocessors"] = [pp]
             # else: "Original" → keep the raw audio stream as-is.
         else:
-            opts["format"] = _build_video_format(task.quality, task.codec)
+            opts["format"] = _build_video_format(
+                task.quality,
+                task.codec,
+                prefer_h264_source=self._should_prefer_h264_source(task),
+                prefer_vp9_source=self._should_prefer_vp9_source(task),
+            )
             # We deliberately do NOT pass merge_output_format=mp4: it would
             # mux opus audio into mp4 and play silently in some players.
             # When the user picks a modern target container, an
