@@ -369,11 +369,15 @@ def _detect_h264_encoders() -> list[str]:
 # at the cost of ~30 % file size growth at the same visual quality.
 _H264_ENCODER_PRESETS: dict[str, dict[str, tuple[str, ...]]] = {
     "h264_nvenc": {
-        # NVENC p1 (fastest) → p7 (slowest). cq is the constant-quality
-        # knob — lower = better, 18 is near-lossless, 28 is web-quality.
-        "fast":     ("-c:v", "h264_nvenc", "-preset", "p2", "-rc", "vbr", "-cq", "24"),
-        "balanced": ("-c:v", "h264_nvenc", "-preset", "p5", "-rc", "vbr", "-cq", "22"),
-        "quality":  ("-c:v", "h264_nvenc", "-preset", "p7", "-rc", "vbr", "-cq", "20"),
+        # Legacy preset names (fast/medium/slow) are accepted by every
+        # NVENC generation from Kepler (gen 3) onward; the newer p1-p7
+        # naming only works on SDK 10+ drivers and silently rejects on
+        # older Pascal builds (GTX 10-series + old driver = exit 254 at
+        # session init, which we saw in the wild). cq is constant-quality
+        # — lower = better, 18 near-lossless, 28 web-quality.
+        "fast":     ("-c:v", "h264_nvenc", "-preset", "fast",   "-rc", "vbr", "-cq", "24"),
+        "balanced": ("-c:v", "h264_nvenc", "-preset", "medium", "-rc", "vbr", "-cq", "22"),
+        "quality":  ("-c:v", "h264_nvenc", "-preset", "slow",   "-rc", "vbr", "-cq", "20"),
     },
     "h264_qsv": {
         "fast":     ("-c:v", "h264_qsv", "-preset", "veryfast", "-global_quality", "24"),
@@ -916,8 +920,18 @@ class _ContainerTranscodePP(FFmpegPostProcessor):
                 raise
             except Exception as e:  # noqa: BLE001
                 last_err = e
+                # The CalledProcessError's __str__ only shows the command
+                # + exit code — useless for diagnosing why NVENC refused.
+                # Pull the captured stderr (set on the exception by
+                # _run_ffmpeg_with_progress) so the actual ffmpeg
+                # complaint reaches the user log.
+                stderr = (getattr(e, "stderr", "") or "").strip()
+                if stderr:
+                    detail = stderr.splitlines()[-1][:200]
+                else:
+                    detail = str(e)[:200]
                 self.report_warning(
-                    f"{encoder} failed ({e}); trying next encoder"
+                    f"{encoder} failed: {detail}; trying next encoder"
                 )
                 # Add to the session blacklist so future encodes skip
                 # this encoder directly — no point retrying a NVENC
