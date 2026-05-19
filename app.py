@@ -51,6 +51,28 @@ MAX_CONCURRENT_PRESETS = ["1", "2", "3", "4", "5", "10", INFINITY_LABEL]
 # connections (YouTube throttles each TCP stream individually). 4 is yt-dlp-
 # friendly; 16–32 saturates a gigabit link; users can type any positive int.
 FRAGMENT_PRESETS = ["1", "2", "4", "8", "16", "32", "64"]
+WINDOWS_APP_USER_MODEL_ID = "RamazanBerk20.YouTubeDownloader"
+
+
+def _resource_path(name: str) -> Path:
+    """Return a bundled resource path in source and frozen builds."""
+    bundle_dir = getattr(sys, "_MEIPASS", None)
+    if bundle_dir:
+        return Path(bundle_dir) / name
+    return Path(__file__).resolve().parent / name
+
+
+def _set_windows_app_user_model_id() -> None:
+    if sys.platform != "win32":
+        return
+    try:
+        import ctypes
+
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
+            WINDOWS_APP_USER_MODEL_ID
+        )
+    except Exception:  # noqa: BLE001
+        pass
 
 
 def _parse_concurrent(raw: str) -> int:
@@ -1633,11 +1655,21 @@ class App(ctk.CTk):
         os._exit(0)
 
     def _apply_icon(self) -> None:
-        """Use the bundled icon.png as the window / taskbar icon. PNG via
-        Tk PhotoImage works on Linux, Windows, and macOS Tk 8.6+. We keep
-        the PhotoImage alive on self so it isn't garbage-collected (which
-        would silently un-set the icon)."""
-        icon_path = Path(__file__).resolve().parent / "icon.png"
+        """Apply the best native icon for the current platform."""
+        if sys.platform == "win32":
+            ico_path = _resource_path("icon.ico")
+            if ico_path.exists():
+                try:
+                    self.iconbitmap(str(ico_path))
+                    self.iconbitmap(default=str(ico_path))
+                    return
+                except tk.TclError:
+                    pass
+
+        # PNG via Tk PhotoImage works well on Linux/macOS and is a fallback
+        # on Windows if the native .ico cannot be loaded. Keep the PhotoImage
+        # alive on self so garbage collection does not unset the icon.
+        icon_path = _resource_path("icon.png")
         if not icon_path.exists():
             return
         try:
@@ -1838,6 +1870,8 @@ def _first_line(text: str) -> str:
 
 
 def main() -> None:
+    _set_windows_app_user_model_id()
+
     # First thing: strip NVIDIA PRIME-offload env vars from our process,
     # BEFORE Tk constructs anything. If `__NV_PRIME_RENDER_OFFLOAD=1`
     # is in our env when Tk init runs, GLVnd ends up loading NVIDIA's
