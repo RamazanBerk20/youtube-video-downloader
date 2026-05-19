@@ -369,15 +369,19 @@ def _detect_h264_encoders() -> list[str]:
 # at the cost of ~30 % file size growth at the same visual quality.
 _H264_ENCODER_PRESETS: dict[str, dict[str, tuple[str, ...]]] = {
     "h264_nvenc": {
-        # Legacy preset names (fast/medium/slow) are accepted by every
-        # NVENC generation from Kepler (gen 3) onward; the newer p1-p7
-        # naming only works on SDK 10+ drivers and silently rejects on
-        # older Pascal builds (GTX 10-series + old driver = exit 254 at
-        # session init, which we saw in the wild). cq is constant-quality
-        # — lower = better, 18 near-lossless, 28 web-quality.
-        "fast":     ("-c:v", "h264_nvenc", "-preset", "fast",   "-rc", "vbr", "-cq", "24"),
-        "balanced": ("-c:v", "h264_nvenc", "-preset", "medium", "-rc", "vbr", "-cq", "22"),
-        "quality":  ("-c:v", "h264_nvenc", "-preset", "slow",   "-rc", "vbr", "-cq", "20"),
+        # Two layers of compatibility wins here:
+        #   1. Legacy preset names (fast/medium/slow) — accepted by every
+        #      NVENC from Kepler (gen 3) onward. The newer p1-p7 naming
+        #      only works on SDK 10+ drivers; older Pascal builds reject
+        #      it at session init.
+        #   2. `-rc constqp -qp N` instead of `-rc vbr -cq N`. constqp is
+        #      the original NVENC rate-control mode (2014, all generations),
+        #      vbr+cq is newer and silently fails on some Pascal builds
+        #      with no useful error — manifests as "no packets in output".
+        # qp scale is 0-51, lower = better quality.
+        "fast":     ("-c:v", "h264_nvenc", "-preset", "fast",   "-rc", "constqp", "-qp", "24"),
+        "balanced": ("-c:v", "h264_nvenc", "-preset", "medium", "-rc", "constqp", "-qp", "22"),
+        "quality":  ("-c:v", "h264_nvenc", "-preset", "slow",   "-rc", "constqp", "-qp", "20"),
     },
     "h264_qsv": {
         "fast":     ("-c:v", "h264_qsv", "-preset", "veryfast", "-global_quality", "24"),
@@ -923,15 +927,23 @@ class _ContainerTranscodePP(FFmpegPostProcessor):
                 # The CalledProcessError's __str__ only shows the command
                 # + exit code — useless for diagnosing why NVENC refused.
                 # Pull the captured stderr (set on the exception by
-                # _run_ffmpeg_with_progress) so the actual ffmpeg
-                # complaint reaches the user log.
+                # _run_ffmpeg_with_progress) and surface it line by line.
+                #
+                # Important: ffmpeg's most useful error is usually the
+                # FIRST non-banner line (the actual init failure), not
+                # the last (which is typically just "Nothing was written"
+                # — the downstream symptom). Show up to 3 lines so we
+                # capture both the root cause and any follow-up context.
                 stderr = (getattr(e, "stderr", "") or "").strip()
                 if stderr:
-                    detail = stderr.splitlines()[-1][:200]
-                else:
-                    detail = str(e)[:200]
+                    for line in stderr.splitlines()[:3]:
+                        line = line.strip()
+                        if line:
+                            self.report_warning(
+                                f"{encoder} ffmpeg: {line[:300]}"
+                            )
                 self.report_warning(
-                    f"{encoder} failed: {detail}; trying next encoder"
+                    f"{encoder} failed; trying next encoder"
                 )
                 # Add to the session blacklist so future encodes skip
                 # this encoder directly — no point retrying a NVENC
