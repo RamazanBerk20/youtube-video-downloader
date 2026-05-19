@@ -1802,6 +1802,19 @@ def _first_line(text: str) -> str:
 
 
 def main() -> None:
+    # First thing: strip NVIDIA PRIME-offload env vars from our process,
+    # BEFORE Tk constructs anything. If `__NV_PRIME_RENDER_OFFLOAD=1`
+    # is in our env when Tk init runs, GLVnd ends up loading NVIDIA's
+    # GLX driver into our address space — and that driver's state then
+    # gets corrupted when subprocess.Popen forks from a daemon thread
+    # (the merger / re-encode path). The corruption causes NVENC to
+    # silently produce zero output frames, our watchdog kills it,
+    # falls back to libx264 at software speed. The captured vars are
+    # re-injected into ffmpeg's subprocess env via downloader._ffmpeg_env()
+    # so NVENC still finds the dGPU — just without polluting the parent.
+    from downloader import capture_and_strip_nvidia_env
+    capture_and_strip_nvidia_env()
+
     # Arm child-process cleanup before we touch yt-dlp / ffmpeg. On
     # Windows this installs a Job Object so children die with us; on
     # Unix it's just an atexit hook.

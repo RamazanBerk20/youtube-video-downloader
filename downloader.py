@@ -271,26 +271,53 @@ def _is_encoder_broken(encoder: str) -> bool:
         return encoder in _KNOWN_BROKEN_ENCODERS
 
 
-def _ffmpeg_env() -> dict[str, str] | None:
-    """Build the env dict to hand to ffmpeg when we want the NVIDIA dGPU
-    to be active. We DON'T export these vars in the parent Python process
-    — setting them globally causes Tk under GLVnd to load NVIDIA's GLX
-    driver, and that driver's state can be corrupted when subprocess.Popen
-    forks from a daemon thread.
+# PRIME render-offload env vars captured (and stripped) from the parent
+# process at startup. We re-inject them into ffmpeg's subprocess env so
+# NVENC still gets the GPU; meanwhile the parent stays clean so Tk under
+# GLVnd doesn't load NVIDIA's GLX driver — that driver's state gets
+# corrupted when subprocess.Popen forks from a daemon thread (the
+# download thread spawning ffmpeg for the merger/re-encode), which on
+# prime-run setups manifested as: app freezes at 100% download, NVENC
+# session "succeeds" but produces zero output packets, watchdog kills
+# it, falls back to libx264.
+_NVIDIA_OFFLOAD_VARS: dict[str, str] = {}
+_NVIDIA_OFFLOAD_KEYS = (
+    "__NV_PRIME_RENDER_OFFLOAD",
+    "__GLX_VENDOR_LIBRARY_NAME",
+    "__VK_LAYER_NV_optimus",
+)
 
-    Returns None when no override is needed (non-Linux, no NVIDIA driver,
-    or the parent env already has the vars from a `prime-run` launch),
-    telling callers to use the default subprocess env."""
+
+def capture_and_strip_nvidia_env() -> None:
+    """Pull the PRIME offload vars out of our os.environ at startup and
+    cache them locally. Call from main() BEFORE Tk is constructed so the
+    GLVnd loader sees a clean env and doesn't pre-load the NVIDIA GLX
+    driver. Idempotent — repeated calls are no-ops."""
+    for key in _NVIDIA_OFFLOAD_KEYS:
+        val = os.environ.pop(key, None)
+        if val is not None and key not in _NVIDIA_OFFLOAD_VARS:
+            _NVIDIA_OFFLOAD_VARS[key] = val
+
+
+def _ffmpeg_env() -> dict[str, str] | None:
+    """Build the env dict to hand to ffmpeg so NVENC can find the dGPU.
+    Re-injects the offload vars we stripped at startup (or sane defaults
+    if the user didn't launch via prime-run). Returns None on non-Linux
+    or non-NVIDIA machines so callers fall through to default env."""
     if sys.platform != "linux":
         return None
     if not os.path.exists("/proc/driver/nvidia/version"):
         return None
-    if os.environ.get("__NV_PRIME_RENDER_OFFLOAD"):
-        return None
     env = os.environ.copy()
-    env["__NV_PRIME_RENDER_OFFLOAD"] = "1"
-    env["__GLX_VENDOR_LIBRARY_NAME"] = "nvidia"
-    env["__VK_LAYER_NV_optimus"] = "NVIDIA_only"
+    env["__NV_PRIME_RENDER_OFFLOAD"] = (
+        _NVIDIA_OFFLOAD_VARS.get("__NV_PRIME_RENDER_OFFLOAD") or "1"
+    )
+    env["__GLX_VENDOR_LIBRARY_NAME"] = (
+        _NVIDIA_OFFLOAD_VARS.get("__GLX_VENDOR_LIBRARY_NAME") or "nvidia"
+    )
+    env["__VK_LAYER_NV_optimus"] = (
+        _NVIDIA_OFFLOAD_VARS.get("__VK_LAYER_NV_optimus") or "NVIDIA_only"
+    )
     return env
 
 
