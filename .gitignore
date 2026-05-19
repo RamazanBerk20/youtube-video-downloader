@@ -29,11 +29,3 @@ Thumbs.db
 # Logs / downloads
 *.log
 /downloads/
-
-# Local-only screenshots used for bug reports
-/fullscreen.png
-/windowed.png
-/layout.png
-/new-layout.png
-/translate.png
-/arabic.png
