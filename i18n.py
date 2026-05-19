@@ -1,4 +1,4 @@
-"""Tiny dict-based i18n for English + Turkish.
+"""Tiny dict-based i18n for the app UI.
 
 A single `I18n` instance is created at startup. Widgets register themselves
 via `on_change()` callbacks so they re-render their labels when the user
@@ -34,7 +34,7 @@ def _shape_rtl(text: str) -> str:
         return text
 
 LANGUAGES: tuple[str, ...] = (
-    "en", "tr", "es", "fr", "de", "ru", "ar", "zh", "ja",
+    "en", "tr", "es", "fr", "de", "ru", "ar", "zh", "ja", "ko",
 )
 DEFAULT_LANG = "en"
 
@@ -51,6 +51,7 @@ LANGUAGE_DISPLAY_NAMES: dict[str, str] = {
     "ar": "العربية",
     "zh": "中文",
     "ja": "日本語",
+    "ko": "한국어",
 }
 
 # Internal option keys that should be translated for display. Everything not
@@ -72,6 +73,7 @@ _LOCALE_PREFIXES: dict[str, tuple[str, ...]] = {
     "ar": ("ar_", "ar.", "ara", "arabic"),
     "zh": ("zh_", "zh.", "chi", "zho", "chinese"),
     "ja": ("ja_", "ja.", "jpn", "japanese"),
+    "ko": ("ko_", "ko.", "kor", "korean"),
 }
 
 _T: dict[str, dict[str, str]] = {
@@ -898,6 +900,109 @@ _T: dict[str, dict[str, str]] = {
         "log.auto_cookies_no_browser": "触发机器人验证,但未检测到可用的浏览器。请在“浏览器 Cookie”中手动选择。",
         "msg.restart.title": "需要重启",
         "msg.restart.body": "应用已更新。是否立即重启以使用新版本?",
+    },
+    "ko": {
+        "app.title": "YouTube 다운로더",
+        "header.title": "YouTube 다운로더",
+
+        "field.url": "URL",
+        "field.url.placeholder": "YouTube URL을 한 줄에 하나씩 붙여넣고 추가를 클릭하세요…",
+        "field.save_to": "저장 위치",
+
+        "button.add": "대기열에 추가",
+        "button.browse": "찾아보기",
+        "button.paste": "붙여넣기",
+        "button.cancel_all": "모두 취소",
+        "button.clear_done": "완료 항목 지우기",
+        "button.open_folder": "폴더 열기",
+        "button.cancel": "취소",
+
+        "label.format": "형식",
+        "radio.video": "동영상",
+        "radio.audio": "오디오",
+        "label.codec": "코덱",
+        "label.quality": "품질",
+        "check.playlist": "재생목록으로 다운로드",
+        "label.max_concurrent": "최대 동시 작업",
+        "label.fragments": "병렬 파트",
+        "label.cookies": "브라우저 쿠키",
+
+        "label.queue": "대기열",
+        "label.log": "로그",
+
+        "option.best": "최고",
+        "option.worst": "최저",
+        "option.auto": "자동",
+        "option.original": "원본",
+        "option.off": "끔",
+        "option.none": "없음(원본 유지)",
+        "option.fast": "빠름",
+        "option.balanced": "균형",
+        "option.quality": "고품질",
+        "label.reencode_preset": "프리셋",
+        "label.container": "컨테이너",
+        "check.auto_update": "시작 시 자동 업데이트",
+        "button.check_updates": "업데이트 확인",
+        "auto_update.on": "활성화됨",
+        "auto_update.off": "비활성화됨",
+        "log.auto_update_toggled": "시작 시 자동 업데이트: {state}.",
+        "menu.cut": "잘라내기",
+        "menu.copy": "복사",
+        "menu.paste": "붙여넣기",
+        "menu.select_all": "모두 선택",
+        "check.reencode_h264": "호환성을 위해 다시 인코딩",
+
+        "queue.empty": "대기열에 다운로드가 없습니다. 위에 URL을 붙여넣고 추가를 클릭하세요.",
+
+        "status.queued": "대기 중",
+        "status.running": "다운로드 중",
+        "status.done": "완료",
+        "status.failed": "실패",
+        "status.cancelled": "취소됨",
+        "status.encoding": "인코딩 중",
+        "status.remuxing": "리먹싱 중",
+
+        "log.ready": "준비됨. URL을 붙여넣고 추가를 클릭하세요.",
+        "log.no_ffmpeg": "경고: PATH에서 ffmpeg를 찾을 수 없습니다. 오디오 추출과 고품질 동영상 병합이 실패합니다.",
+        "log.no_ffmpeg.install": "         설치: winget install Gyan.FFmpeg (Windows) / sudo pacman -S ffmpeg (Arch) / brew install ffmpeg (macOS)",
+        "log.task_added": "추가됨: {url}",
+        "log.task_started": "시작: {title}",
+        "log.task_done": "완료: {title}",
+        "log.task_failed": "실패: {title}  —  {error}",
+        "log.task_cancelled": "취소됨: {title}",
+
+        "msg.no_url.title": "URL 없음",
+        "msg.no_url.body": "먼저 YouTube URL을 하나 이상 붙여넣으세요.",
+        "msg.bad_folder.title": "출력 폴더",
+        "msg.bad_folder.body": "폴더를 만들 수 없습니다:\n{error}",
+
+        "banner.ffmpeg_missing": "ffmpeg가 설치되어 있지 않습니다. 오디오 추출과 고품질 동영상 병합이 실패합니다.",
+        "banner.update_available": "업데이트가 있습니다(origin/main에 새 커밋 {n}개).",
+        "banner.no_git_checkout": "자동 업데이트가 비활성화되었습니다 — 이 폴더는 git 체크아웃이 아닙니다. 업데이트를 활성화하려면 GitHub에 연결할까요? (로컬 파일 수정 사항은 덮어씁니다.)",
+        "banner.bot_detection": "YouTube가 이 IP를 제한하고 있습니다(\"Sign in to confirm you're not a bot\"). 아래 \"브라우저 쿠키\"에서 브라우저를 선택해 YouTube 세션을 보내고 확인을 우회하세요.",
+        "banner.js_runtime_missing": "YouTube에서 동영상 형식을 가져오려면 JavaScript 런타임이 필요합니다(안티봇 챌린지 해결기). Deno를 설치할까요?",
+        "banner.no_pm": "ffmpeg가 설치되어 있지 않고 지원되는 패키지 관리자를 찾을 수 없습니다. 수동으로 설치한 뒤 앱을 다시 시작하세요.",
+        "banner.manual_install": "설치하려면 이 명령을 직접 실행하세요:",
+        "button.install": "설치",
+        "button.update_now": "지금 업데이트",
+        "button.enable_auto_update": "활성화",
+        "button.dismiss": "닫기",
+        "log.installing": "{package} 설치 중…",
+        "log.install_running": "$ {cmd}",
+        "log.install_done": "{package} 설치됨.",
+        "log.install_failed": "설치 실패: {error}",
+        "log.update_checking": "업데이트 확인 중…",
+        "log.update_uptodate": "최신 상태입니다.",
+        "log.update_running": "origin/main에서 최신 버전 가져오는 중…",
+        "log.update_done": "업데이트되었습니다. 새 버전을 사용하려면 앱을 다시 시작하세요.",
+        "log.update_failed": "업데이트 실패: {error}",
+        "log.auto_update_enabling": "이 폴더를 GitHub origin/main에 연결하는 중…",
+        "log.auto_update_enabled": "자동 업데이트가 활성화되었습니다. 파일이 origin/main과 동기화되었습니다.",
+        "log.auto_update_enable_failed": "자동 업데이트 활성화 실패: {error}",
+        "log.auto_cookies_switched": "봇 확인이 발생했습니다 — {browser} 쿠키로 전환하고 다시 시도합니다.",
+        "log.auto_cookies_no_browser": "봇 확인이 발생했지만 사용할 수 있는 브라우저를 찾지 못했습니다. \"브라우저 쿠키\"에서 수동으로 선택하세요.",
+        "msg.restart.title": "다시 시작 필요",
+        "msg.restart.body": "앱이 업데이트되었습니다. 새 버전을 사용하려면 지금 다시 시작할까요?",
     },
     "ja": {
         "app.title": "YouTube ダウンローダー",

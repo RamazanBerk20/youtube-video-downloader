@@ -16,7 +16,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 
-_LANGUAGES = {"", "en", "tr", "es", "fr", "de", "ru", "ar", "zh", "ja"}
+_LANGUAGES = {"", "en", "tr", "es", "fr", "de", "ru", "ar", "zh", "ja", "ko"}
 _MODES = {"video", "audio"}
 _QUALITIES = {
     "Best", "4K (2160p)", "1440p", "1080p", "720p", "480p", "360p",

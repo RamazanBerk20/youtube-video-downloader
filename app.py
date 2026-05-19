@@ -87,6 +87,7 @@ def _install_text_qol_bindings(widget, *, is_text: bool, get_lang) -> None:
 
     Bindings added:
       Ctrl+A          → select all
+      Ctrl+V          → paste, replacing the selected text
       Ctrl+Backspace  → delete previous word
       Ctrl+Delete     → delete next word
       Right-click     → context menu (Cut / Copy / Paste / Select all)
@@ -106,6 +107,33 @@ def _install_text_qol_bindings(widget, *, is_text: bool, get_lang) -> None:
             else:
                 widget.select_range(0, "end")
                 widget.icursor("end")
+        except tk.TclError:
+            pass
+        return "break"
+
+    def _paste_clipboard(_evt=None):
+        try:
+            text = widget.clipboard_get()
+        except tk.TclError:
+            return "break"
+        try:
+            if is_text:
+                ranges = widget.tag_ranges("sel")
+                if ranges:
+                    start = ranges[0]
+                    widget.delete(ranges[0], ranges[-1])
+                    widget.mark_set("insert", start)
+                widget.insert("insert", text)
+                widget.see("insert")
+            else:
+                try:
+                    start = widget.index("sel.first")
+                    end = widget.index("sel.last")
+                    widget.delete(start, end)
+                    widget.icursor(start)
+                except tk.TclError:
+                    pass
+                widget.insert("insert", text)
         except tk.TclError:
             pass
         return "break"
@@ -189,6 +217,8 @@ def _install_text_qol_bindings(widget, *, is_text: bool, get_lang) -> None:
     # "move to start of line"). Most users today expect "select all".
     for seq in ("<Control-a>", "<Control-A>"):
         widget.bind(seq, select_all, add="+")
+    for seq in ("<Control-v>", "<Control-V>", "<Shift-Insert>", "<<Paste>>"):
+        widget.bind(seq, _paste_clipboard, add="+")
     for seq in ("<Control-BackSpace>", "<Control-Key-BackSpace>"):
         widget.bind(seq, _delete_word_back, add="+")
     for seq in ("<Control-Delete>", "<Control-Key-Delete>"):
@@ -239,7 +269,7 @@ def _install_text_qol_bindings(widget, *, is_text: bool, get_lang) -> None:
             )
             menu.add_command(
                 label=lang.t("menu.paste"),
-                command=_command(lambda: widget.event_generate("<<Paste>>")),
+                command=_command(_paste_clipboard),
             )
             menu.add_separator()
             menu.add_command(
@@ -747,10 +777,17 @@ class App(ctk.CTk):
                                pady=(4, 12), sticky="w")
         self._labels_to_translate.append((self.playlist_chk, "text", "check.playlist"))
 
-        # Max-concurrent label + combobox in a sub-frame, aligned with the
-        # Quality and container groups above (same column 3 left edge).
-        mc_frame = ctk.CTkFrame(opts, fg_color="transparent")
-        mc_frame.grid(row=2, column=3, padx=(20, 12), pady=(4, 12), sticky="w")
+        # Download tuning controls share one frame anchored to the same left
+        # edge as Container/Re-encode. The first grid column is sized to the
+        # Container label + dropdown above, so Parallel parts starts under
+        # the re-encode checkbox rather than immediately after Max concurrent.
+        tuning_frame = ctk.CTkFrame(opts, fg_color="transparent")
+        tuning_frame.grid(row=2, column=3, columnspan=2,
+                          padx=(20, 12), pady=(4, 12), sticky="w")
+        tuning_frame.grid_columnconfigure(0, minsize=252)
+
+        mc_frame = ctk.CTkFrame(tuning_frame, fg_color="transparent")
+        mc_frame.grid(row=0, column=0, sticky="w")
         self.mc_lbl = ctk.CTkLabel(mc_frame, text="")
         self.mc_lbl.pack(side="left", padx=(0, 8))
         self._labels_to_translate.append((self.mc_lbl, "text", "label.max_concurrent"))
@@ -764,13 +801,12 @@ class App(ctk.CTk):
         )
         self.max_concurrent_menu.pack(side="left")
 
-        # Parallel HTTP fragments per video — sits in a NEW column right
-        # next to Max-concurrent on the same row. This is the single biggest
-        # knob for raw download speed: YouTube throttles each TCP stream,
-        # so splitting across N connections is what unlocks fast pipes.
-        # Combobox accepts any positive int the user types in.
-        frag_frame = ctk.CTkFrame(opts, fg_color="transparent")
-        frag_frame.grid(row=2, column=4, padx=(12, 12), pady=(4, 4), sticky="w")
+        # Parallel HTTP fragments per video. This is the single biggest knob
+        # for raw download speed: YouTube throttles each TCP stream, so
+        # splitting across N connections is what unlocks fast pipes. Combobox
+        # accepts any positive int the user types in.
+        frag_frame = ctk.CTkFrame(tuning_frame, fg_color="transparent")
+        frag_frame.grid(row=0, column=1, sticky="w")
         self.frag_lbl = ctk.CTkLabel(frag_frame, text="")
         self.frag_lbl.pack(side="left", padx=(0, 8))
         self._labels_to_translate.append((self.frag_lbl, "text", "label.fragments"))
