@@ -28,6 +28,11 @@ _AUDIO_CODECS = {
     "ac3", "Original",
 }
 _CONTAINERS = {"None", "MP4", "MKV", "WebM", "MOV", "AVI", "FLV", "MPEG", "WMV"}
+# Quality/speed tradeoff for the compatibility re-encode pass. Maps to a
+# per-encoder preset+CRF combo in downloader._ENCODER_PRESETS. "Balanced"
+# is the default — fast enough for HW encoders to barely notice, slow
+# enough for libx264 to produce a reasonable file.
+_REENCODE_QUALITIES = {"Fast", "Balanced", "Quality"}
 _COOKIE_BROWSERS = {
     "Auto", "Off", "Firefox", "Chrome", "Brave", "Chromium", "Edge",
     "Opera", "Safari", "Vivaldi",
@@ -82,6 +87,10 @@ class Settings:
     # MPEG-2/MP2 for MPEG, Xvid/MP3 for AVI, etc. Defaults to mp4 when
     # container is "None".
     reencode_h264: bool = False
+    # Per-encoder speed/quality preset for the re-encode pass. Fast/
+    # Balanced/Quality maps to e.g. NVENC p2/p5/p7 or libx264 ultrafast/
+    # medium/slow. Only consulted when reencode_h264 is True.
+    reencode_quality: str = "Balanced"
     playlist: bool = False
     auto_update_check: bool = True
     # Per-video parallel HTTP fragment downloads. YouTube throttles each
@@ -107,6 +116,9 @@ class Settings:
         self.audio_codec = _choice(self.audio_codec, _AUDIO_CODECS, "m4a (AAC)")
         self.container = _choice(self.container, _CONTAINERS, "None")
         self.reencode_h264 = _coerce_bool(self.reencode_h264)
+        self.reencode_quality = _choice(
+            self.reencode_quality, _REENCODE_QUALITIES, "Balanced"
+        )
         self.playlist = _coerce_bool(self.playlist)
         self.auto_update_check = _coerce_bool(self.auto_update_check)
         self.concurrent_fragments = _coerce_int(self.concurrent_fragments, 4)

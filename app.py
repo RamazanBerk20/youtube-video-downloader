@@ -16,6 +16,7 @@ import customtkinter as ctk
 
 import browser_detect
 import installer
+import process_cleanup
 import updater
 from downloader import (
     BOT_DETECTION_SIGNATURE,
@@ -29,6 +30,7 @@ from downloader import (
     cookies_browser_options,
     has_ffmpeg,
     has_js_runtime,
+    reencode_quality_options,
     video_codec_options,
     video_container_options,
     video_quality_options,
@@ -402,8 +404,21 @@ class TaskRow(ctk.CTkFrame):
         t = self.task
         self.icon.configure(text=self.STATUS_ICON.get(t.status, "?"),
                             text_color=self.STATUS_COLOR.get(t.status, "#888a8e"))
+
+        # Status label maps to the task.status by default, but during
+        # `running` it swaps to a phase-specific label so the user can
+        # tell when the bar is tracking download progress vs encode
+        # progress (otherwise a 4K re-encode looks like a hang).
+        status_key = f"status.{t.status}"
+        if t.status == "running":
+            phase_key = {
+                "encode": "status.encoding",
+                "remux":  "status.remuxing",
+            }.get(t.phase)
+            if phase_key is not None:
+                status_key = phase_key
         self.status_lbl.configure(
-            text=self.i18n.t(f"status.{t.status}"),
+            text=self.i18n.t(status_key),
             text_color=self.STATUS_COLOR.get(t.status, "#888a8e"),
         )
         self.title_lbl.configure(text=_ellipsize(t.title or t.url, 80))
@@ -474,10 +489,12 @@ class App(ctk.CTk):
         # if they accept some text being clipped.
         self.geometry("1100x880")
         self.minsize(820, 700)
+        self._apply_icon()
 
         self._build_ui()
         self._apply_language()
         self._update_quality_enabled()
+        self._on_reencode_toggle()
         if self.mode_var.get() == "audio":
             self.container_frame.grid_remove()
         self.protocol("WM_DELETE_WINDOW", self._on_close)
@@ -488,6 +505,16 @@ class App(ctk.CTk):
             threading.Thread(
                 target=self._check_updates_bg, daemon=True
             ).start()
+
+        # NOTE: we deliberately do NOT pre-warm the HW-encoder cache here.
+        # The probe calls subprocess.run from a background thread, and
+        # forking under prime-run while Tk's main thread is still doing
+        # its initial X11 protocol setup can race the X server's
+        # sequence counter, leaving the GUI permanently unresponsive
+        # (no buttons, no paste, no close). The probe runs lazily inside
+        # the download thread at first encode use, which is well after
+        # Tk has settled. First encode pays a 1-3 s startup cost; every
+        # subsequent encode reuses the cached result.
 
         self.after(POLL_INTERVAL_MS, self._tick)
 
@@ -674,17 +701,41 @@ class App(ctk.CTk):
         )
         self.container_menu.pack(side="left")
 
-        # Compatibility re-encode checkbox — slow CPU pass, but writes codecs
-        # that match the selected container (H.264/AAC for MP4/MOV/MKV,
-        # MPEG-2/MP2 for MPEG, Xvid/MP3 for AVI, etc.).
+        # Compatibility re-encode checkbox — writes codecs that match the
+        # selected container (H.264/AAC for MP4/MOV/MKV, MPEG-2/MP2 for
+        # MPEG, Xvid/MP3 for AVI, etc.). Speed depends on the Preset
+        # dropdown immediately to its right; hardware encoders run in
+        # parallel with CPU work and are near-instant even at Quality.
         self.reencode_var = tk.BooleanVar(value=bool(self.settings.reencode_h264))
         self.reencode_chk = ctk.CTkCheckBox(
             container_frame, text="", variable=self.reencode_var,
+            command=self._on_reencode_toggle,
         )
         self.reencode_chk.pack(side="left", padx=(16, 0))
         self._labels_to_translate.append(
             (self.reencode_chk, "text", "check.reencode_h264")
         )
+
+        # Preset selector — Fast / Balanced / Quality. Disabled when the
+        # re-encode checkbox is off; the value only takes effect during a
+        # real encode pass. Layout-wise it lives in the same horizontal
+        # band as Container + Re-encode so all three sit on one line.
+        self.preset_lbl = ctk.CTkLabel(container_frame, text="")
+        self.preset_lbl.pack(side="left", padx=(16, 4))
+        self._labels_to_translate.append(
+            (self.preset_lbl, "text", "label.reencode_preset")
+        )
+
+        self.reencode_quality_var = tk.StringVar(
+            value=self.i18n.localize_option(
+                self.settings.reencode_quality or "Balanced"
+            )
+        )
+        self.preset_menu = ctk.CTkOptionMenu(
+            container_frame, variable=self.reencode_quality_var,
+            values=self._current_preset_values(), width=130,
+        )
+        self.preset_menu.pack(side="left")
 
         # Keep the wrapper frame around so we can show/hide the whole thing
         # when the user flips between video and audio modes.
@@ -897,6 +948,17 @@ class App(ctk.CTk):
             self.container_var.get(), self._internal_container_options()
         )
 
+    def _internal_preset_options(self) -> list[str]:
+        return reencode_quality_options()
+
+    def _current_preset_values(self) -> list[str]:
+        return [self.i18n.localize_option(k) for k in self._internal_preset_options()]
+
+    def _preset_internal(self) -> str:
+        return self.i18n.delocalize_option(
+            self.reencode_quality_var.get(), self._internal_preset_options()
+        )
+
     def _quality_internal(self) -> str:
         return self.i18n.delocalize_option(
             self.quality_var.get(), self._internal_quality_options()
@@ -914,6 +976,14 @@ class App(ctk.CTk):
             self.quality_menu.configure(state="normal" if uses_br else "disabled")
         else:
             self.quality_menu.configure(state="normal")
+
+    def _on_reencode_toggle(self) -> None:
+        """Re-encode checkbox changed → enable/disable the Preset dropdown
+        so it only invites input when it'll actually be used."""
+        if hasattr(self, "preset_menu"):
+            self.preset_menu.configure(
+                state="normal" if self.reencode_var.get() else "disabled"
+            )
 
     # ---- Banners (ffmpeg-missing, update-available) ----------------------
 
@@ -1338,6 +1408,14 @@ class App(ctk.CTk):
             self.container_menu.configure(values=self._current_container_values())
             self.container_var.set(self.i18n.localize_option(current_internal))
 
+        if hasattr(self, "preset_menu"):
+            p_keys = self._internal_preset_options()
+            current_internal = self._preset_internal()
+            if current_internal not in p_keys:
+                current_internal = "Balanced"
+            self.preset_menu.configure(values=self._current_preset_values())
+            self.reencode_quality_var.set(self.i18n.localize_option(current_internal))
+
         for row in self.rows.values():
             row.refresh()
 
@@ -1434,6 +1512,7 @@ class App(ctk.CTk):
             else "None"
         )
         reencode_h264 = bool(self.reencode_var.get()) and mode == "video"
+        reencode_quality = self._preset_internal()
         fragments = _parse_fragments(self.fragments_var.get())
         cookies_browser = self._cookies_internal()
         for url in urls:
@@ -1441,6 +1520,7 @@ class App(ctk.CTk):
                 url, out_dir, mode, quality, codec, playlist,
                 container=container,
                 reencode_h264=reencode_h264,
+                reencode_quality=reencode_quality,
                 concurrent_fragments=fragments,
                 cookies_browser=cookies_browser,
             )
@@ -1477,8 +1557,60 @@ class App(ctk.CTk):
             messagebox.showerror("Open folder", str(e))
 
     def _on_close(self) -> None:
-        self._persist_user_prefs()
-        self.destroy()
+        # Watchdog: ANY codepath below that takes more than 2 s — Tk's
+        # destroy() blocking on a hung child, terminate_children's pgrep
+        # racing with reaped pids, an unreaped Popen wedged in interpreter
+        # shutdown — gets cut short by an os._exit from a daemon thread.
+        # The user clicked X; they don't care about graceful teardown,
+        # they care that the window closes. Daemon threads run alongside
+        # the main thread, so this fires even when Tk's event loop is
+        # blocked.
+        import time
+        def _force_exit() -> None:
+            time.sleep(2.0)
+            os._exit(0)
+        threading.Thread(target=_force_exit, daemon=True).start()
+
+        try:
+            self._persist_user_prefs()
+        except Exception:  # noqa: BLE001
+            pass
+        try:
+            self.manager.cancel_all()
+        except Exception:  # noqa: BLE001
+            pass
+        try:
+            # 0.5 s SIGTERM grace, then SIGKILL. The Job Object on Windows
+            # plus our process-group leadership on Unix mean any straggler
+            # children get cleaned up by the OS even if this call times
+            # out — we don't need to baby-sit them.
+            process_cleanup.terminate_children(timeout=0.5)
+        except Exception:  # noqa: BLE001
+            pass
+        try:
+            self.destroy()
+        except Exception:  # noqa: BLE001
+            pass
+        # Happy path: cleanup finished cleanly, jump straight to OS exit
+        # without waiting for the watchdog. atexit handlers don't run,
+        # but everything important has already happened above.
+        os._exit(0)
+
+    def _apply_icon(self) -> None:
+        """Use the bundled icon.png as the window / taskbar icon. PNG via
+        Tk PhotoImage works on Linux, Windows, and macOS Tk 8.6+. We keep
+        the PhotoImage alive on self so it isn't garbage-collected (which
+        would silently un-set the icon)."""
+        icon_path = Path(__file__).resolve().parent / "icon.png"
+        if not icon_path.exists():
+            return
+        try:
+            self._icon_image = tk.PhotoImage(file=str(icon_path))
+            # default=True applies to every toplevel created by this app,
+            # not just the main window — covers dialogs etc.
+            self.iconphoto(True, self._icon_image)
+        except tk.TclError:
+            pass
 
     # ---- Event pump -------------------------------------------------------
 
@@ -1658,6 +1790,7 @@ class App(ctk.CTk):
             self.settings.video_codec = codec_internal
         self.settings.container = self._container_internal()
         self.settings.reencode_h264 = bool(self.reencode_var.get())
+        self.settings.reencode_quality = self._preset_internal()
         self.settings.playlist = bool(self.playlist_var.get())
         self.settings.concurrent_fragments = _parse_fragments(self.fragments_var.get())
         self.settings.cookies_browser = self._cookies_internal()
@@ -1669,6 +1802,20 @@ def _first_line(text: str) -> str:
 
 
 def main() -> None:
+    # Arm child-process cleanup before we touch yt-dlp / ffmpeg. On
+    # Windows this installs a Job Object so children die with us; on
+    # Unix it's just an atexit hook.
+    process_cleanup.arm()
+
+    # No startup probe — we used to run a tiny ffmpeg null encode here
+    # to confirm NVENC works, but on some NVIDIA-laptop setups the
+    # probe (or its `nvidia-smi -L` warmup) ends up stuck in an
+    # uninterruptible D-state that subprocess.run's timeout can't
+    # escape, leaving the user looking at a blank terminal forever.
+    # Instead, the encoder is tried lazily on first use (downloader.py
+    # has a session-scoped broken-encoder blacklist that learns at
+    # encode time and skips known-bad encoders on subsequent tasks).
+
     try:
         app = App()
     except Exception as e:  # noqa: BLE001

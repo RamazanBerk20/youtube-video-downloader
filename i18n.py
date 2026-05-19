@@ -57,7 +57,8 @@ LANGUAGE_DISPLAY_NAMES: dict[str, str] = {
 # in this set is technical (codec names, resolutions, bitrates) and stays
 # English in every language.
 LOCALIZED_OPTIONS: frozenset[str] = frozenset(
-    {"Best", "Worst", "Auto", "Original", "Off", "None"}
+    {"Best", "Worst", "Auto", "Original", "Off", "None",
+     "Fast", "Balanced", "Quality"}
 )
 
 # locale.getlocale() / $LANG values that should map to each language. Order
@@ -102,7 +103,11 @@ _T: dict[str, dict[str, str]] = {
         "option.original": "Original",
         "option.off": "Off",
         "option.none": "None (keep original)",
+        "option.fast": "Fast",
+        "option.balanced": "Balanced",
+        "option.quality": "Quality",
         "label.container": "Container",
+        "label.reencode_preset": "Preset",
         "check.auto_update": "Auto-update at startup",
         "button.check_updates": "Check for updates",
         "auto_update.on": "enabled",
@@ -112,7 +117,7 @@ _T: dict[str, dict[str, str]] = {
         "menu.copy": "Copy",
         "menu.paste": "Paste",
         "menu.select_all": "Select all",
-        "check.reencode_h264": "Re-encode for compatibility (slow)",
+        "check.reencode_h264": "Re-encode for compatibility",
         "check.playlist": "Download as playlist",
         "label.max_concurrent": "Max concurrent",
         "label.fragments": "Parallel parts",
@@ -128,6 +133,8 @@ _T: dict[str, dict[str, str]] = {
         "status.done": "done",
         "status.failed": "failed",
         "status.cancelled": "cancelled",
+        "status.encoding": "encoding",
+        "status.remuxing": "remuxing",
 
         "log.ready": "Ready. Paste URLs and click Add.",
         "log.no_ffmpeg": "Warning: ffmpeg not found on PATH. Audio (mp3) extraction and high-quality video merging will fail.",
@@ -199,6 +206,10 @@ _T: dict[str, dict[str, str]] = {
         "option.original": "Orijinal",
         "option.off": "Kapalı",
         "option.none": "Yok (orijinali tut)",
+        "option.fast": "Hızlı",
+        "option.balanced": "Dengeli",
+        "option.quality": "Kaliteli",
+        "label.reencode_preset": "Önayar",
         "label.container": "Konteyner",
         "check.auto_update": "Başlangıçta otomatik güncelle",
         "button.check_updates": "Güncellemeleri denetle",
@@ -209,7 +220,7 @@ _T: dict[str, dict[str, str]] = {
         "menu.copy": "Kopyala",
         "menu.paste": "Yapıştır",
         "menu.select_all": "Tümünü seç",
-        "check.reencode_h264": "Uyumluluk için yeniden kodla (yavaş)",
+        "check.reencode_h264": "Uyumluluk için yeniden kodla",
         "check.playlist": "Oynatma listesi olarak indir",
         "label.max_concurrent": "Eş zamanlı sayısı",
         "label.fragments": "Paralel parça",
@@ -225,6 +236,8 @@ _T: dict[str, dict[str, str]] = {
         "status.done": "tamamlandı",
         "status.failed": "başarısız",
         "status.cancelled": "iptal edildi",
+        "status.encoding": "kodlanıyor",
+        "status.remuxing": "yeniden paketleniyor",
 
         "log.ready": "Hazır. Bağlantıları yapıştırıp Ekle'ye basın.",
         "log.no_ffmpeg": "Uyarı: ffmpeg PATH'te bulunamadı. Ses (mp3) çıkarma ve yüksek kaliteli video birleştirme başarısız olur.",
@@ -303,6 +316,10 @@ _T: dict[str, dict[str, str]] = {
         "option.original": "Original",
         "option.off": "Desactivado",
         "option.none": "Ninguno (mantener original)",
+        "option.fast": "Rápido",
+        "option.balanced": "Equilibrado",
+        "option.quality": "Calidad",
+        "label.reencode_preset": "Preajuste",
         "label.container": "Contenedor",
         "check.auto_update": "Auto-actualizar al iniciar",
         "button.check_updates": "Buscar actualizaciones",
@@ -313,7 +330,7 @@ _T: dict[str, dict[str, str]] = {
         "menu.copy": "Copiar",
         "menu.paste": "Pegar",
         "menu.select_all": "Seleccionar todo",
-        "check.reencode_h264": "Recodificar para compatibilidad (lento)",
+        "check.reencode_h264": "Recodificar para compatibilidad",
 
         "queue.empty": "No hay descargas en cola. Pegue URLs arriba y pulse Añadir.",
 
@@ -322,6 +339,8 @@ _T: dict[str, dict[str, str]] = {
         "status.done": "completado",
         "status.failed": "fallido",
         "status.cancelled": "cancelado",
+        "status.encoding": "codificando",
+        "status.remuxing": "remuxando",
 
         "log.ready": "Listo. Pegue URLs y pulse Añadir.",
         "log.no_ffmpeg": "Aviso: ffmpeg no encontrado en PATH. La extracción de audio y la combinación de vídeo de alta calidad fallarán.",
@@ -400,6 +419,10 @@ _T: dict[str, dict[str, str]] = {
         "option.original": "Original",
         "option.off": "Désactivé",
         "option.none": "Aucun (garder l'original)",
+        "option.fast": "Rapide",
+        "option.balanced": "Équilibré",
+        "option.quality": "Qualité",
+        "label.reencode_preset": "Préréglage",
         "label.container": "Conteneur",
         "check.auto_update": "Mise à jour auto au démarrage",
         "button.check_updates": "Vérifier les mises à jour",
@@ -410,7 +433,7 @@ _T: dict[str, dict[str, str]] = {
         "menu.copy": "Copier",
         "menu.paste": "Coller",
         "menu.select_all": "Tout sélectionner",
-        "check.reencode_h264": "Réencoder pour compatibilité (lent)",
+        "check.reencode_h264": "Réencoder pour compatibilité",
 
         "queue.empty": "Aucun téléchargement en file. Collez des URL ci-dessus et cliquez sur Ajouter.",
 
@@ -419,6 +442,8 @@ _T: dict[str, dict[str, str]] = {
         "status.done": "terminé",
         "status.failed": "échoué",
         "status.cancelled": "annulé",
+        "status.encoding": "encodage",
+        "status.remuxing": "remuxage",
 
         "log.ready": "Prêt. Collez des URL et cliquez sur Ajouter.",
         "log.no_ffmpeg": "Avertissement : ffmpeg introuvable dans PATH. L'extraction audio et la fusion vidéo haute qualité échoueront.",
@@ -497,6 +522,10 @@ _T: dict[str, dict[str, str]] = {
         "option.original": "Original",
         "option.off": "Aus",
         "option.none": "Keine (Original behalten)",
+        "option.fast": "Schnell",
+        "option.balanced": "Ausgewogen",
+        "option.quality": "Qualität",
+        "label.reencode_preset": "Voreinstellung",
         "label.container": "Container",
         "check.auto_update": "Auto-Update beim Start",
         "button.check_updates": "Nach Updates suchen",
@@ -507,7 +536,7 @@ _T: dict[str, dict[str, str]] = {
         "menu.copy": "Kopieren",
         "menu.paste": "Einfügen",
         "menu.select_all": "Alles markieren",
-        "check.reencode_h264": "Für Kompatibilität neu kodieren (langsam)",
+        "check.reencode_h264": "Für Kompatibilität neu kodieren",
 
         "queue.empty": "Keine Downloads in der Warteschlange. URLs oben einfügen und Hinzufügen klicken.",
 
@@ -516,6 +545,8 @@ _T: dict[str, dict[str, str]] = {
         "status.done": "fertig",
         "status.failed": "fehlgeschlagen",
         "status.cancelled": "abgebrochen",
+        "status.encoding": "kodiert",
+        "status.remuxing": "remuxt",
 
         "log.ready": "Bereit. URLs einfügen und Hinzufügen klicken.",
         "log.no_ffmpeg": "Warnung: ffmpeg nicht im PATH gefunden. Audio-Extraktion und hochqualitative Video-Zusammenführung schlagen fehl.",
@@ -594,6 +625,10 @@ _T: dict[str, dict[str, str]] = {
         "option.original": "Оригинал",
         "option.off": "Выкл.",
         "option.none": "Нет (как есть)",
+        "option.fast": "Быстро",
+        "option.balanced": "Сбалансировано",
+        "option.quality": "Качество",
+        "label.reencode_preset": "Профиль",
         "label.container": "Контейнер",
         "check.auto_update": "Автообновление при запуске",
         "button.check_updates": "Проверить обновления",
@@ -604,7 +639,7 @@ _T: dict[str, dict[str, str]] = {
         "menu.copy": "Копировать",
         "menu.paste": "Вставить",
         "menu.select_all": "Выделить всё",
-        "check.reencode_h264": "Перекодировать для совместимости (медленно)",
+        "check.reencode_h264": "Перекодировать для совместимости",
 
         "queue.empty": "Очередь пуста. Вставьте ссылки выше и нажмите Добавить.",
 
@@ -613,6 +648,8 @@ _T: dict[str, dict[str, str]] = {
         "status.done": "готово",
         "status.failed": "ошибка",
         "status.cancelled": "отменено",
+        "status.encoding": "кодирование",
+        "status.remuxing": "ремукс",
 
         "log.ready": "Готово. Вставьте ссылки и нажмите Добавить.",
         "log.no_ffmpeg": "Предупреждение: ffmpeg не найден в PATH. Извлечение аудио и слияние видео высокого качества не сработают.",
@@ -691,6 +728,10 @@ _T: dict[str, dict[str, str]] = {
         "option.original": "الأصلي",
         "option.off": "إيقاف",
         "option.none": "بلا (الاحتفاظ بالأصل)",
+        "option.fast": "سريع",
+        "option.balanced": "متوازن",
+        "option.quality": "جودة",
+        "label.reencode_preset": "الإعداد المسبق",
         "label.container": "الحاوية",
         "check.auto_update": "تحديث تلقائي عند التشغيل",
         "button.check_updates": "البحث عن تحديثات",
@@ -701,7 +742,7 @@ _T: dict[str, dict[str, str]] = {
         "menu.copy": "نسخ",
         "menu.paste": "لصق",
         "menu.select_all": "تحديد الكل",
-        "check.reencode_h264": "إعادة الترميز للتوافق (بطيء)",
+        "check.reencode_h264": "إعادة الترميز للتوافق",
 
         "queue.empty": "لا توجد تحميلات في القائمة. ألصق الروابط في الأعلى وانقر إضافة.",
 
@@ -710,6 +751,8 @@ _T: dict[str, dict[str, str]] = {
         "status.done": "اكتمل",
         "status.failed": "فشل",
         "status.cancelled": "أُلغي",
+        "status.encoding": "جارٍ الترميز",
+        "status.remuxing": "إعادة الحاوية",
 
         "log.ready": "جاهز. ألصق الروابط وانقر إضافة.",
         "log.no_ffmpeg": "تحذير: ffmpeg غير موجود في PATH. سيفشل استخراج الصوت ودمج الفيديو عالي الجودة.",
@@ -788,6 +831,10 @@ _T: dict[str, dict[str, str]] = {
         "option.original": "原始",
         "option.off": "关闭",
         "option.none": "无(保留原始)",
+        "option.fast": "快速",
+        "option.balanced": "平衡",
+        "option.quality": "质量",
+        "label.reencode_preset": "预设",
         "label.container": "容器",
         "check.auto_update": "启动时自动更新",
         "button.check_updates": "检查更新",
@@ -798,7 +845,7 @@ _T: dict[str, dict[str, str]] = {
         "menu.copy": "复制",
         "menu.paste": "粘贴",
         "menu.select_all": "全选",
-        "check.reencode_h264": "为兼容性重新编码(较慢)",
+        "check.reencode_h264": "为兼容性重新编码",
 
         "queue.empty": "队列为空。请在上方粘贴网址并点击添加。",
 
@@ -807,6 +854,8 @@ _T: dict[str, dict[str, str]] = {
         "status.done": "已完成",
         "status.failed": "失败",
         "status.cancelled": "已取消",
+        "status.encoding": "编码中",
+        "status.remuxing": "重新封装中",
 
         "log.ready": "就绪。粘贴网址并点击添加。",
         "log.no_ffmpeg": "警告:PATH 中找不到 ffmpeg。音频提取和高质量视频合并将失败。",
@@ -885,6 +934,10 @@ _T: dict[str, dict[str, str]] = {
         "option.original": "オリジナル",
         "option.off": "オフ",
         "option.none": "なし(オリジナルを保持)",
+        "option.fast": "高速",
+        "option.balanced": "バランス",
+        "option.quality": "高品質",
+        "label.reencode_preset": "プリセット",
         "label.container": "コンテナ",
         "check.auto_update": "起動時に自動更新",
         "button.check_updates": "更新を確認",
@@ -895,7 +948,7 @@ _T: dict[str, dict[str, str]] = {
         "menu.copy": "コピー",
         "menu.paste": "貼り付け",
         "menu.select_all": "すべて選択",
-        "check.reencode_h264": "互換性のため再エンコード(低速)",
+        "check.reencode_h264": "互換性のため再エンコード",
 
         "queue.empty": "キューは空です。上に URL を貼り付けて追加をクリックしてください。",
 
@@ -904,6 +957,8 @@ _T: dict[str, dict[str, str]] = {
         "status.done": "完了",
         "status.failed": "失敗",
         "status.cancelled": "キャンセル済み",
+        "status.encoding": "エンコード中",
+        "status.remuxing": "再多重化中",
 
         "log.ready": "準備完了。URL を貼り付けて追加をクリックしてください。",
         "log.no_ffmpeg": "警告: ffmpeg が PATH に見つかりません。音声抽出と高品質動画のマージは失敗します。",

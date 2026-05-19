@@ -18,6 +18,16 @@ cd "$(dirname "$0")"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 VENV_DIR=".venv"
 
+# NVIDIA env vars are deliberately NOT exported here. Setting them in
+# the parent shell causes Tk under GLVnd to load NVIDIA's GLX driver
+# even though Tk doesn't use OpenGL — and that NVIDIA driver state then
+# corrupts the X protocol when yt-dlp's merger or our re-encode pass
+# forks ffmpeg from a daemon thread, freezing the GUI exactly when
+# downloads hit 100 %. Instead, downloader.py injects the offload vars
+# only into the ffmpeg subprocess's env, so the parent Python stays
+# clean. Users who explicitly launch via `prime-run ./start.sh` still
+# get the vars pre-set — that's their choice.
+
 # --- Package-manager + elevation detection -------------------------------
 
 _PM=""

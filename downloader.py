@@ -9,11 +9,16 @@ lifecycle events are published through a single thread-safe queue.
 from __future__ import annotations
 
 import itertools
+import json
 import math
+import os
 import queue
 import re
 import shutil
+import subprocess
+import sys
 import threading
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -209,6 +214,14 @@ def video_container_options() -> list[str]:
     return list(_VIDEO_CONTAINERS.keys())
 
 
+# Ordered list — UI dropdown shows them in this exact sequence.
+_REENCODE_QUALITY_OPTIONS: tuple[str, ...] = ("Fast", "Balanced", "Quality")
+
+
+def reencode_quality_options() -> list[str]:
+    return list(_REENCODE_QUALITY_OPTIONS)
+
+
 def _container_target(label: str) -> str | None:
     """Return the target extension for a label, or None if the label means
     "don't convert"."""
@@ -220,57 +233,521 @@ _LEGACY_TRANSCODE_CONTAINERS: frozenset[str] = frozenset({
 })
 
 
-# Target container -> ffmpeg codec profile. Profiles are intentionally
-# conservative: they favor files that old players understand over preserving
-# YouTube's modern codecs.
-_TRANSCODE_PROFILES: dict[str, tuple[str, ...]] = {
-    "mp4": (
-        "-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn", "-ignore_unknown",
-        "-c:v", "libx264", "-preset", "medium", "-crf", "20",
-        "-pix_fmt", "yuv420p",
-        "-c:a", "aac", "-b:a", "192k",
-        "-movflags", "+faststart",
-    ),
-    "mov": (
-        "-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn", "-ignore_unknown",
-        "-c:v", "libx264", "-preset", "medium", "-crf", "20",
-        "-pix_fmt", "yuv420p",
-        "-c:a", "aac", "-b:a", "192k",
-        "-movflags", "+faststart",
-    ),
-    "mkv": (
-        "-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn", "-ignore_unknown",
-        "-c:v", "libx264", "-preset", "medium", "-crf", "20",
-        "-pix_fmt", "yuv420p",
-        "-c:a", "aac", "-b:a", "192k",
-    ),
-    "webm": (
-        "-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn", "-ignore_unknown",
-        "-c:v", "libvpx-vp9", "-crf", "32", "-b:v", "0",
-        "-c:a", "libopus", "-b:a", "160k",
-    ),
-    "avi": (
-        "-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn", "-ignore_unknown",
-        "-c:v", "libxvid", "-q:v", "4",
-        "-c:a", "libmp3lame", "-b:a", "192k",
-    ),
-    "flv": (
-        "-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn", "-ignore_unknown",
-        "-c:v", "flv", "-q:v", "5",
-        "-c:a", "libmp3lame", "-b:a", "192k",
-    ),
-    "mpeg": (
-        "-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn", "-ignore_unknown",
-        "-c:v", "mpeg2video", "-q:v", "3",
-        "-c:a", "mp2", "-b:a", "192k",
-        "-f", "mpeg",
-    ),
-    "wmv": (
-        "-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn", "-ignore_unknown",
-        "-c:v", "wmv2", "-q:v", "4",
-        "-c:a", "wmav2", "-b:a", "192k",
-    ),
+# Codecs that are already in the right shape for each target container.
+# Used by the smart-skip path: if the downloaded file already has these
+# codecs in the matching extension, the compatibility re-encode is a no-op.
+# Audio set can include None semantics — see _codecs_match below.
+_TARGET_CODECS: dict[str, tuple[set[str], set[str]]] = {
+    "mp4":  ({"h264"},                     {"aac"}),
+    "mov":  ({"h264"},                     {"aac"}),
+    "mkv":  ({"h264"},                     {"aac"}),
+    "webm": ({"vp9"},                      {"opus"}),
+    "avi":  ({"mpeg4", "msmpeg4v3"},       {"mp3"}),
+    "flv":  ({"flv1", "h264"},             {"mp3", "aac"}),
+    "mpeg": ({"mpeg2video"},               {"mp2"}),
+    "wmv":  ({"wmv1", "wmv2", "wmv3"},     {"wmav2", "wmav1"}),
 }
+
+
+# Cached result of `ffmpeg -encoders` parsed for H.264 variants. Probed
+# once on first use and reused — encoders list doesn't change at runtime.
+_H264_ENCODER_CACHE: list[str] | None = None
+
+# Encoders that hit a runtime failure (or watchdog timeout) during a real
+# encode get added here for the rest of the session, so subsequent encodes
+# skip them instead of paying the failed-init cost again. Populated by
+# `_mark_encoder_broken` from _ContainerTranscodePP.run on caught failures.
+_KNOWN_BROKEN_ENCODERS: set[str] = set()
+_KNOWN_BROKEN_LOCK = threading.Lock()
+
+
+def _mark_encoder_broken(encoder: str) -> None:
+    with _KNOWN_BROKEN_LOCK:
+        _KNOWN_BROKEN_ENCODERS.add(encoder)
+
+
+def _is_encoder_broken(encoder: str) -> bool:
+    with _KNOWN_BROKEN_LOCK:
+        return encoder in _KNOWN_BROKEN_ENCODERS
+
+
+def _ffmpeg_env() -> dict[str, str] | None:
+    """Build the env dict to hand to ffmpeg when we want the NVIDIA dGPU
+    to be active. We DON'T export these vars in the parent Python process
+    — setting them globally causes Tk under GLVnd to load NVIDIA's GLX
+    driver, and that driver's state can be corrupted when subprocess.Popen
+    forks from a daemon thread.
+
+    Returns None when no override is needed (non-Linux, no NVIDIA driver,
+    or the parent env already has the vars from a `prime-run` launch),
+    telling callers to use the default subprocess env."""
+    if sys.platform != "linux":
+        return None
+    if not os.path.exists("/proc/driver/nvidia/version"):
+        return None
+    if os.environ.get("__NV_PRIME_RENDER_OFFLOAD"):
+        return None
+    env = os.environ.copy()
+    env["__NV_PRIME_RENDER_OFFLOAD"] = "1"
+    env["__GLX_VENDOR_LIBRARY_NAME"] = "nvidia"
+    env["__VK_LAYER_NV_optimus"] = "NVIDIA_only"
+    return env
+
+
+def _detect_h264_encoders() -> list[str]:
+    """Return available H.264 encoders for this machine, ordered best-first.
+    Hardware encoders dramatically beat libx264 on 4K (often 100×+), so we
+    try them in OS-appropriate priority and fall back to libx264.
+
+    VAAPI is excluded on Linux because it needs upfront -vaapi_device +
+    -filter_hw_device setup that yt-dlp's run_ffmpeg pipeline doesn't
+    accommodate. NVENC/QSV/AMF are pure output-side options and work
+    out of the box on machines that have the GPU + driver."""
+    global _H264_ENCODER_CACHE
+    if _H264_ENCODER_CACHE is not None:
+        return list(_H264_ENCODER_CACHE)
+
+    available: set[str] = set()
+    try:
+        r = subprocess.run(
+            ["ffmpeg", "-encoders", "-hide_banner", "-loglevel", "error"],
+            capture_output=True, text=True, timeout=8,
+        )
+        text = (r.stdout or "") + (r.stderr or "")
+        for name in (
+            "h264_nvenc", "h264_qsv", "h264_amf",
+            "h264_videotoolbox", "libx264",
+        ):
+            # Match against word-aligned occurrences: `ffmpeg -encoders`
+            # prints each name flush-left after the V..... flag column,
+            # so substring matching is reliable here.
+            if name in text:
+                available.add(name)
+    except (OSError, subprocess.SubprocessError):
+        pass
+
+    if not available:
+        # Probe failed (ffmpeg missing?) — assume libx264 and let yt-dlp's
+        # own error path surface a clearer message later.
+        available = {"libx264"}
+
+    if sys.platform == "win32":
+        priority = ("h264_nvenc", "h264_qsv", "h264_amf", "libx264")
+    elif sys.platform == "darwin":
+        priority = ("h264_videotoolbox", "libx264")
+    else:
+        # On Linux we'd love to add VAAPI for Intel/AMD users but it needs
+        # extra hw-device wiring. NVENC users get the speedup; everyone
+        # else falls through to libx264 with a faster preset.
+        priority = ("h264_nvenc", "libx264")
+
+    # Filter against the session-scoped broken-encoder blacklist. An
+    # encoder lands in the blacklist after a real encode attempt fails
+    # or watchdog-times-out, so subsequent encodes skip it directly
+    # instead of repeating the failed-init handshake. libx264 stays
+    # available always — it's the guaranteed fallback.
+    final = [
+        e for e in priority
+        if e in available and not _is_encoder_broken(e)
+    ]
+    if not final:
+        final = ["libx264"]
+    # NOT cached in _H264_ENCODER_CACHE because the blacklist is dynamic;
+    # we want each PP run to see the up-to-date set. The static
+    # `ffmpeg -encoders` parse is cheap (~50 ms) and ffmpeg's output
+    # doesn't change at runtime, so re-running it isn't wasteful.
+    return final
+
+
+# Per-encoder speed/quality preset table. Each row is keyed by encoder
+# name + quality preset ("fast" / "balanced" / "quality") and stores the
+# ffmpeg argv tokens that select the matching tradeoff for that codec.
+#
+# Hardware encoders (NVENC/QSV/AMF/VideoToolbox) barely care about speed
+# vs quality — even the slowest preset runs at hundreds of fps on a
+# modern GPU. libx264 cares a lot: ultrafast is ~10× faster than slow
+# at the cost of ~30 % file size growth at the same visual quality.
+_H264_ENCODER_PRESETS: dict[str, dict[str, tuple[str, ...]]] = {
+    "h264_nvenc": {
+        # NVENC p1 (fastest) → p7 (slowest). cq is the constant-quality
+        # knob — lower = better, 18 is near-lossless, 28 is web-quality.
+        "fast":     ("-c:v", "h264_nvenc", "-preset", "p2", "-rc", "vbr", "-cq", "24"),
+        "balanced": ("-c:v", "h264_nvenc", "-preset", "p5", "-rc", "vbr", "-cq", "22"),
+        "quality":  ("-c:v", "h264_nvenc", "-preset", "p7", "-rc", "vbr", "-cq", "20"),
+    },
+    "h264_qsv": {
+        "fast":     ("-c:v", "h264_qsv", "-preset", "veryfast", "-global_quality", "24"),
+        "balanced": ("-c:v", "h264_qsv", "-preset", "medium",   "-global_quality", "22"),
+        "quality":  ("-c:v", "h264_qsv", "-preset", "slow",     "-global_quality", "20"),
+    },
+    "h264_amf": {
+        "fast":     ("-c:v", "h264_amf", "-quality", "speed",
+                     "-rc", "cqp", "-qp_i", "24", "-qp_p", "24"),
+        "balanced": ("-c:v", "h264_amf", "-quality", "balanced",
+                     "-rc", "cqp", "-qp_i", "22", "-qp_p", "22"),
+        "quality":  ("-c:v", "h264_amf", "-quality", "quality",
+                     "-rc", "cqp", "-qp_i", "20", "-qp_p", "20"),
+    },
+    "h264_videotoolbox": {
+        # VideoToolbox -q:v runs 0-100, higher = better.
+        "fast":     ("-c:v", "h264_videotoolbox", "-q:v", "75"),
+        "balanced": ("-c:v", "h264_videotoolbox", "-q:v", "60"),
+        "quality":  ("-c:v", "h264_videotoolbox", "-q:v", "45"),
+    },
+    "libx264": {
+        # libx264 CRF: lower = better. 18 ≈ visually lossless, 28 ≈ web.
+        # presets are the speed/quality dial; medium is libx264's default.
+        "fast":     ("-c:v", "libx264", "-preset", "ultrafast", "-crf", "23"),
+        "balanced": ("-c:v", "libx264", "-preset", "medium",    "-crf", "21"),
+        "quality":  ("-c:v", "libx264", "-preset", "slow",      "-crf", "19"),
+    },
+}
+
+
+def _h264_encoder_args(encoder: str, quality_preset: str = "balanced") -> list[str]:
+    """Output-side ffmpeg args for the chosen H.264 encoder at the chosen
+    speed/quality preset. Falls back to libx264 + balanced when the lookup
+    misses (defensive — settings normalisation should prevent it)."""
+    by_encoder = _H264_ENCODER_PRESETS.get(encoder, _H264_ENCODER_PRESETS["libx264"])
+    args = by_encoder.get(quality_preset, by_encoder["balanced"])
+    return list(args)
+
+
+def _build_remux_args(target_ext: str) -> list[str]:
+    """ffmpeg args for a pure container swap with no re-encoding. Used
+    when the source codecs already match the target profile — only the
+    extension changes."""
+    args = ["-map", "0", "-c", "copy"]
+    if target_ext in ("mp4", "mov", "m4a"):
+        args.extend(["-movflags", "+faststart"])
+    if target_ext == "mpeg":
+        args.extend(["-f", "mpeg"])
+    return args
+
+
+# Legacy codec quality scales (-q:v 1=best, 31=worst). Fast / balanced /
+# quality picks roughly the same visual buckets as the H.264 preset table.
+_LEGACY_QV: dict[str, dict[str, str]] = {
+    "libxvid":     {"fast": "6", "balanced": "4", "quality": "2"},
+    "flv":         {"fast": "7", "balanced": "5", "quality": "3"},
+    "mpeg2video":  {"fast": "5", "balanced": "3", "quality": "2"},
+    "wmv2":        {"fast": "6", "balanced": "4", "quality": "2"},
+}
+
+# libvpx-vp9 tuning: -crf lower = better; -cpu-used higher = faster encode.
+_VP9_PRESETS: dict[str, tuple[str, str]] = {
+    "fast":     ("35", "6"),
+    "balanced": ("32", "4"),
+    "quality":  ("28", "1"),
+}
+
+
+def _build_transcode_args(
+    target_ext: str,
+    h264_encoder: str = "libx264",
+    quality_preset: str = "balanced",
+) -> list[str]:
+    """ffmpeg args for a full re-encode into `target_ext`. `h264_encoder`
+    is only consulted for H.264-based containers (mp4/mov/mkv); legacy
+    containers always use their dedicated software encoder. `quality_preset`
+    is normalised lowercase: fast / balanced / quality."""
+    qp = (quality_preset or "balanced").lower()
+    base = ["-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn", "-ignore_unknown"]
+    if target_ext in ("mp4", "mov", "mkv"):
+        args = list(base) + _h264_encoder_args(h264_encoder, qp)
+        args.extend(["-pix_fmt", "yuv420p"])
+        args.extend(["-c:a", "aac", "-b:a", "192k"])
+        if target_ext in ("mp4", "mov"):
+            args.extend(["-movflags", "+faststart"])
+        return args
+    if target_ext == "webm":
+        crf, cpu = _VP9_PRESETS.get(qp, _VP9_PRESETS["balanced"])
+        return list(base) + [
+            "-c:v", "libvpx-vp9", "-crf", crf, "-b:v", "0", "-cpu-used", cpu,
+            "-c:a", "libopus", "-b:a", "160k",
+        ]
+    if target_ext == "avi":
+        qv = _LEGACY_QV["libxvid"].get(qp, "4")
+        return list(base) + [
+            "-c:v", "libxvid", "-q:v", qv,
+            "-c:a", "libmp3lame", "-b:a", "192k",
+        ]
+    if target_ext == "flv":
+        qv = _LEGACY_QV["flv"].get(qp, "5")
+        return list(base) + [
+            "-c:v", "flv", "-q:v", qv,
+            "-c:a", "libmp3lame", "-b:a", "192k",
+        ]
+    if target_ext == "mpeg":
+        qv = _LEGACY_QV["mpeg2video"].get(qp, "3")
+        return list(base) + [
+            "-c:v", "mpeg2video", "-q:v", qv,
+            "-c:a", "mp2", "-b:a", "192k",
+            "-f", "mpeg",
+        ]
+    if target_ext == "wmv":
+        qv = _LEGACY_QV["wmv2"].get(qp, "4")
+        return list(base) + [
+            "-c:v", "wmv2", "-q:v", qv,
+            "-c:a", "wmav2", "-b:a", "192k",
+        ]
+    # Unknown target — fall back to mp4 profile.
+    return _build_transcode_args("mp4", h264_encoder, qp)
+
+
+def _probe_codecs(path: Path) -> tuple[str | None, str | None]:
+    """Return (video_codec_name, audio_codec_name) via ffprobe. Either may
+    be None if the stream is absent or the probe failed."""
+    if not shutil.which("ffprobe"):
+        return None, None
+    try:
+        r = subprocess.run(
+            [
+                "ffprobe", "-v", "error", "-show_streams",
+                "-print_format", "json", str(path),
+            ],
+            capture_output=True, text=True, timeout=10,
+        )
+        if r.returncode != 0:
+            return None, None
+        data = json.loads(r.stdout or "{}")
+    except (OSError, subprocess.SubprocessError, json.JSONDecodeError):
+        return None, None
+    vcodec: str | None = None
+    acodec: str | None = None
+    for stream in data.get("streams") or []:
+        ctype = stream.get("codec_type")
+        name = stream.get("codec_name")
+        if ctype == "video" and vcodec is None:
+            vcodec = name
+        elif ctype == "audio" and acodec is None:
+            acodec = name
+    return vcodec, acodec
+
+
+def _codecs_match(target_ext: str, vcodec: str | None, acodec: str | None) -> bool:
+    """True iff the source codecs already fit `target_ext`'s profile.
+    Audio is treated as optional — a video-only source still qualifies
+    if its video codec matches."""
+    profile = _TARGET_CODECS.get(target_ext)
+    if profile is None:
+        return False
+    ok_v, ok_a = profile
+    if vcodec not in ok_v:
+        return False
+    if acodec is None:
+        return True
+    return acodec in ok_a
+
+
+def _probe_duration(path: Path) -> float | None:
+    """Return the source's duration in seconds via ffprobe, or None if the
+    probe failed or the value isn't parseable. Used to translate ffmpeg's
+    `out_time_us` progress field into a 0-100 % bar."""
+    if not shutil.which("ffprobe"):
+        return None
+    try:
+        r = subprocess.run(
+            [
+                "ffprobe", "-v", "error",
+                "-show_entries", "format=duration",
+                "-of", "default=noprint_wrappers=1:nokey=1",
+                str(path),
+            ],
+            capture_output=True, text=True, timeout=10,
+        )
+        if r.returncode != 0:
+            return None
+        value = (r.stdout or "").strip()
+        if not value or value == "N/A":
+            return None
+        return float(value)
+    except (OSError, subprocess.SubprocessError, ValueError):
+        return None
+
+
+def _run_ffmpeg_with_progress(
+    in_path: Path,
+    out_path: Path,
+    args: list[str],
+    duration_seconds: float | None,
+    task: "DownloadTask",
+    events: "queue.Queue[dict[str, Any]]",
+) -> None:
+    """Drive ffmpeg directly (bypassing yt-dlp's silent run_ffmpeg wrapper)
+    so we can attach `-progress pipe:1` and stream encode progress back to
+    the GUI as it happens. Updates `task.percent`, `task.speed`, `task.eta`
+    in place and emits `task_progress` events on every measurable change.
+
+    Raises `_CancelledError` if `task._cancel` fires mid-encode,
+    `subprocess.CalledProcessError` on non-zero ffmpeg exit."""
+    cmd: list[str] = [
+        "ffmpeg", "-hide_banner", "-nostats", "-loglevel", "error", "-y",
+        "-i", str(in_path),
+        *args,
+        "-progress", "pipe:1",
+        str(out_path),
+    ]
+
+    # stderr=STDOUT merges error output into the same pipe as progress
+    # data. That avoids needing a second drain thread (whose fork+read
+    # was a likely source of X11 protocol corruption under prime-run
+    # on hybrid-GPU laptops). Progress lines are key=value; anything
+    # else is treated as an error message and stashed for the failure
+    # path. start_new_session=True puts ffmpeg in its own session so
+    # terminal signals to us don't propagate to it (and vice versa).
+    popen_kwargs: dict[str, Any] = dict(
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True, bufsize=1,
+        env=_ffmpeg_env(),
+    )
+    if sys.platform != "win32":
+        popen_kwargs["start_new_session"] = True
+    proc = subprocess.Popen(cmd, **popen_kwargs)
+
+    # Push stdout lines through a queue so we can apply a watchdog timeout
+    # AND a cancellation poll without ever blocking forever on readline().
+    # A daemon reader thread does the actual pipe iteration; the main loop
+    # here just consumes from the queue. select.select() would be lighter
+    # but it doesn't work on subprocess pipes under Windows — queue-based
+    # is the cross-platform path.
+    line_q: queue.Queue = queue.Queue()
+
+    def _read_stdout() -> None:
+        if proc.stdout is None:
+            line_q.put(None)
+            return
+        try:
+            for line in proc.stdout:
+                line_q.put(line)
+        finally:
+            line_q.put(None)
+
+    reader_thread = threading.Thread(target=_read_stdout, daemon=True)
+    reader_thread.start()
+
+    error_lines: list[str] = []
+    cancelled = False
+    hung = False
+    # Watchdog: ffmpeg with `-progress pipe:1` writes a key=value block
+    # roughly once a second. If we go a full minute without ANY output,
+    # the encoder is stuck — typically a HW encoder whose driver wedged
+    # at init. Kill it so the PP can blacklist it and fall back to libx264.
+    HUNG_TIMEOUT = 60.0
+    last_data = time.monotonic()
+    last_pct_emitted = -1.0
+    try:
+        while True:
+            try:
+                raw = line_q.get(timeout=1.0)
+            except queue.Empty:
+                if task._cancel.is_set():
+                    cancelled = True
+                    break
+                if time.monotonic() - last_data > HUNG_TIMEOUT:
+                    hung = True
+                    break
+                continue
+            if raw is None:
+                break  # EOF
+            last_data = time.monotonic()
+            if task._cancel.is_set():
+                cancelled = True
+                break
+            line = raw.rstrip("\r\n")
+            if "=" not in line:
+                # Non-progress output — keep the last 20 lines for
+                # error reporting if the encode fails. Cap so a
+                # chatty encoder can't eat memory.
+                if line:
+                    error_lines.append(line)
+                    if len(error_lines) > 20:
+                        error_lines.pop(0)
+                continue
+            key, _, val = line.partition("=")
+            key, val = key.strip(), val.strip()
+            if key == "out_time_us" and duration_seconds:
+                try:
+                    out_seconds = int(val) / 1_000_000.0
+                except ValueError:
+                    continue
+                # Cap at 99.5 — the explicit "progress=end" line below
+                # is the real 100% signal. Avoids the bar briefly
+                # touching 100 before the encoder fully flushes.
+                pct = max(0.0, min(99.5, out_seconds / duration_seconds * 100.0))
+                task.percent = pct
+                # Only emit when % moves ≥0.5 to avoid flooding the
+                # GUI queue at ffmpeg's tick rate (~10/s).
+                if pct - last_pct_emitted >= 0.5:
+                    events.put({"type": "task_progress", "task_id": task.id})
+                    last_pct_emitted = pct
+            elif key == "speed":
+                if val == "N/A" or not val.endswith("x"):
+                    continue
+                task.speed = val
+                try:
+                    multiplier = float(val[:-1])
+                except ValueError:
+                    multiplier = 0.0
+                if duration_seconds and multiplier > 0:
+                    remaining_real = max(
+                        0.0,
+                        duration_seconds * (100.0 - task.percent) / 100.0
+                        / multiplier,
+                    )
+                    task.eta = _fmt_eta(int(remaining_real))
+            elif key == "progress" and val == "end":
+                task.percent = 100.0
+                events.put({"type": "task_progress", "task_id": task.id})
+                last_pct_emitted = 100.0
+        if cancelled:
+            proc.terminate()
+            try:
+                proc.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                proc.wait(timeout=2)
+            raise _CancelledError
+        if hung:
+            # Watchdog tripped — kill the child and report it as a
+            # timeout so the PP blacklists this encoder and retries
+            # with libx264. SIGTERM first to let ffmpeg flush partial
+            # output, SIGKILL after a brief grace period.
+            proc.terminate()
+            try:
+                proc.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                try:
+                    proc.wait(timeout=2)
+                except subprocess.TimeoutExpired:
+                    pass
+            raise TimeoutError(
+                f"ffmpeg produced no progress for {HUNG_TIMEOUT:.0f}s "
+                f"— encoder appears stuck"
+            )
+        proc.wait()
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+            try:
+                proc.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                pass
+
+    # If the cancel flag fired AFTER our pipe-read loop exited (e.g. an
+    # external SIGTERM from process_cleanup.terminate_children killed the
+    # child during shutdown), the for-loop just sees EOF and the non-zero
+    # returncode looks like an encoder failure. Detect that case and
+    # raise _CancelledError so the task is marked cancelled, not failed
+    # — and we don't waste time falling back to the next encoder.
+    if task._cancel.is_set():
+        raise _CancelledError
+
+    if proc.returncode not in (0, None):
+        err = "\n".join(error_lines).strip() or f"ffmpeg exited with {proc.returncode}"
+        raise subprocess.CalledProcessError(proc.returncode, cmd, stderr=err)
 
 
 def video_quality_options() -> list[str]:
@@ -330,41 +807,197 @@ class _CancelledError(Exception):
 
 
 class _ContainerTranscodePP(FFmpegPostProcessor):
-    """Re-encode the downloaded video with codecs that fit the target
-    container. Used for the explicit compatibility checkbox and implicitly
-    for legacy containers where stream-copy conversion would be invalid.
+    """Bring the downloaded video into the target container/codecs.
 
-    Replaces the source file in-place: the re-encoded copy lands with
-    the chosen extension and the original is removed."""
+    Three modes, picked in order of cheapness:
+      1. The source already matches the target extension AND codecs → no-op.
+         Common case for "Container = None + re-encode + 1080p H.264 MP4"
+         where the natural download is already H.264/AAC in .mp4.
+      2. Codecs match but the container is wrong → stream-copy remux. Fast
+         (seconds), no quality loss.
+      3. Codecs don't match → real re-encode. Hardware H.264 encoder (NVENC
+         / QSV / AMF / VideoToolbox) is preferred over libx264 by an order
+         of magnitude on 4K. libx264 with preset=fast is the fallback.
 
-    def __init__(self, downloader=None, target_ext: str = "mp4"):
+    Replaces the source file in-place: the re-encoded copy lands with the
+    chosen extension and the original is removed."""
+
+    def __init__(
+        self,
+        downloader=None,
+        target_ext: str = "mp4",
+        quality_preset: str = "Balanced",
+        task: "DownloadTask | None" = None,
+        events: "queue.Queue[dict[str, Any]] | None" = None,
+    ):
         super().__init__(downloader)
         # Lowercase, with a "" / None fallback to "mp4": "Container = None"
         # plus compatibility re-encode still needs a concrete file type.
         self.target_ext = (target_ext or "mp4").lower()
+        # Lowercased preset key for the per-encoder table lookup.
+        self.quality_preset = (quality_preset or "Balanced").lower()
+        # Optional task + events plumbing so the encode pass can stream
+        # progress back to the GUI. None when used in tests / contexts
+        # without a DownloadManager.
+        self._task = task
+        self._events = events
 
     def run(self, info):
         in_path = Path(info["filepath"])
-        out_path = in_path.with_suffix(f".{self.target_ext}")
-        args = list(_TRANSCODE_PROFILES.get(
-            self.target_ext, _TRANSCODE_PROFILES["mp4"]
-        ))
+        target_ext = self.target_ext
+        src_ext = in_path.suffix.lstrip(".").lower()
 
-        # If the source is already the target extension we still need
-        # to re-encode (the whole point), so write to a temp file and
-        # atomic-rename over the original.
+        # ffprobe takes a fraction of a second normally, but on hybrid-GPU
+        # laptops where the dGPU just spun up via prime-run there can be
+        # a multi-second pause before its first response. Tell the user
+        # something's happening before the actual encoder runs.
+        self.to_screen(f"Inspecting {in_path.name}…")
+        vcodec, acodec = _probe_codecs(in_path)
+        codecs_match = _codecs_match(target_ext, vcodec, acodec)
+
+        # Case 1: already perfect — skip entirely.
+        if src_ext == target_ext and codecs_match:
+            self.to_screen(
+                f"Re-encode skipped: {in_path.name} is already "
+                f"{target_ext}/{vcodec}{('/' + acodec) if acodec else ''}"
+            )
+            return [], info
+
+        out_path = in_path.with_suffix(f".{target_ext}")
+
+        # Case 2: codecs match, container doesn't — fast remux.
+        if codecs_match:
+            self.to_screen(
+                f"Remuxing to {target_ext} (codecs already compatible)"
+            )
+            self._set_phase("remux")
+            self._encode(in_path, out_path, target_ext,
+                         _build_remux_args(target_ext),
+                         duration_seconds=None)
+            info["filepath"] = str(out_path)
+            info["ext"] = target_ext
+            return [], info
+
+        # Case 3: full transcode. For H.264 targets try HW first, fall
+        # back to libx264 on runtime failure (driver mismatch, etc.).
+        if target_ext in ("mp4", "mov", "mkv"):
+            encoders = _detect_h264_encoders() or ["libx264"]
+        else:
+            encoders = ["libx264"]  # value unused for non-H.264 profiles
+
+        # Flip the phase BEFORE the encoder loop, not inside it: the bar
+        # should reset to 0 % the moment the encode path is entered, even
+        # though ffmpeg's first progress line can be 5-15 s away on slow
+        # ffprobe / NVENC handshake. Otherwise the user sees download's
+        # 100 % frozen and assumes the app hung.
+        self._set_phase("encode")
+
+        # Probe duration once so every encoder retry can map ffmpeg's
+        # out_time_us back to a 0-100 % progress without re-running ffprobe.
+        duration = _probe_duration(in_path)
+
+        last_err: Exception | None = None
+        for encoder in encoders:
+            args = _build_transcode_args(target_ext, encoder, self.quality_preset)
+            self.to_screen(
+                f"Re-encoding to {target_ext} with {encoder} "
+                f"({self.quality_preset})"
+            )
+            try:
+                self._encode(in_path, out_path, target_ext, args,
+                             duration_seconds=duration)
+                info["filepath"] = str(out_path)
+                info["ext"] = target_ext
+                return [], info
+            except _CancelledError:
+                # User cancelled mid-encode — don't fall through to the
+                # next encoder, just propagate so the manager marks the
+                # task as cancelled.
+                raise
+            except Exception as e:  # noqa: BLE001
+                last_err = e
+                self.report_warning(
+                    f"{encoder} failed ({e}); trying next encoder"
+                )
+                # Add to the session blacklist so future encodes skip
+                # this encoder directly — no point retrying a NVENC
+                # init that just failed because the dGPU is parked.
+                # libx264 is the universal fallback and never gets
+                # blacklisted (a libx264 failure is a real problem
+                # we'd want surfaced, not silenced).
+                if encoder != "libx264":
+                    _mark_encoder_broken(encoder)
+                # Clean up whatever the failed pass left behind so the
+                # retry starts from a clean slate.
+                if out_path != in_path and out_path.exists():
+                    try:
+                        out_path.unlink()
+                    except OSError:
+                        pass
+                tmp = in_path.with_suffix(f".reencoding.{target_ext}")
+                if tmp.exists():
+                    try:
+                        tmp.unlink()
+                    except OSError:
+                        pass
+        if last_err is not None:
+            raise last_err
+        return [], info
+
+    def _set_phase(self, phase: str) -> None:
+        """Flip task.phase + reset percent/speed/eta so the GUI redraws
+        the bar from zero with phase-appropriate labels. Safe to call
+        without a wired task (no-op in tests)."""
+        if self._task is None:
+            return
+        self._task.phase = phase
+        self._task.percent = 0.0
+        self._task.speed = "—"
+        self._task.eta = "—"
+        if self._events is not None:
+            self._events.put({"type": "task_progress", "task_id": self._task.id})
+
+    def _encode(
+        self,
+        in_path: Path,
+        out_path: Path,
+        target_ext: str,
+        args: list[str],
+        *,
+        duration_seconds: float | None,
+    ) -> None:
+        """Run ffmpeg in either same-ext (write-to-temp + replace) or
+        different-ext (write-direct + remove source) mode, streaming
+        progress to the GUI when wired. Raises on ffmpeg failure (the
+        caller handles retry / cleanup) or `_CancelledError` if the
+        user pressed ×."""
+        if self._task is None or self._events is None:
+            # Test / no-GUI path: use yt-dlp's silent wrapper as before.
+            if out_path == in_path:
+                tmp_path = in_path.with_suffix(f".reencoding.{target_ext}")
+                self.run_ffmpeg(str(in_path), str(tmp_path), args)
+                in_path.unlink(missing_ok=True)
+                tmp_path.replace(out_path)
+            else:
+                self.run_ffmpeg(str(in_path), str(out_path), args)
+                in_path.unlink(missing_ok=True)
+            return
+
+        # GUI path: drive ffmpeg ourselves so we can stream -progress.
         if out_path == in_path:
-            tmp_path = in_path.with_suffix(f".reencoding.{self.target_ext}")
-            self.run_ffmpeg(str(in_path), str(tmp_path), args)
+            tmp_path = in_path.with_suffix(f".reencoding.{target_ext}")
+            _run_ffmpeg_with_progress(
+                in_path, tmp_path, args, duration_seconds,
+                self._task, self._events,
+            )
             in_path.unlink(missing_ok=True)
             tmp_path.replace(out_path)
         else:
-            self.run_ffmpeg(str(in_path), str(out_path), args)
+            _run_ffmpeg_with_progress(
+                in_path, out_path, args, duration_seconds,
+                self._task, self._events,
+            )
             in_path.unlink(missing_ok=True)
-
-        info["filepath"] = str(out_path)
-        info["ext"] = self.target_ext
-        return [], info
 
 
 @dataclass
@@ -387,6 +1020,11 @@ class DownloadTask:
     # goes into whatever `container` says, with mp4 as the fallback when
     # container is "None".
     reencode_h264: bool = False
+    # User-picked tradeoff for the re-encode pass: "Fast" / "Balanced" /
+    # "Quality". Only consulted when reencode_h264 is True. Maps to per-
+    # encoder presets in _H264_ENCODER_PRESETS (and _LEGACY_QV / _VP9_PRESETS
+    # for non-H.264 containers).
+    reencode_quality: str = "Balanced"
     concurrent_fragments: int = 4
     cookies_browser: str = "Off"
     # Bumped by the GUI when it retries a bot-detection failure with auto-
@@ -395,6 +1033,12 @@ class DownloadTask:
     retry_attempts: int = 0
 
     status: str = "queued"   # queued | running | done | failed | cancelled
+    # Sub-phase within `running`: "download" while yt-dlp is fetching the
+    # streams, "remux" during stream-copy container swap, "encode" during
+    # the real ffmpeg re-encode pass. The GUI swaps the status label and
+    # resets the progress bar between phases so a 100% download → 0%
+    # encode transition is visible.
+    phase: str = "download"
     title: str = ""
     percent: float = 0.0
     speed: str = "—"
@@ -443,6 +1087,7 @@ class DownloadManager:
         playlist: bool,
         container: str = "None",
         reencode_h264: bool = False,
+        reencode_quality: str = "Balanced",
         concurrent_fragments: int = 4,
         cookies_browser: str = "Off",
     ) -> DownloadTask:
@@ -456,6 +1101,7 @@ class DownloadManager:
             playlist=playlist,
             container=container or "None",
             reencode_h264=bool(reencode_h264) and mode == "video",
+            reencode_quality=reencode_quality or "Balanced",
             concurrent_fragments=_positive_int(concurrent_fragments, 4),
             cookies_browser=cookies_browser or "Off",
             title=url,
@@ -512,6 +1158,7 @@ class DownloadManager:
             task.percent = 0.0
             task.speed = "—"
             task.eta = "—"
+            task.phase = "download"
             task.retry_attempts += 1
             task._cancel.clear()
         # Push a progress event so the row re-renders to the queued state.
@@ -545,6 +1192,7 @@ class DownloadManager:
 
     def _start(self, task: DownloadTask) -> None:
         task.status = "running"
+        task.phase = "download"
         self.events.put({"type": "task_started", "task_id": task.id})
         task._thread = threading.Thread(target=self._run, args=(task,), daemon=True)
         task._thread.start()
@@ -558,10 +1206,20 @@ class DownloadManager:
                 # specified in opts['postprocessors'] (yt-dlp resolves keys
                 # to its built-in classes only). Register it explicitly so
                 # it runs after the FFmpegFD merger, last in the chain.
+                # The PP takes references to the task + events queue so it
+                # can stream ffmpeg `-progress` back to the GUI as the
+                # encode runs (otherwise the bar would freeze at 100 %
+                # during a long re-encode).
                 target_ext = self._transcode_target(task)
                 if target_ext:
                     ydl.add_post_processor(
-                        _ContainerTranscodePP(downloader=ydl, target_ext=target_ext),
+                        _ContainerTranscodePP(
+                            downloader=ydl,
+                            target_ext=target_ext,
+                            quality_preset=task.reencode_quality,
+                            task=task,
+                            events=self.events,
+                        ),
                         when="post_process",
                     )
                 ydl.download([task.url])
