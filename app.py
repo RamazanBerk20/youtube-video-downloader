@@ -26,6 +26,7 @@ from downloader import (
     DownloadTask,
     audio_codec_options,
     audio_codec_uses_bitrate,
+    build_anyip_proxy_url,
     audio_quality_options,
     cookies_browser_options,
     has_ffmpeg,
@@ -527,6 +528,9 @@ class App(ctk.CTk):
         self._bot_detection_banner_shown = False
         # Same one-shot guard for the "install Deno (JS runtime)" banner.
         self._js_runtime_banner_shown = False
+        self._chromium_cookie_banner_shown = False
+        self._anyip_config_banner_shown = False
+        self.advanced_visible = False
         # Browsers Auto-mode has already tried and exhausted this session
         # (either DPAPI-failed or bot-check still fired with their cookies).
         # Used to step through `browser_detect.candidate_browsers()` without
@@ -661,40 +665,39 @@ class App(ctk.CTk):
         self.browse_btn.grid(row=0, column=2, padx=(8, 0))
         self._labels_to_translate.append((self.browse_btn, "text", "button.browse"))
 
-        # Options: three rows so widgets keep their natural width when narrow.
-        # Row 0: Format radios + Quality.
-        # Row 1: Codec (label + dropdown).
-        # Row 2: Playlist toggle + Max concurrent.
-        # Column 5 absorbs leftover horizontal space.
+        # Options: keep the day-to-day controls visible, and tuck the more
+        # specialized knobs into a collapsed Advanced section. The variables
+        # are still created up front so saved advanced preferences keep
+        # applying even when the section is collapsed.
         opts = ctk.CTkFrame(self)
         opts.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
-        opts.grid_columnconfigure(5, weight=1)
+        opts.grid_columnconfigure(0, weight=1)
 
-        self.fmt_lbl = ctk.CTkLabel(opts, text="")
-        self.fmt_lbl.grid(row=0, column=0, padx=(14, 8), pady=(12, 4), sticky="w")
+        core_opts = ctk.CTkFrame(opts, fg_color="transparent")
+        core_opts.grid(row=0, column=0, padx=14, pady=(12, 10), sticky="ew")
+        core_opts.grid_columnconfigure(5, weight=1)
+
+        self.fmt_lbl = ctk.CTkLabel(core_opts, text="")
+        self.fmt_lbl.grid(row=0, column=0, padx=(0, 8), pady=(0, 6), sticky="w")
         self._labels_to_translate.append((self.fmt_lbl, "text", "label.format"))
 
         self.mode_var = tk.StringVar(value=self.settings.mode)
         self.video_rb = ctk.CTkRadioButton(
-            opts, text="", variable=self.mode_var, value="video",
+            core_opts, text="", variable=self.mode_var, value="video",
             command=self._on_mode_change,
         )
         self.audio_rb = ctk.CTkRadioButton(
-            opts, text="", variable=self.mode_var, value="audio",
+            core_opts, text="", variable=self.mode_var, value="audio",
             command=self._on_mode_change,
         )
-        self.video_rb.grid(row=0, column=1, padx=6, pady=(12, 4), sticky="w")
-        self.audio_rb.grid(row=0, column=2, padx=6, pady=(12, 4), sticky="w")
+        self.video_rb.grid(row=0, column=1, padx=6, pady=(0, 6), sticky="w")
+        self.audio_rb.grid(row=0, column=2, padx=6, pady=(0, 6), sticky="w")
         self._labels_to_translate.append((self.video_rb, "text", "radio.video"))
         self._labels_to_translate.append((self.audio_rb, "text", "radio.audio"))
 
-        # Quality label + dropdown live in a sub-frame so they sit flush
-        # against each other and the whole pair aligns with the container
-        # controls (row 1) and the Max-concurrent group (row 2). All three
-        # use column 3 with padx=(20, 12) sticky="w".
-        quality_frame = ctk.CTkFrame(opts, fg_color="transparent")
-        quality_frame.grid(row=0, column=3, columnspan=2,
-                           padx=(20, 12), pady=(12, 4), sticky="w")
+        quality_frame = ctk.CTkFrame(core_opts, fg_color="transparent")
+        quality_frame.grid(row=0, column=3,
+                           padx=(22, 12), pady=(0, 6), sticky="w")
         self.q_lbl = ctk.CTkLabel(quality_frame, text="")
         self.q_lbl.pack(side="left", padx=(0, 8))
         self._labels_to_translate.append((self.q_lbl, "text", "label.quality"))
@@ -708,9 +711,23 @@ class App(ctk.CTk):
         )
         self.quality_menu.pack(side="left")
 
-        # Row 1 — codec selector. The dropdown values swap with the mode.
-        self.codec_lbl = ctk.CTkLabel(opts, text="")
-        self.codec_lbl.grid(row=1, column=0, padx=(14, 8), pady=4, sticky="w")
+        mc_frame = ctk.CTkFrame(core_opts, fg_color="transparent")
+        mc_frame.grid(row=0, column=4, padx=(8, 12), pady=(0, 6), sticky="w")
+        self.mc_lbl = ctk.CTkLabel(mc_frame, text="")
+        self.mc_lbl.pack(side="left", padx=(0, 8))
+        self._labels_to_translate.append((self.mc_lbl, "text", "label.max_concurrent"))
+
+        self.max_concurrent_var = tk.StringVar(
+            value=_format_concurrent(self.settings.max_concurrent)
+        )
+        self.max_concurrent_menu = ctk.CTkComboBox(
+            mc_frame, variable=self.max_concurrent_var,
+            values=MAX_CONCURRENT_PRESETS, width=110,
+        )
+        self.max_concurrent_menu.pack(side="left")
+
+        self.codec_lbl = ctk.CTkLabel(core_opts, text="")
+        self.codec_lbl.grid(row=1, column=0, padx=(0, 8), pady=(4, 0), sticky="w")
         self._labels_to_translate.append((self.codec_lbl, "text", "label.codec"))
 
         initial_codec = (
@@ -719,13 +736,38 @@ class App(ctk.CTk):
         )
         self.codec_var = tk.StringVar(value=self.i18n.localize_option(initial_codec))
         self.codec_menu = ctk.CTkOptionMenu(
-            opts, variable=self.codec_var,
+            core_opts, variable=self.codec_var,
             values=self._current_codec_values(),
             width=180,
             command=self._on_codec_change,
         )
-        self.codec_menu.grid(row=1, column=1, columnspan=2, padx=6, pady=4,
+        self.codec_menu.grid(row=1, column=1, columnspan=2, padx=6, pady=(4, 0),
                              sticky="w")
+
+        self.playlist_var = tk.BooleanVar(value=self.settings.playlist)
+        self.playlist_chk = ctk.CTkCheckBox(
+            core_opts, text="", variable=self.playlist_var
+        )
+        self.playlist_chk.grid(row=1, column=3, columnspan=2, padx=(22, 12),
+                               pady=(4, 0), sticky="w")
+        self._labels_to_translate.append((self.playlist_chk, "text", "check.playlist"))
+
+        self.advanced_btn = ctk.CTkButton(
+            core_opts,
+            text="",
+            width=120,
+            fg_color="#3a3a3a",
+            hover_color="#2a2a2a",
+            command=self._toggle_advanced,
+        )
+        self.advanced_btn.grid(row=1, column=5, padx=(12, 0), pady=(4, 0),
+                               sticky="e")
+
+        self.advanced_frame = ctk.CTkFrame(opts, fg_color="transparent")
+        self.advanced_frame.grid(row=1, column=0, padx=14, pady=(0, 12),
+                                 sticky="ew")
+        self.advanced_frame.grid_columnconfigure(1, minsize=80)
+        self.advanced_frame.grid_columnconfigure(5, weight=1)
 
         # Container dropdown — applies only to video downloads. Picking
         # anything other than "None" runs an
@@ -733,9 +775,8 @@ class App(ctk.CTk):
         # don't fit the target container) into the chosen format. Replaces
         # the older single-purpose "Force MP4" checkbox so the user can
         # request MKV / MOV / AVI / FLV / MPEG / WebM too.
-        container_frame = ctk.CTkFrame(opts, fg_color="transparent")
-        container_frame.grid(row=1, column=3, columnspan=2,
-                             padx=(20, 12), pady=4, sticky="w")
+        container_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
+        container_frame.grid(row=1, column=0, pady=(0, 8), sticky="w")
         self.container_lbl = ctk.CTkLabel(container_frame, text="")
         self.container_lbl.pack(side="left", padx=(0, 8))
         self._labels_to_translate.append(
@@ -793,42 +834,12 @@ class App(ctk.CTk):
         # when the user flips between video and audio modes.
         self.container_frame = container_frame
 
-        self.playlist_var = tk.BooleanVar(value=self.settings.playlist)
-        self.playlist_chk = ctk.CTkCheckBox(opts, text="", variable=self.playlist_var)
-        self.playlist_chk.grid(row=2, column=0, columnspan=3, padx=(14, 12),
-                               pady=(4, 12), sticky="w")
-        self._labels_to_translate.append((self.playlist_chk, "text", "check.playlist"))
-
-        # Download tuning controls share one frame anchored to the same left
-        # edge as Container/Re-encode. The first grid column is sized to the
-        # Container label + dropdown above, so Parallel parts starts under
-        # the re-encode checkbox rather than immediately after Max concurrent.
-        tuning_frame = ctk.CTkFrame(opts, fg_color="transparent")
-        tuning_frame.grid(row=2, column=3, columnspan=2,
-                          padx=(20, 12), pady=(4, 12), sticky="w")
-        tuning_frame.grid_columnconfigure(0, minsize=252)
-
-        mc_frame = ctk.CTkFrame(tuning_frame, fg_color="transparent")
-        mc_frame.grid(row=0, column=0, sticky="w")
-        self.mc_lbl = ctk.CTkLabel(mc_frame, text="")
-        self.mc_lbl.pack(side="left", padx=(0, 8))
-        self._labels_to_translate.append((self.mc_lbl, "text", "label.max_concurrent"))
-
-        self.max_concurrent_var = tk.StringVar(
-            value=_format_concurrent(self.settings.max_concurrent)
-        )
-        self.max_concurrent_menu = ctk.CTkComboBox(
-            mc_frame, variable=self.max_concurrent_var,
-            values=MAX_CONCURRENT_PRESETS, width=110,
-        )
-        self.max_concurrent_menu.pack(side="left")
-
         # Parallel HTTP fragments per video. This is the single biggest knob
         # for raw download speed: YouTube throttles each TCP stream, so
         # splitting across N connections is what unlocks fast pipes. Combobox
         # accepts any positive int the user types in.
-        frag_frame = ctk.CTkFrame(tuning_frame, fg_color="transparent")
-        frag_frame.grid(row=0, column=1, sticky="w")
+        frag_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
+        frag_frame.grid(row=0, column=0, pady=(0, 8), sticky="w")
         self.frag_lbl = ctk.CTkLabel(frag_frame, text="")
         self.frag_lbl.pack(side="left", padx=(0, 8))
         self._labels_to_translate.append((self.frag_lbl, "text", "label.fragments"))
@@ -846,9 +857,9 @@ class App(ctk.CTk):
         # browser's cookie jar off disk and send the user's YouTube session
         # with each request, bypassing "Sign in to confirm you're not a
         # bot" rate-limiting. "Off" sends no cookies (default).
-        cookies_frame = ctk.CTkFrame(opts, fg_color="transparent")
-        cookies_frame.grid(row=3, column=3, columnspan=2,
-                           padx=(20, 12), pady=(4, 12), sticky="w")
+        cookies_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
+        cookies_frame.grid(row=0, column=1, columnspan=3,
+                           padx=(8, 0), pady=(0, 8), sticky="w")
         self.cookies_lbl = ctk.CTkLabel(cookies_frame, text="")
         self.cookies_lbl.pack(side="left", padx=(0, 8))
         self._labels_to_translate.append((self.cookies_lbl, "text", "label.cookies"))
@@ -861,9 +872,112 @@ class App(ctk.CTk):
         self.cookies_menu = ctk.CTkOptionMenu(
             cookies_frame, variable=self.cookies_var,
             values=self._current_cookies_values(),
-            width=160,
+            width=159,
         )
         self.cookies_menu.pack(side="left")
+
+        # Optional Netscape cookies.txt export. Auto mode uses this after
+        # Firefox browser cookies fail/unavailable, which is the practical
+        # fallback for Chromium browsers on Windows where App-Bound
+        # Encryption blocks yt-dlp cookie decryption.
+        cookie_file_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
+        cookie_file_frame.grid(row=2, column=0, columnspan=4,
+                               pady=(0, 8), sticky="ew")
+        self.cookie_file_lbl = ctk.CTkLabel(cookie_file_frame, text="")
+        self.cookie_file_lbl.grid(row=0, column=0, padx=(0, 8), sticky="w")
+        self._labels_to_translate.append(
+            (self.cookie_file_lbl, "text", "label.cookie_file")
+        )
+        self.cookie_file_var = tk.StringVar(value=self.settings.cookie_file)
+        self.cookie_file_entry = ctk.CTkEntry(
+            cookie_file_frame, textvariable=self.cookie_file_var, width=487
+        )
+        self.cookie_file_entry.grid(row=0, column=1, sticky="w")
+        _install_text_qol_bindings(
+            self.cookie_file_entry, is_text=False, get_lang=lambda: self.i18n
+        )
+        self.cookie_file_btn = ctk.CTkButton(
+            cookie_file_frame, text="", width=80,
+            command=self._on_cookie_file_browse,
+        )
+        self.cookie_file_btn.grid(row=0, column=2, padx=(8, 0))
+        self._labels_to_translate.append(
+            (self.cookie_file_btn, "text", "button.browse")
+        )
+
+        anyip_frame = ctk.CTkFrame(self.advanced_frame, fg_color="transparent")
+        anyip_frame.grid(row=3, column=0, columnspan=6, sticky="ew")
+
+        self.anyip_enabled_var = tk.BooleanVar(
+            value=bool(self.settings.anyip_enabled)
+        )
+        self.anyip_chk = ctk.CTkCheckBox(
+            anyip_frame, text="", variable=self.anyip_enabled_var,
+        )
+        self.anyip_chk.grid(row=0, column=0, padx=(0, 12), sticky="w")
+        self._labels_to_translate.append(
+            (self.anyip_chk, "text", "check.anyip_rescue")
+        )
+
+        self.anyip_user_lbl = ctk.CTkLabel(anyip_frame, text="")
+        self.anyip_user_lbl.grid(row=0, column=1, padx=(0, 6), sticky="w")
+        self._labels_to_translate.append(
+            (self.anyip_user_lbl, "text", "label.anyip_username")
+        )
+        self.anyip_username_var = tk.StringVar(value=self.settings.anyip_username)
+        self.anyip_username_entry = ctk.CTkEntry(
+            anyip_frame, textvariable=self.anyip_username_var, width=150,
+        )
+        self.anyip_username_entry.grid(row=0, column=2, sticky="w")
+        _install_text_qol_bindings(
+            self.anyip_username_entry, is_text=False, get_lang=lambda: self.i18n
+        )
+
+        self.anyip_pass_lbl = ctk.CTkLabel(anyip_frame, text="")
+        self.anyip_pass_lbl.grid(row=0, column=3, padx=(12, 6), sticky="w")
+        self._labels_to_translate.append(
+            (self.anyip_pass_lbl, "text", "label.anyip_password")
+        )
+        self.anyip_password_var = tk.StringVar(value=self.settings.anyip_password)
+        self.anyip_password_entry = ctk.CTkEntry(
+            anyip_frame, textvariable=self.anyip_password_var, width=150, show="*",
+        )
+        self.anyip_password_entry.grid(row=0, column=4, sticky="w")
+        _install_text_qol_bindings(
+            self.anyip_password_entry, is_text=False, get_lang=lambda: self.i18n
+        )
+
+        self.anyip_network_lbl = ctk.CTkLabel(anyip_frame, text="")
+        self.anyip_network_lbl.grid(row=1, column=1, padx=(0, 6), pady=(6, 0),
+                                    sticky="w")
+        self._labels_to_translate.append(
+            (self.anyip_network_lbl, "text", "label.anyip_network")
+        )
+        self.anyip_network_var = tk.StringVar(value=self.settings.anyip_network_type)
+        self.anyip_network_menu = ctk.CTkOptionMenu(
+            anyip_frame,
+            variable=self.anyip_network_var,
+            values=["Residential", "Mixed", "Mobile"],
+            width=150,
+        )
+        self.anyip_network_menu.grid(row=1, column=2, pady=(6, 0), sticky="w")
+
+        self.anyip_session_lbl = ctk.CTkLabel(anyip_frame, text="")
+        self.anyip_session_lbl.grid(row=1, column=3, padx=(12, 6), pady=(6, 0),
+                                    sticky="w")
+        self._labels_to_translate.append(
+            (self.anyip_session_lbl, "text", "label.anyip_session")
+        )
+        self.anyip_session_var = tk.StringVar(value=self.settings.anyip_session_name)
+        self.anyip_session_entry = ctk.CTkEntry(
+            anyip_frame, textvariable=self.anyip_session_var, width=150,
+        )
+        self.anyip_session_entry.grid(row=1, column=4, columnspan=2,
+                                      pady=(6, 0), sticky="w")
+        _install_text_qol_bindings(
+            self.anyip_session_entry, is_text=False, get_lang=lambda: self.i18n
+        )
+        self._sync_advanced_visibility()
 
         # Action row
         actions = ctk.CTkFrame(self, fg_color="transparent")
@@ -1042,6 +1156,26 @@ class App(ctk.CTk):
             self.preset_menu.configure(
                 state="normal" if self.reencode_var.get() else "disabled"
             )
+
+    def _toggle_advanced(self) -> None:
+        self.advanced_visible = not self.advanced_visible
+        self._sync_advanced_visibility()
+
+    def _sync_advanced_visibility(self) -> None:
+        """Apply the Advanced collapse state and video/audio-only visibility."""
+        if not hasattr(self, "advanced_frame"):
+            return
+        if self.advanced_visible:
+            self.advanced_frame.grid()
+            if self.mode_var.get() == "audio":
+                self.container_frame.grid_remove()
+            else:
+                self.container_frame.grid()
+        else:
+            self.advanced_frame.grid_remove()
+        if hasattr(self, "advanced_btn"):
+            key = "button.hide_advanced" if self.advanced_visible else "button.advanced"
+            self.advanced_btn.configure(text=self.i18n.t(key))
 
     # ---- Banners (ffmpeg-missing, update-available) ----------------------
 
@@ -1328,6 +1462,68 @@ class App(ctk.CTk):
             self.after(0, lambda: self._log(self.i18n.t(
                 "log.update_failed", error=output or "unknown")))
 
+    def _configured_cookie_file(self, task: DownloadTask) -> str | None:
+        raw = (task.cookie_file or self.cookie_file_var.get() or "").strip()
+        if not raw:
+            return None
+        path = Path(raw).expanduser()
+        if path.is_file():
+            return str(path)
+        self._log(self.i18n.t("log.cookie_file_missing", path=str(path)))
+        return None
+
+    def _retry_with_cookie_file(self, task: DownloadTask) -> bool:
+        if task.cookie_file_retry_attempted:
+            return False
+        path = self._configured_cookie_file(task)
+        if not path:
+            return False
+        task.cookie_file_retry_attempted = True
+        self.manager.set_auto_cookie_file(path)
+        self._log(self.i18n.t("log.cookie_file_retry", path=path))
+        return self.manager.retry_task(task.id)
+
+    def _show_chromium_cookie_banner(self) -> None:
+        if self._chromium_cookie_banner_shown:
+            return
+        self._chromium_cookie_banner_shown = True
+        self._show_banner(
+            "chromium-cookies",
+            message=self.i18n.t("banner.chromium_cookies"),
+            accent="#7a5a30",
+        )
+
+    def _show_anyip_config_banner(self) -> None:
+        if self._anyip_config_banner_shown:
+            return
+        self._anyip_config_banner_shown = True
+        self._show_banner(
+            "anyip-config",
+            message=self.i18n.t("banner.anyip_not_configured"),
+            accent="#7a5a30",
+        )
+
+    def _retry_with_anyip(self, task: DownloadTask) -> bool:
+        if task.anyip_retry_attempted or self.manager.anyip_active():
+            return False
+        if not bool(self.anyip_enabled_var.get()):
+            return False
+        try:
+            proxy = build_anyip_proxy_url(
+                self.anyip_username_var.get(),
+                self.anyip_password_var.get(),
+                self.anyip_network_var.get(),
+                self.anyip_session_var.get(),
+            )
+        except ValueError:
+            self._show_anyip_config_banner()
+            return False
+
+        task.anyip_retry_attempted = True
+        self.manager.set_anyip_proxy(proxy)
+        self._log(self.i18n.t("log.anyip_activated"))
+        return self.manager.retry_task(task.id)
+
     def _handle_cookies_failure(self, task: DownloadTask) -> None:
         """Decide what to do when a download fails for a cookies-related
         reason — either YouTube's bot-check rate-limit or a yt-dlp DPAPI
@@ -1339,6 +1535,9 @@ class App(ctk.CTk):
         pick banner.
         """
         per_task = (task.cookies_browser or "Off")
+        err_lower = (task.error or "").lower()
+        bot_limited = BOT_DETECTION_SIGNATURE in err_lower
+        decrypt_failed = COOKIES_DECRYPT_FAILED_SIGNATURE in err_lower
 
         if per_task == "Auto":
             # Walk to the next candidate browser we haven't tried yet.
@@ -1357,6 +1556,16 @@ class App(ctk.CTk):
             else:
                 # No untried candidate has a cookie jar — nothing left to try.
                 self._log(self.i18n.t("log.auto_cookies_no_browser"))
+
+            if self._retry_with_cookie_file(task):
+                return
+
+        elif decrypt_failed and browser_detect.is_chromium_family(per_task):
+            self._show_chromium_cookie_banner()
+            return
+
+        if bot_limited and self._retry_with_anyip(task):
+            return
 
         # Either Auto is exhausted, or the user explicitly chose Off/a
         # specific browser — surface the manual-pick banner once.
@@ -1474,6 +1683,8 @@ class App(ctk.CTk):
             self.preset_menu.configure(values=self._current_preset_values())
             self.reencode_quality_var.set(self.i18n.localize_option(current_internal))
 
+        self._sync_advanced_visibility()
+
         for row in self.rows.values():
             row.refresh()
 
@@ -1503,11 +1714,7 @@ class App(ctk.CTk):
         self.codec_var.set(preferred if preferred in c_values else c_values[0])
 
         # Container conversion only applies to video downloads.
-        if self.mode_var.get() == "audio":
-            self.container_frame.grid_remove()
-        else:
-            self.container_frame.grid()
-
+        self._sync_advanced_visibility()
         self._update_quality_enabled()
 
     def _on_codec_change(self, _value: str | None = None) -> None:
@@ -1538,6 +1745,20 @@ class App(ctk.CTk):
         path = filedialog.askdirectory(initialdir=initial)
         if path:
             self.out_var.set(path)
+
+    def _on_cookie_file_browse(self) -> None:
+        initial = self.cookie_file_var.get().strip()
+        initialdir = str(Path(initial).expanduser().parent) if initial else str(Path.home())
+        path = filedialog.askopenfilename(
+            initialdir=initialdir,
+            title=self.i18n.t("dialog.cookie_file.title"),
+            filetypes=[
+                (self.i18n.t("dialog.cookie_file.type"), "*.txt *.cookies"),
+                ("All files", "*"),
+            ],
+        )
+        if path:
+            self.cookie_file_var.set(path)
 
     def _on_add(self) -> None:
         raw = self.url_placeholder.get_user_text()
@@ -1573,6 +1794,7 @@ class App(ctk.CTk):
         reencode_quality = self._preset_internal()
         fragments = _parse_fragments(self.fragments_var.get())
         cookies_browser = self._cookies_internal()
+        cookie_file = self.cookie_file_var.get().strip()
         for url in urls:
             self.manager.add(
                 url, out_dir, mode, quality, codec, playlist,
@@ -1581,6 +1803,7 @@ class App(ctk.CTk):
                 reencode_quality=reencode_quality,
                 concurrent_fragments=fragments,
                 cookies_browser=cookies_browser,
+                cookie_file=cookie_file,
             )
             self._log(self.i18n.t("log.task_added", url=url))
 
@@ -1862,6 +2085,14 @@ class App(ctk.CTk):
         self.settings.playlist = bool(self.playlist_var.get())
         self.settings.concurrent_fragments = _parse_fragments(self.fragments_var.get())
         self.settings.cookies_browser = self._cookies_internal()
+        self.settings.cookie_file = self.cookie_file_var.get().strip()
+        self.settings.anyip_enabled = bool(self.anyip_enabled_var.get())
+        self.settings.anyip_username = self.anyip_username_var.get().strip()
+        self.settings.anyip_password = self.anyip_password_var.get()
+        self.settings.anyip_network_type = self.anyip_network_var.get()
+        self.settings.anyip_session_name = (
+            self.anyip_session_var.get().strip() or "youtube_downloader"
+        )
         self.settings.save()
 
 

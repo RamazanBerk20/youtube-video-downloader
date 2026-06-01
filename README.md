@@ -26,8 +26,12 @@ Linux and Windows.
   remux to MP4/MKV/WebM/MOV, or transcode to legacy-friendly AVI/FLV/MPEG/WMV.
   The compatibility re-encode uses codecs that fit the selected container.
 - **Browser cookies + JS runtime support** — can use browser cookies when
-  YouTube asks for sign-in, and checks for Deno/Node/Bun for yt-dlp's
-  YouTube anti-bot challenge support.
+  YouTube asks for sign-in, can fall back to a `cookies.txt` export when
+  Chromium cookie decryption is blocked, and checks for Deno/Node/Bun for
+  yt-dlp's YouTube anti-bot challenge support.
+- **Automatic rate-limit rescue** — when cookie retries fail, the app can
+  activate a configured anyIP proxy for queued/future downloads and retry
+  the failed task once.
 - **Playlist support** — entire playlists download into a folder named after
   the playlist, with zero-padded index prefixes
 - **Per-task cancel + Cancel all + Clear finished** — fine-grained control
@@ -35,8 +39,8 @@ Linux and Windows.
 - **Session log** — timestamped panel showing each completed file and any
   warnings/errors
 - **Remembers preferences** — language, max-concurrent, output folder,
-  format, quality, codecs, container, playlist toggle, fragments, and
-  cookie source persist in a config file:
+  format, quality, codecs, container, playlist toggle, fragments, cookie
+  source, cookie file, and anyIP rescue settings persist in a config file:
   `%APPDATA%\youtube-downloader\config.json` (Windows) /
   `~/.config/youtube-downloader/config.json` (Linux) /
   `~/Library/Application Support/youtube-downloader/config.json` (macOS)
@@ -111,6 +115,11 @@ or **Clear finished** to remove completed rows.
 
 Files are named `<title> [<id>].<ext>`; playlist entries land in a subfolder
 named after the playlist.
+
+If Chromium-family browser cookies fail on Windows, this is usually Chrome /
+Edge / Brave App-Bound Encryption blocking yt-dlp's DPAPI decrypt path. Use
+Firefox cookies, or export YouTube cookies to a Netscape-format `cookies.txt`
+file and select it in the app.
 
 ## Project layout
 

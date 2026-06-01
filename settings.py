@@ -37,6 +37,7 @@ _COOKIE_BROWSERS = {
     "Auto", "Off", "Firefox", "Chrome", "Brave", "Chromium", "Edge",
     "Opera", "Safari", "Vivaldi",
 }
+_ANYIP_NETWORK_TYPES = {"Residential", "Mixed", "Mobile"}
 
 
 def _coerce_int(value: object, default: int, *, minimum: int = 1) -> int:
@@ -103,6 +104,17 @@ class Settings:
     # "Off" = never send cookies. An explicit browser name forces that
     # browser's cookies on every request.
     cookies_browser: str = "Auto"
+    # Optional Netscape cookies.txt export. Used as Auto-mode fallback when
+    # browser cookie extraction is unavailable, especially for Chromium on
+    # Windows where App-Bound Encryption blocks yt-dlp's DPAPI decrypt path.
+    cookie_file: str = ""
+    # anyIP rescue routing. Disabled until YouTube's bot/rate-limit error is
+    # seen and cookie retries are exhausted.
+    anyip_enabled: bool = False
+    anyip_username: str = ""
+    anyip_password: str = ""
+    anyip_network_type: str = "Residential"
+    anyip_session_name: str = "youtube_downloader"
 
     def __post_init__(self) -> None:
         # Treat the config file as user-editable input. Bad values should
@@ -123,6 +135,22 @@ class Settings:
         self.auto_update_check = _coerce_bool(self.auto_update_check)
         self.concurrent_fragments = _coerce_int(self.concurrent_fragments, 4)
         self.cookies_browser = _choice(self.cookies_browser, _COOKIE_BROWSERS, "Auto")
+        self.cookie_file = self.cookie_file if isinstance(self.cookie_file, str) else ""
+        self.anyip_enabled = _coerce_bool(self.anyip_enabled)
+        self.anyip_username = (
+            self.anyip_username if isinstance(self.anyip_username, str) else ""
+        )
+        self.anyip_password = (
+            self.anyip_password if isinstance(self.anyip_password, str) else ""
+        )
+        self.anyip_network_type = _choice(
+            self.anyip_network_type, _ANYIP_NETWORK_TYPES, "Residential"
+        )
+        self.anyip_session_name = (
+            self.anyip_session_name
+            if isinstance(self.anyip_session_name, str) and self.anyip_session_name.strip()
+            else "youtube_downloader"
+        )
 
     @classmethod
     def load(cls) -> "Settings":

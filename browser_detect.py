@@ -170,6 +170,16 @@ _WINDOWS_DPAPI_BLOCKED: frozenset[str] = frozenset({
 })
 
 
+_CHROMIUM_FAMILY: frozenset[str] = frozenset({
+    "chrome", "edge", "brave", "chromium", "vivaldi", "opera",
+})
+
+
+def is_chromium_family(browser: str | None) -> bool:
+    """True for browser keys backed by Chromium cookie storage."""
+    return (browser or "").strip().lower() in _CHROMIUM_FAMILY
+
+
 def candidate_browsers() -> list[str]:
     """Return browsers with cookie jars on disk, in the order Auto should
     try them. Each browser appears at most once.
@@ -197,7 +207,10 @@ def candidate_browsers() -> list[str]:
             and _has_cookie_jar("firefox")):
         candidates.append("firefox")
 
-    if default and default not in candidates and _has_cookie_jar(default):
+    if (default
+            and default not in candidates
+            and _has_cookie_jar(default)
+            and not (sys.platform == "win32" and default in _WINDOWS_DPAPI_BLOCKED)):
         candidates.append(default)
 
     # Generic priority for the remainder. Firefox first because it's the
@@ -205,6 +218,8 @@ def candidate_browsers() -> list[str]:
     # Safari last because it only matters on macOS.
     for b in ("firefox", "chrome", "brave", "chromium", "edge",
               "vivaldi", "opera", "safari"):
+        if sys.platform == "win32" and b in _WINDOWS_DPAPI_BLOCKED:
+            continue
         if b not in candidates and _has_cookie_jar(b):
             candidates.append(b)
 

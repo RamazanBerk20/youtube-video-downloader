@@ -22,6 +22,7 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote
 
 import yt_dlp
 from yt_dlp.postprocessor.ffmpeg import FFmpegPostProcessor
@@ -157,6 +158,49 @@ _COOKIES_BROWSERS: tuple[str, ...] = (
 
 def cookies_browser_options() -> list[str]:
     return list(_COOKIES_BROWSERS)
+
+
+_ANYIP_NETWORK_FLAGS: dict[str, str | None] = {
+    "Residential": "type_residential",
+    "Mobile": "type_mobile",
+    "Mixed": None,
+}
+
+
+def build_anyip_proxy_url(
+    username: str,
+    password: str,
+    network_type: str = "Residential",
+    session_name: str = "youtube_downloader",
+) -> str:
+    """Build the anyIP HTTP proxy URL for yt-dlp's `proxy` option.
+
+    anyIP uses comma-separated username flags for network type and sticky
+    sessions. Preserve user-supplied flags and add the app defaults only
+    when they are absent.
+    """
+    user = (username or "").strip()
+    pwd = password or ""
+    if not user or not pwd:
+        raise ValueError("anyIP username and password are required")
+
+    parts = [p.strip() for p in user.split(",") if p.strip()]
+    if not any(p.startswith("type_") for p in parts):
+        flag = _ANYIP_NETWORK_FLAGS.get(network_type, "type_residential")
+        if flag:
+            parts.append(flag)
+
+    if not any(p.startswith("session_") for p in parts):
+        session = re.sub(r"[^A-Za-z0-9_-]+", "_", session_name or "").strip("_")
+        if session:
+            parts.append(f"session_{session}")
+
+    proxy_user = ",".join(parts)
+    return (
+        "http://"
+        f"{quote(proxy_user, safe='')}:{quote(pwd, safe='')}"
+        "@portal.anyip.io:1080"
+    )
 
 
 # Substring (case-insensitive) yt-dlp surfaces when YouTube's bot-check
@@ -1373,10 +1417,13 @@ class DownloadTask:
     reencode_quality: str = "Balanced"
     concurrent_fragments: int = 4
     cookies_browser: str = "Off"
+    cookie_file: str = ""
     # Bumped by the GUI when it retries a bot-detection failure with auto-
     # detected cookies. Used to cap retries at 1 so a bad cookie jar (e.g.
     # browser not logged in) can't infinite-loop.
     retry_attempts: int = 0
+    cookie_file_retry_attempted: bool = False
+    anyip_retry_attempted: bool = False
 
     status: str = "queued"   # queued | running | done | failed | cancelled
     # Sub-phase within `running`: "download" while yt-dlp is fetching the
@@ -1420,6 +1467,10 @@ class DownloadManager:
         # task with cookies_browser="Auto" will start passing this browser
         # to yt-dlp. None = Auto behaves like Off.
         self._auto_cookies_browser: str | None = None
+        self._auto_cookie_file: str | None = None
+        # Session-wide proxy activated after YouTube rate-limits this IP and
+        # cookie retries fail. None = direct connection.
+        self._anyip_proxy_url: str | None = None
 
     # ---- Public API ---------------------------------------------------
 
@@ -1436,6 +1487,7 @@ class DownloadManager:
         reencode_quality: str = "Balanced",
         concurrent_fragments: int = 4,
         cookies_browser: str = "Off",
+        cookie_file: str = "",
     ) -> DownloadTask:
         task = DownloadTask(
             id=next(self._id_seq),
@@ -1450,6 +1502,7 @@ class DownloadManager:
             reencode_quality=reencode_quality or "Balanced",
             concurrent_fragments=_positive_int(concurrent_fragments, 4),
             cookies_browser=cookies_browser or "Off",
+            cookie_file=cookie_file or "",
             title=url,
         )
         with self._lock:
@@ -1488,6 +1541,21 @@ class DownloadManager:
         """Tell the manager which browser to use when a task's cookies_browser
         is "Auto". Pass None to disable."""
         self._auto_cookies_browser = (name or None)
+        if name:
+            self._auto_cookie_file = None
+
+    def set_auto_cookie_file(self, path: str | None) -> None:
+        """Tell Auto-cookie tasks to use a Netscape cookies.txt file."""
+        self._auto_cookie_file = (path or None)
+        if path:
+            self._auto_cookies_browser = None
+
+    def set_anyip_proxy(self, proxy_url: str | None) -> None:
+        """Activate or clear the session-wide anyIP proxy."""
+        self._anyip_proxy_url = (proxy_url or None)
+
+    def anyip_active(self) -> bool:
+        return bool(self._anyip_proxy_url)
 
     def retry_task(self, task_id: int) -> bool:
         """Reset a failed/cancelled task back to queued so the scheduler
@@ -1511,17 +1579,24 @@ class DownloadManager:
         self.events.put({"type": "task_progress", "task_id": task.id})
         return True
 
-    def _resolve_cookies(self, task: DownloadTask) -> str | None:
-        """Translate task.cookies_browser to the actual yt-dlp browser name
-        (lowercase) or None for "don't send cookies". "Auto" resolves to
-        the manager's session-wide auto browser, which is None until the
-        GUI activates it via set_auto_cookies_browser()."""
+    def _resolve_cookies(self, task: DownloadTask) -> tuple[str, str] | None:
+        """Return ("browser", key), ("file", path), or None.
+
+        "Auto" resolves to the manager's session-wide auto cookie source,
+        which is None until the GUI activates it after a rate-limit failure.
+        Explicit browser choices always use browser extraction; "Off" sends
+        no cookies.
+        """
         val = (task.cookies_browser or "Off").strip()
         if val.lower() == "auto":
-            return self._auto_cookies_browser  # None until activated
+            if self._auto_cookie_file:
+                return ("file", self._auto_cookie_file)
+            if self._auto_cookies_browser:
+                return ("browser", self._auto_cookies_browser)
+            return None
         if val.lower() == "off":
             return None
-        return val.lower()
+        return ("browser", val.lower())
 
     def schedule(self, max_concurrent: int) -> None:
         """Start as many queued tasks as fit under `max_concurrent`."""
@@ -1709,12 +1784,19 @@ class DownloadManager:
                 name: {"path": path} for name, path in runtimes.items()
             }
 
-        # Browser cookies bypass YouTube's "Sign in to confirm you're not a
-        # bot" rate limit. Resolver translates Off/Auto/<name> to either
-        # None (don't send) or a lowercase yt-dlp browser key.
-        browser = self._resolve_cookies(task)
-        if browser:
-            opts["cookiesfrombrowser"] = (browser,)
+        # Browser cookies / cookies.txt bypass YouTube's "Sign in to confirm
+        # you're not a bot" rate limit. Resolver ensures yt-dlp sees only one
+        # cookie source per attempt.
+        cookie_source = self._resolve_cookies(task)
+        if cookie_source:
+            kind, value = cookie_source
+            if kind == "browser":
+                opts["cookiesfrombrowser"] = (value,)
+            elif kind == "file":
+                opts["cookiefile"] = value
+
+        if self._anyip_proxy_url:
+            opts["proxy"] = self._anyip_proxy_url
 
         if task.mode == "audio":
             opts["format"] = "bestaudio/best"
