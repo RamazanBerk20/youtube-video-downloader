@@ -1,0 +1,162 @@
+M4a Best
+  -f bestaudio/best -x --audio-format m4a --audio-quality 0 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+M4a K320
+  -f bestaudio/best -x --audio-format m4a --audio-quality 320 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+M4a K256
+  -f bestaudio/best -x --audio-format m4a --audio-quality 256 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+M4a K192
+  -f bestaudio/best -x --audio-format m4a --audio-quality 192 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+M4a K128
+  -f bestaudio/best -x --audio-format m4a --audio-quality 128 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+M4a K96
+  -f bestaudio/best -x --audio-format m4a --audio-quality 96 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Mp3 Best
+  -f bestaudio/best -x --audio-format mp3 --audio-quality 0 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Mp3 K320
+  -f bestaudio/best -x --audio-format mp3 --audio-quality 320 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Mp3 K256
+  -f bestaudio/best -x --audio-format mp3 --audio-quality 256 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Mp3 K192
+  -f bestaudio/best -x --audio-format mp3 --audio-quality 192 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Mp3 K128
+  -f bestaudio/best -x --audio-format mp3 --audio-quality 128 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Mp3 K96
+  -f bestaudio/best -x --audio-format mp3 --audio-quality 96 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Opus Best
+  -f bestaudio/best -x --audio-format opus --audio-quality 0 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Opus K320
+  -f bestaudio/best -x --audio-format opus --audio-quality 320 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Opus K256
+  -f bestaudio/best -x --audio-format opus --audio-quality 256 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Opus K192
+  -f bestaudio/best -x --audio-format opus --audio-quality 192 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Opus K128
+  -f bestaudio/best -x --audio-format opus --audio-quality 128 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Opus K96
+  -f bestaudio/best -x --audio-format opus --audio-quality 96 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Vorbis Best
+  -f bestaudio/best -x --audio-format vorbis --audio-quality 0 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Vorbis K320
+  -f bestaudio/best -x --audio-format vorbis --audio-quality 320 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Vorbis K256
+  -f bestaudio/best -x --audio-format vorbis --audio-quality 256 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Vorbis K192
+  -f bestaudio/best -x --audio-format vorbis --audio-quality 192 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Vorbis K128
+  -f bestaudio/best -x --audio-format vorbis --audio-quality 128 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Vorbis K96
+  -f bestaudio/best -x --audio-format vorbis --audio-quality 96 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Flac Best
+  -f bestaudio/best -x --audio-format flac --audio-quality 0 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Flac K320
+  -f bestaudio/best -x --audio-format flac --audio-quality 0 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Flac K256
+  -f bestaudio/best -x --audio-format flac --audio-quality 0 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Flac K192
+  -f bestaudio/best -x --audio-format flac --audio-quality 0 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Flac K128
+  -f bestaudio/best -x --audio-format flac --audio-quality 0 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Flac K96
+  -f bestaudio/best -x --audio-format flac --audio-quality 0 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Wav Best
+  -f bestaudio/best -x --audio-format wav --audio-quality 0 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Wav K320
+  -f bestaudio/best -x --audio-format wav --audio-quality 0 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Wav K256
+  -f bestaudio/best -x --audio-format wav --audio-quality 0 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Wav K192
+  -f bestaudio/best -x --audio-format wav --audio-quality 0 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Wav K128
+  -f bestaudio/best -x --audio-format wav --audio-quality 0 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Wav K96
+  -f bestaudio/best -x --audio-format wav --audio-quality 0 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Alac Best
+  -f bestaudio/best -x --audio-format alac --audio-quality 0 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Alac K320
+  -f bestaudio/best -x --audio-format alac --audio-quality 0 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Alac K256
+  -f bestaudio/best -x --audio-format alac --audio-quality 0 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Alac K192
+  -f bestaudio/best -x --audio-format alac --audio-quality 0 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Alac K128
+  -f bestaudio/best -x --audio-format alac --audio-quality 0 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Alac K96
+  -f bestaudio/best -x --audio-format alac --audio-quality 0 -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Ac3 Best
+  -f bestaudio/best -- https://www.youtube.com/watch?v=abc
+  post {"type":"ac3","bitrateK":640}
+Ac3 K320
+  -f bestaudio/best -- https://www.youtube.com/watch?v=abc
+  post {"type":"ac3","bitrateK":320}
+Ac3 K256
+  -f bestaudio/best -- https://www.youtube.com/watch?v=abc
+  post {"type":"ac3","bitrateK":256}
+Ac3 K192
+  -f bestaudio/best -- https://www.youtube.com/watch?v=abc
+  post {"type":"ac3","bitrateK":192}
+Ac3 K128
+  -f bestaudio/best -- https://www.youtube.com/watch?v=abc
+  post {"type":"ac3","bitrateK":128}
+Ac3 K96
+  -f bestaudio/best -- https://www.youtube.com/watch?v=abc
+  post {"type":"ac3","bitrateK":96}
+Original Best
+  -f bestaudio/best -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Original K320
+  -f bestaudio/best -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Original K256
+  -f bestaudio/best -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Original K192
+  -f bestaudio/best -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Original K128
+  -f bestaudio/best -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}
+Original K96
+  -f bestaudio/best -- https://www.youtube.com/watch?v=abc
+  post {"type":"none"}

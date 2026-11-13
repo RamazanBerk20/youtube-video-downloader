@@ -1,0 +1,1728 @@
+Best Auto None reencode=false
+  -f bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best
+  post {"type":"none"}
+Best Auto None reencode=true
+  -f bestvideo[height>1080][vcodec^=vp09][dynamic_range=SDR]+bestaudio[acodec=opus]/bestvideo[height>1080][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height>1080][ext=webm]+bestaudio[ext=webm]/bestvideo[height>1080]+bestaudio/best[height>1080]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+Best Auto Mp4 reencode=false
+  -f bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+Best Auto Mp4 reencode=true
+  -f bestvideo[height>1080][vcodec^=vp09][dynamic_range=SDR]+bestaudio[acodec=opus]/bestvideo[height>1080][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height>1080][ext=webm]+bestaudio[ext=webm]/bestvideo[height>1080]+bestaudio/best[height>1080]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+Best Auto Mkv reencode=false
+  -f bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+Best Auto Mkv reencode=true
+  -f bestvideo[height>1080][vcodec^=vp09][dynamic_range=SDR]+bestaudio[acodec=opus]/bestvideo[height>1080][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height>1080][ext=webm]+bestaudio[ext=webm]/bestvideo[height>1080]+bestaudio/best[height>1080]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+Best Auto Webm reencode=false
+  -f bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+Best Auto Webm reencode=true
+  -f bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+Best Auto Mov reencode=false
+  -f bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+Best Auto Mov reencode=true
+  -f bestvideo[height>1080][vcodec^=vp09][dynamic_range=SDR]+bestaudio[acodec=opus]/bestvideo[height>1080][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height>1080][ext=webm]+bestaudio[ext=webm]/bestvideo[height>1080]+bestaudio/best[height>1080]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+Best Auto Avi reencode=false
+  -f bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+Best Auto Avi reencode=true
+  -f bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+Best Auto Flv reencode=false
+  -f bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+Best Auto Flv reencode=true
+  -f bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+Best Auto Mpeg reencode=false
+  -f bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+Best Auto Mpeg reencode=true
+  -f bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+Best Auto Wmv reencode=false
+  -f bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+Best Auto Wmv reencode=true
+  -f bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+Best H264 None reencode=false
+  -f bestvideo[vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[vcodec^=avc1][ext=mp4]+bestaudio/best[vcodec^=avc1][ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best
+  post {"type":"none"}
+Best H264 None reencode=true
+  -f bestvideo[vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[vcodec^=avc1][ext=mp4]+bestaudio/best[vcodec^=avc1][ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+Best H264 Mp4 reencode=false
+  -f bestvideo[vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[vcodec^=avc1][ext=mp4]+bestaudio/best[vcodec^=avc1][ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+Best H264 Mp4 reencode=true
+  -f bestvideo[vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[vcodec^=avc1][ext=mp4]+bestaudio/best[vcodec^=avc1][ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+Best H264 Mkv reencode=false
+  -f bestvideo[vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[vcodec^=avc1][ext=mp4]+bestaudio/best[vcodec^=avc1][ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+Best H264 Mkv reencode=true
+  -f bestvideo[vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[vcodec^=avc1][ext=mp4]+bestaudio/best[vcodec^=avc1][ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+Best H264 Webm reencode=false
+  -f bestvideo[vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[vcodec^=avc1][ext=mp4]+bestaudio/best[vcodec^=avc1][ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+Best H264 Webm reencode=true
+  -f bestvideo[vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[vcodec^=avc1][ext=mp4]+bestaudio/best[vcodec^=avc1][ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+Best H264 Mov reencode=false
+  -f bestvideo[vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[vcodec^=avc1][ext=mp4]+bestaudio/best[vcodec^=avc1][ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+Best H264 Mov reencode=true
+  -f bestvideo[vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[vcodec^=avc1][ext=mp4]+bestaudio/best[vcodec^=avc1][ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+Best H264 Avi reencode=false
+  -f bestvideo[vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[vcodec^=avc1][ext=mp4]+bestaudio/best[vcodec^=avc1][ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+Best H264 Avi reencode=true
+  -f bestvideo[vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[vcodec^=avc1][ext=mp4]+bestaudio/best[vcodec^=avc1][ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+Best H264 Flv reencode=false
+  -f bestvideo[vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[vcodec^=avc1][ext=mp4]+bestaudio/best[vcodec^=avc1][ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+Best H264 Flv reencode=true
+  -f bestvideo[vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[vcodec^=avc1][ext=mp4]+bestaudio/best[vcodec^=avc1][ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+Best H264 Mpeg reencode=false
+  -f bestvideo[vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[vcodec^=avc1][ext=mp4]+bestaudio/best[vcodec^=avc1][ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+Best H264 Mpeg reencode=true
+  -f bestvideo[vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[vcodec^=avc1][ext=mp4]+bestaudio/best[vcodec^=avc1][ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+Best H264 Wmv reencode=false
+  -f bestvideo[vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[vcodec^=avc1][ext=mp4]+bestaudio/best[vcodec^=avc1][ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+Best H264 Wmv reencode=true
+  -f bestvideo[vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[vcodec^=avc1][ext=mp4]+bestaudio/best[vcodec^=avc1][ext=mp4]/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+Best Vp9 None reencode=false
+  -f bestvideo[vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[ext=webm]+bestaudio[ext=webm]/bestvideo+bestaudio/best
+  post {"type":"none"}
+Best Vp9 None reencode=true
+  -f bestvideo[vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[ext=webm]+bestaudio[ext=webm]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+Best Vp9 Mp4 reencode=false
+  -f bestvideo[vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[ext=webm]+bestaudio[ext=webm]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+Best Vp9 Mp4 reencode=true
+  -f bestvideo[vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[ext=webm]+bestaudio[ext=webm]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+Best Vp9 Mkv reencode=false
+  -f bestvideo[vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[ext=webm]+bestaudio[ext=webm]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+Best Vp9 Mkv reencode=true
+  -f bestvideo[vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[ext=webm]+bestaudio[ext=webm]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+Best Vp9 Webm reencode=false
+  -f bestvideo[vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[ext=webm]+bestaudio[ext=webm]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+Best Vp9 Webm reencode=true
+  -f bestvideo[vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[ext=webm]+bestaudio[ext=webm]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+Best Vp9 Mov reencode=false
+  -f bestvideo[vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[ext=webm]+bestaudio[ext=webm]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+Best Vp9 Mov reencode=true
+  -f bestvideo[vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[ext=webm]+bestaudio[ext=webm]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+Best Vp9 Avi reencode=false
+  -f bestvideo[vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[ext=webm]+bestaudio[ext=webm]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+Best Vp9 Avi reencode=true
+  -f bestvideo[vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[ext=webm]+bestaudio[ext=webm]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+Best Vp9 Flv reencode=false
+  -f bestvideo[vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[ext=webm]+bestaudio[ext=webm]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+Best Vp9 Flv reencode=true
+  -f bestvideo[vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[ext=webm]+bestaudio[ext=webm]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+Best Vp9 Mpeg reencode=false
+  -f bestvideo[vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[ext=webm]+bestaudio[ext=webm]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+Best Vp9 Mpeg reencode=true
+  -f bestvideo[vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[ext=webm]+bestaudio[ext=webm]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+Best Vp9 Wmv reencode=false
+  -f bestvideo[vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[ext=webm]+bestaudio[ext=webm]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+Best Vp9 Wmv reencode=true
+  -f bestvideo[vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[ext=webm]+bestaudio[ext=webm]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+Best Av1 None reencode=false
+  -f bestvideo[vcodec^=av01]+bestaudio[acodec=opus]/bestvideo+bestaudio/best
+  post {"type":"none"}
+Best Av1 None reencode=true
+  -f bestvideo[vcodec^=av01]+bestaudio[acodec=opus]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+Best Av1 Mp4 reencode=false
+  -f bestvideo[vcodec^=av01]+bestaudio[acodec=opus]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+Best Av1 Mp4 reencode=true
+  -f bestvideo[vcodec^=av01]+bestaudio[acodec=opus]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+Best Av1 Mkv reencode=false
+  -f bestvideo[vcodec^=av01]+bestaudio[acodec=opus]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+Best Av1 Mkv reencode=true
+  -f bestvideo[vcodec^=av01]+bestaudio[acodec=opus]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+Best Av1 Webm reencode=false
+  -f bestvideo[vcodec^=av01]+bestaudio[acodec=opus]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+Best Av1 Webm reencode=true
+  -f bestvideo[vcodec^=av01]+bestaudio[acodec=opus]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+Best Av1 Mov reencode=false
+  -f bestvideo[vcodec^=av01]+bestaudio[acodec=opus]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+Best Av1 Mov reencode=true
+  -f bestvideo[vcodec^=av01]+bestaudio[acodec=opus]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+Best Av1 Avi reencode=false
+  -f bestvideo[vcodec^=av01]+bestaudio[acodec=opus]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+Best Av1 Avi reencode=true
+  -f bestvideo[vcodec^=av01]+bestaudio[acodec=opus]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+Best Av1 Flv reencode=false
+  -f bestvideo[vcodec^=av01]+bestaudio[acodec=opus]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+Best Av1 Flv reencode=true
+  -f bestvideo[vcodec^=av01]+bestaudio[acodec=opus]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+Best Av1 Mpeg reencode=false
+  -f bestvideo[vcodec^=av01]+bestaudio[acodec=opus]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+Best Av1 Mpeg reencode=true
+  -f bestvideo[vcodec^=av01]+bestaudio[acodec=opus]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+Best Av1 Wmv reencode=false
+  -f bestvideo[vcodec^=av01]+bestaudio[acodec=opus]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+Best Av1 Wmv reencode=true
+  -f bestvideo[vcodec^=av01]+bestaudio[acodec=opus]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P2160 Auto None reencode=false
+  -f bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"none"}
+P2160 Auto None reencode=true
+  -f bestvideo[height>1080][height<=2160][vcodec^=vp09][dynamic_range=SDR]+bestaudio[acodec=opus]/bestvideo[height>1080][height<=2160][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height>1080][height<=2160][ext=webm]+bestaudio[ext=webm]/bestvideo[height>1080][height<=2160]+bestaudio/best[height>1080][height<=2160]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P2160 Auto Mp4 reencode=false
+  -f bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+P2160 Auto Mp4 reencode=true
+  -f bestvideo[height>1080][height<=2160][vcodec^=vp09][dynamic_range=SDR]+bestaudio[acodec=opus]/bestvideo[height>1080][height<=2160][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height>1080][height<=2160][ext=webm]+bestaudio[ext=webm]/bestvideo[height>1080][height<=2160]+bestaudio/best[height>1080][height<=2160]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P2160 Auto Mkv reencode=false
+  -f bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+P2160 Auto Mkv reencode=true
+  -f bestvideo[height>1080][height<=2160][vcodec^=vp09][dynamic_range=SDR]+bestaudio[acodec=opus]/bestvideo[height>1080][height<=2160][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height>1080][height<=2160][ext=webm]+bestaudio[ext=webm]/bestvideo[height>1080][height<=2160]+bestaudio/best[height>1080][height<=2160]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+P2160 Auto Webm reencode=false
+  -f bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+P2160 Auto Webm reencode=true
+  -f bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+P2160 Auto Mov reencode=false
+  -f bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+P2160 Auto Mov reencode=true
+  -f bestvideo[height>1080][height<=2160][vcodec^=vp09][dynamic_range=SDR]+bestaudio[acodec=opus]/bestvideo[height>1080][height<=2160][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height>1080][height<=2160][ext=webm]+bestaudio[ext=webm]/bestvideo[height>1080][height<=2160]+bestaudio/best[height>1080][height<=2160]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+P2160 Auto Avi reencode=false
+  -f bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P2160 Auto Avi reencode=true
+  -f bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P2160 Auto Flv reencode=false
+  -f bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P2160 Auto Flv reencode=true
+  -f bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P2160 Auto Mpeg reencode=false
+  -f bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P2160 Auto Mpeg reencode=true
+  -f bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P2160 Auto Wmv reencode=false
+  -f bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P2160 Auto Wmv reencode=true
+  -f bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P2160 H264 None reencode=false
+  -f bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=2160][vcodec^=avc1][ext=mp4]/bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/best[height<=2160][ext=mp4]/best[height<=2160]/best
+  post {"type":"none"}
+P2160 H264 None reencode=true
+  -f bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=2160][vcodec^=avc1][ext=mp4]/bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/best[height<=2160][ext=mp4]/best[height<=2160]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P2160 H264 Mp4 reencode=false
+  -f bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=2160][vcodec^=avc1][ext=mp4]/bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/best[height<=2160][ext=mp4]/best[height<=2160]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+P2160 H264 Mp4 reencode=true
+  -f bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=2160][vcodec^=avc1][ext=mp4]/bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/best[height<=2160][ext=mp4]/best[height<=2160]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P2160 H264 Mkv reencode=false
+  -f bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=2160][vcodec^=avc1][ext=mp4]/bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/best[height<=2160][ext=mp4]/best[height<=2160]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+P2160 H264 Mkv reencode=true
+  -f bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=2160][vcodec^=avc1][ext=mp4]/bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/best[height<=2160][ext=mp4]/best[height<=2160]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+P2160 H264 Webm reencode=false
+  -f bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=2160][vcodec^=avc1][ext=mp4]/bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/best[height<=2160][ext=mp4]/best[height<=2160]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+P2160 H264 Webm reencode=true
+  -f bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=2160][vcodec^=avc1][ext=mp4]/bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/best[height<=2160][ext=mp4]/best[height<=2160]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+P2160 H264 Mov reencode=false
+  -f bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=2160][vcodec^=avc1][ext=mp4]/bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/best[height<=2160][ext=mp4]/best[height<=2160]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+P2160 H264 Mov reencode=true
+  -f bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=2160][vcodec^=avc1][ext=mp4]/bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/best[height<=2160][ext=mp4]/best[height<=2160]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+P2160 H264 Avi reencode=false
+  -f bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=2160][vcodec^=avc1][ext=mp4]/bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/best[height<=2160][ext=mp4]/best[height<=2160]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P2160 H264 Avi reencode=true
+  -f bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=2160][vcodec^=avc1][ext=mp4]/bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/best[height<=2160][ext=mp4]/best[height<=2160]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P2160 H264 Flv reencode=false
+  -f bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=2160][vcodec^=avc1][ext=mp4]/bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/best[height<=2160][ext=mp4]/best[height<=2160]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P2160 H264 Flv reencode=true
+  -f bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=2160][vcodec^=avc1][ext=mp4]/bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/best[height<=2160][ext=mp4]/best[height<=2160]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P2160 H264 Mpeg reencode=false
+  -f bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=2160][vcodec^=avc1][ext=mp4]/bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/best[height<=2160][ext=mp4]/best[height<=2160]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P2160 H264 Mpeg reencode=true
+  -f bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=2160][vcodec^=avc1][ext=mp4]/bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/best[height<=2160][ext=mp4]/best[height<=2160]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P2160 H264 Wmv reencode=false
+  -f bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=2160][vcodec^=avc1][ext=mp4]/bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/best[height<=2160][ext=mp4]/best[height<=2160]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P2160 H264 Wmv reencode=true
+  -f bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=2160][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=2160][vcodec^=avc1][ext=mp4]/bestvideo[height<=2160][ext=mp4]+bestaudio[ext=m4a]/best[height<=2160][ext=mp4]/best[height<=2160]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P2160 Vp9 None reencode=false
+  -f bestvideo[height<=2160][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=2160][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"none"}
+P2160 Vp9 None reencode=true
+  -f bestvideo[height<=2160][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=2160][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P2160 Vp9 Mp4 reencode=false
+  -f bestvideo[height<=2160][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=2160][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+P2160 Vp9 Mp4 reencode=true
+  -f bestvideo[height<=2160][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=2160][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P2160 Vp9 Mkv reencode=false
+  -f bestvideo[height<=2160][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=2160][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+P2160 Vp9 Mkv reencode=true
+  -f bestvideo[height<=2160][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=2160][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+P2160 Vp9 Webm reencode=false
+  -f bestvideo[height<=2160][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=2160][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+P2160 Vp9 Webm reencode=true
+  -f bestvideo[height<=2160][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=2160][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+P2160 Vp9 Mov reencode=false
+  -f bestvideo[height<=2160][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=2160][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+P2160 Vp9 Mov reencode=true
+  -f bestvideo[height<=2160][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=2160][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+P2160 Vp9 Avi reencode=false
+  -f bestvideo[height<=2160][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=2160][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P2160 Vp9 Avi reencode=true
+  -f bestvideo[height<=2160][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=2160][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P2160 Vp9 Flv reencode=false
+  -f bestvideo[height<=2160][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=2160][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P2160 Vp9 Flv reencode=true
+  -f bestvideo[height<=2160][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=2160][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P2160 Vp9 Mpeg reencode=false
+  -f bestvideo[height<=2160][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=2160][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P2160 Vp9 Mpeg reencode=true
+  -f bestvideo[height<=2160][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=2160][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P2160 Vp9 Wmv reencode=false
+  -f bestvideo[height<=2160][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=2160][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P2160 Vp9 Wmv reencode=true
+  -f bestvideo[height<=2160][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=2160][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P2160 Av1 None reencode=false
+  -f bestvideo[height<=2160][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"none"}
+P2160 Av1 None reencode=true
+  -f bestvideo[height<=2160][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P2160 Av1 Mp4 reencode=false
+  -f bestvideo[height<=2160][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+P2160 Av1 Mp4 reencode=true
+  -f bestvideo[height<=2160][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P2160 Av1 Mkv reencode=false
+  -f bestvideo[height<=2160][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+P2160 Av1 Mkv reencode=true
+  -f bestvideo[height<=2160][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+P2160 Av1 Webm reencode=false
+  -f bestvideo[height<=2160][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+P2160 Av1 Webm reencode=true
+  -f bestvideo[height<=2160][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+P2160 Av1 Mov reencode=false
+  -f bestvideo[height<=2160][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+P2160 Av1 Mov reencode=true
+  -f bestvideo[height<=2160][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+P2160 Av1 Avi reencode=false
+  -f bestvideo[height<=2160][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P2160 Av1 Avi reencode=true
+  -f bestvideo[height<=2160][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P2160 Av1 Flv reencode=false
+  -f bestvideo[height<=2160][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P2160 Av1 Flv reencode=true
+  -f bestvideo[height<=2160][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P2160 Av1 Mpeg reencode=false
+  -f bestvideo[height<=2160][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P2160 Av1 Mpeg reencode=true
+  -f bestvideo[height<=2160][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P2160 Av1 Wmv reencode=false
+  -f bestvideo[height<=2160][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P2160 Av1 Wmv reencode=true
+  -f bestvideo[height<=2160][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=2160]+bestaudio/best[height<=2160]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P1440 Auto None reencode=false
+  -f bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"none"}
+P1440 Auto None reencode=true
+  -f bestvideo[height>1080][height<=1440][vcodec^=vp09][dynamic_range=SDR]+bestaudio[acodec=opus]/bestvideo[height>1080][height<=1440][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height>1080][height<=1440][ext=webm]+bestaudio[ext=webm]/bestvideo[height>1080][height<=1440]+bestaudio/best[height>1080][height<=1440]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P1440 Auto Mp4 reencode=false
+  -f bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+P1440 Auto Mp4 reencode=true
+  -f bestvideo[height>1080][height<=1440][vcodec^=vp09][dynamic_range=SDR]+bestaudio[acodec=opus]/bestvideo[height>1080][height<=1440][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height>1080][height<=1440][ext=webm]+bestaudio[ext=webm]/bestvideo[height>1080][height<=1440]+bestaudio/best[height>1080][height<=1440]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P1440 Auto Mkv reencode=false
+  -f bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+P1440 Auto Mkv reencode=true
+  -f bestvideo[height>1080][height<=1440][vcodec^=vp09][dynamic_range=SDR]+bestaudio[acodec=opus]/bestvideo[height>1080][height<=1440][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height>1080][height<=1440][ext=webm]+bestaudio[ext=webm]/bestvideo[height>1080][height<=1440]+bestaudio/best[height>1080][height<=1440]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+P1440 Auto Webm reencode=false
+  -f bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+P1440 Auto Webm reencode=true
+  -f bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+P1440 Auto Mov reencode=false
+  -f bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+P1440 Auto Mov reencode=true
+  -f bestvideo[height>1080][height<=1440][vcodec^=vp09][dynamic_range=SDR]+bestaudio[acodec=opus]/bestvideo[height>1080][height<=1440][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height>1080][height<=1440][ext=webm]+bestaudio[ext=webm]/bestvideo[height>1080][height<=1440]+bestaudio/best[height>1080][height<=1440]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo+bestaudio/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+P1440 Auto Avi reencode=false
+  -f bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P1440 Auto Avi reencode=true
+  -f bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P1440 Auto Flv reencode=false
+  -f bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P1440 Auto Flv reencode=true
+  -f bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P1440 Auto Mpeg reencode=false
+  -f bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P1440 Auto Mpeg reencode=true
+  -f bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P1440 Auto Wmv reencode=false
+  -f bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P1440 Auto Wmv reencode=true
+  -f bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P1440 H264 None reencode=false
+  -f bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1440][vcodec^=avc1][ext=mp4]/bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/best[height<=1440][ext=mp4]/best[height<=1440]/best
+  post {"type":"none"}
+P1440 H264 None reencode=true
+  -f bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1440][vcodec^=avc1][ext=mp4]/bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/best[height<=1440][ext=mp4]/best[height<=1440]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P1440 H264 Mp4 reencode=false
+  -f bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1440][vcodec^=avc1][ext=mp4]/bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/best[height<=1440][ext=mp4]/best[height<=1440]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+P1440 H264 Mp4 reencode=true
+  -f bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1440][vcodec^=avc1][ext=mp4]/bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/best[height<=1440][ext=mp4]/best[height<=1440]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P1440 H264 Mkv reencode=false
+  -f bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1440][vcodec^=avc1][ext=mp4]/bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/best[height<=1440][ext=mp4]/best[height<=1440]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+P1440 H264 Mkv reencode=true
+  -f bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1440][vcodec^=avc1][ext=mp4]/bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/best[height<=1440][ext=mp4]/best[height<=1440]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+P1440 H264 Webm reencode=false
+  -f bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1440][vcodec^=avc1][ext=mp4]/bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/best[height<=1440][ext=mp4]/best[height<=1440]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+P1440 H264 Webm reencode=true
+  -f bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1440][vcodec^=avc1][ext=mp4]/bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/best[height<=1440][ext=mp4]/best[height<=1440]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+P1440 H264 Mov reencode=false
+  -f bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1440][vcodec^=avc1][ext=mp4]/bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/best[height<=1440][ext=mp4]/best[height<=1440]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+P1440 H264 Mov reencode=true
+  -f bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1440][vcodec^=avc1][ext=mp4]/bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/best[height<=1440][ext=mp4]/best[height<=1440]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+P1440 H264 Avi reencode=false
+  -f bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1440][vcodec^=avc1][ext=mp4]/bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/best[height<=1440][ext=mp4]/best[height<=1440]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P1440 H264 Avi reencode=true
+  -f bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1440][vcodec^=avc1][ext=mp4]/bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/best[height<=1440][ext=mp4]/best[height<=1440]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P1440 H264 Flv reencode=false
+  -f bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1440][vcodec^=avc1][ext=mp4]/bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/best[height<=1440][ext=mp4]/best[height<=1440]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P1440 H264 Flv reencode=true
+  -f bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1440][vcodec^=avc1][ext=mp4]/bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/best[height<=1440][ext=mp4]/best[height<=1440]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P1440 H264 Mpeg reencode=false
+  -f bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1440][vcodec^=avc1][ext=mp4]/bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/best[height<=1440][ext=mp4]/best[height<=1440]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P1440 H264 Mpeg reencode=true
+  -f bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1440][vcodec^=avc1][ext=mp4]/bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/best[height<=1440][ext=mp4]/best[height<=1440]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P1440 H264 Wmv reencode=false
+  -f bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1440][vcodec^=avc1][ext=mp4]/bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/best[height<=1440][ext=mp4]/best[height<=1440]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P1440 H264 Wmv reencode=true
+  -f bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1440][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1440][vcodec^=avc1][ext=mp4]/bestvideo[height<=1440][ext=mp4]+bestaudio[ext=m4a]/best[height<=1440][ext=mp4]/best[height<=1440]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P1440 Vp9 None reencode=false
+  -f bestvideo[height<=1440][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1440][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"none"}
+P1440 Vp9 None reencode=true
+  -f bestvideo[height<=1440][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1440][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P1440 Vp9 Mp4 reencode=false
+  -f bestvideo[height<=1440][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1440][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+P1440 Vp9 Mp4 reencode=true
+  -f bestvideo[height<=1440][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1440][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P1440 Vp9 Mkv reencode=false
+  -f bestvideo[height<=1440][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1440][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+P1440 Vp9 Mkv reencode=true
+  -f bestvideo[height<=1440][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1440][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+P1440 Vp9 Webm reencode=false
+  -f bestvideo[height<=1440][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1440][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+P1440 Vp9 Webm reencode=true
+  -f bestvideo[height<=1440][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1440][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+P1440 Vp9 Mov reencode=false
+  -f bestvideo[height<=1440][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1440][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+P1440 Vp9 Mov reencode=true
+  -f bestvideo[height<=1440][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1440][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+P1440 Vp9 Avi reencode=false
+  -f bestvideo[height<=1440][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1440][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P1440 Vp9 Avi reencode=true
+  -f bestvideo[height<=1440][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1440][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P1440 Vp9 Flv reencode=false
+  -f bestvideo[height<=1440][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1440][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P1440 Vp9 Flv reencode=true
+  -f bestvideo[height<=1440][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1440][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P1440 Vp9 Mpeg reencode=false
+  -f bestvideo[height<=1440][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1440][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P1440 Vp9 Mpeg reencode=true
+  -f bestvideo[height<=1440][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1440][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P1440 Vp9 Wmv reencode=false
+  -f bestvideo[height<=1440][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1440][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P1440 Vp9 Wmv reencode=true
+  -f bestvideo[height<=1440][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1440][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P1440 Av1 None reencode=false
+  -f bestvideo[height<=1440][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"none"}
+P1440 Av1 None reencode=true
+  -f bestvideo[height<=1440][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P1440 Av1 Mp4 reencode=false
+  -f bestvideo[height<=1440][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+P1440 Av1 Mp4 reencode=true
+  -f bestvideo[height<=1440][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P1440 Av1 Mkv reencode=false
+  -f bestvideo[height<=1440][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+P1440 Av1 Mkv reencode=true
+  -f bestvideo[height<=1440][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+P1440 Av1 Webm reencode=false
+  -f bestvideo[height<=1440][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+P1440 Av1 Webm reencode=true
+  -f bestvideo[height<=1440][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+P1440 Av1 Mov reencode=false
+  -f bestvideo[height<=1440][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+P1440 Av1 Mov reencode=true
+  -f bestvideo[height<=1440][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+P1440 Av1 Avi reencode=false
+  -f bestvideo[height<=1440][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P1440 Av1 Avi reencode=true
+  -f bestvideo[height<=1440][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P1440 Av1 Flv reencode=false
+  -f bestvideo[height<=1440][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P1440 Av1 Flv reencode=true
+  -f bestvideo[height<=1440][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P1440 Av1 Mpeg reencode=false
+  -f bestvideo[height<=1440][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P1440 Av1 Mpeg reencode=true
+  -f bestvideo[height<=1440][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P1440 Av1 Wmv reencode=false
+  -f bestvideo[height<=1440][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P1440 Av1 Wmv reencode=true
+  -f bestvideo[height<=1440][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1440]+bestaudio/best[height<=1440]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P1080 Auto None reencode=false
+  -f bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"none"}
+P1080 Auto None reencode=true
+  -f bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best[height<=1080]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P1080 Auto Mp4 reencode=false
+  -f bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+P1080 Auto Mp4 reencode=true
+  -f bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best[height<=1080]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P1080 Auto Mkv reencode=false
+  -f bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+P1080 Auto Mkv reencode=true
+  -f bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best[height<=1080]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+P1080 Auto Webm reencode=false
+  -f bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+P1080 Auto Webm reencode=true
+  -f bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+P1080 Auto Mov reencode=false
+  -f bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+P1080 Auto Mov reencode=true
+  -f bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best[height<=1080]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+P1080 Auto Avi reencode=false
+  -f bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P1080 Auto Avi reencode=true
+  -f bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P1080 Auto Flv reencode=false
+  -f bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P1080 Auto Flv reencode=true
+  -f bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P1080 Auto Mpeg reencode=false
+  -f bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P1080 Auto Mpeg reencode=true
+  -f bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P1080 Auto Wmv reencode=false
+  -f bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P1080 Auto Wmv reencode=true
+  -f bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P1080 H264 None reencode=false
+  -f bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best[height<=1080]/best
+  post {"type":"none"}
+P1080 H264 None reencode=true
+  -f bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best[height<=1080]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P1080 H264 Mp4 reencode=false
+  -f bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best[height<=1080]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+P1080 H264 Mp4 reencode=true
+  -f bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best[height<=1080]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P1080 H264 Mkv reencode=false
+  -f bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best[height<=1080]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+P1080 H264 Mkv reencode=true
+  -f bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best[height<=1080]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+P1080 H264 Webm reencode=false
+  -f bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best[height<=1080]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+P1080 H264 Webm reencode=true
+  -f bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best[height<=1080]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+P1080 H264 Mov reencode=false
+  -f bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best[height<=1080]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+P1080 H264 Mov reencode=true
+  -f bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best[height<=1080]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+P1080 H264 Avi reencode=false
+  -f bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best[height<=1080]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P1080 H264 Avi reencode=true
+  -f bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best[height<=1080]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P1080 H264 Flv reencode=false
+  -f bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best[height<=1080]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P1080 H264 Flv reencode=true
+  -f bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best[height<=1080]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P1080 H264 Mpeg reencode=false
+  -f bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best[height<=1080]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P1080 H264 Mpeg reencode=true
+  -f bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best[height<=1080]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P1080 H264 Wmv reencode=false
+  -f bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best[height<=1080]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P1080 H264 Wmv reencode=true
+  -f bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=1080][vcodec^=avc1][ext=mp4]/bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best[height<=1080]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P1080 Vp9 None reencode=false
+  -f bestvideo[height<=1080][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1080][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"none"}
+P1080 Vp9 None reencode=true
+  -f bestvideo[height<=1080][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1080][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P1080 Vp9 Mp4 reencode=false
+  -f bestvideo[height<=1080][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1080][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+P1080 Vp9 Mp4 reencode=true
+  -f bestvideo[height<=1080][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1080][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P1080 Vp9 Mkv reencode=false
+  -f bestvideo[height<=1080][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1080][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+P1080 Vp9 Mkv reencode=true
+  -f bestvideo[height<=1080][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1080][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+P1080 Vp9 Webm reencode=false
+  -f bestvideo[height<=1080][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1080][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+P1080 Vp9 Webm reencode=true
+  -f bestvideo[height<=1080][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1080][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+P1080 Vp9 Mov reencode=false
+  -f bestvideo[height<=1080][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1080][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+P1080 Vp9 Mov reencode=true
+  -f bestvideo[height<=1080][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1080][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+P1080 Vp9 Avi reencode=false
+  -f bestvideo[height<=1080][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1080][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P1080 Vp9 Avi reencode=true
+  -f bestvideo[height<=1080][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1080][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P1080 Vp9 Flv reencode=false
+  -f bestvideo[height<=1080][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1080][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P1080 Vp9 Flv reencode=true
+  -f bestvideo[height<=1080][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1080][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P1080 Vp9 Mpeg reencode=false
+  -f bestvideo[height<=1080][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1080][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P1080 Vp9 Mpeg reencode=true
+  -f bestvideo[height<=1080][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1080][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P1080 Vp9 Wmv reencode=false
+  -f bestvideo[height<=1080][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1080][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P1080 Vp9 Wmv reencode=true
+  -f bestvideo[height<=1080][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=1080][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P1080 Av1 None reencode=false
+  -f bestvideo[height<=1080][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"none"}
+P1080 Av1 None reencode=true
+  -f bestvideo[height<=1080][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P1080 Av1 Mp4 reencode=false
+  -f bestvideo[height<=1080][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+P1080 Av1 Mp4 reencode=true
+  -f bestvideo[height<=1080][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P1080 Av1 Mkv reencode=false
+  -f bestvideo[height<=1080][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+P1080 Av1 Mkv reencode=true
+  -f bestvideo[height<=1080][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+P1080 Av1 Webm reencode=false
+  -f bestvideo[height<=1080][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+P1080 Av1 Webm reencode=true
+  -f bestvideo[height<=1080][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+P1080 Av1 Mov reencode=false
+  -f bestvideo[height<=1080][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+P1080 Av1 Mov reencode=true
+  -f bestvideo[height<=1080][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+P1080 Av1 Avi reencode=false
+  -f bestvideo[height<=1080][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P1080 Av1 Avi reencode=true
+  -f bestvideo[height<=1080][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P1080 Av1 Flv reencode=false
+  -f bestvideo[height<=1080][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P1080 Av1 Flv reencode=true
+  -f bestvideo[height<=1080][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P1080 Av1 Mpeg reencode=false
+  -f bestvideo[height<=1080][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P1080 Av1 Mpeg reencode=true
+  -f bestvideo[height<=1080][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P1080 Av1 Wmv reencode=false
+  -f bestvideo[height<=1080][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P1080 Av1 Wmv reencode=true
+  -f bestvideo[height<=1080][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P720 Auto None reencode=false
+  -f bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"none"}
+P720 Auto None reencode=true
+  -f bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=720][vcodec^=avc1][ext=mp4]/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P720 Auto Mp4 reencode=false
+  -f bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+P720 Auto Mp4 reencode=true
+  -f bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=720][vcodec^=avc1][ext=mp4]/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P720 Auto Mkv reencode=false
+  -f bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+P720 Auto Mkv reencode=true
+  -f bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=720][vcodec^=avc1][ext=mp4]/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+P720 Auto Webm reencode=false
+  -f bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+P720 Auto Webm reencode=true
+  -f bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+P720 Auto Mov reencode=false
+  -f bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+P720 Auto Mov reencode=true
+  -f bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=720][vcodec^=avc1][ext=mp4]/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+P720 Auto Avi reencode=false
+  -f bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P720 Auto Avi reencode=true
+  -f bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P720 Auto Flv reencode=false
+  -f bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P720 Auto Flv reencode=true
+  -f bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P720 Auto Mpeg reencode=false
+  -f bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P720 Auto Mpeg reencode=true
+  -f bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P720 Auto Wmv reencode=false
+  -f bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P720 Auto Wmv reencode=true
+  -f bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P720 H264 None reencode=false
+  -f bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=720][vcodec^=avc1][ext=mp4]/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]/best
+  post {"type":"none"}
+P720 H264 None reencode=true
+  -f bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=720][vcodec^=avc1][ext=mp4]/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P720 H264 Mp4 reencode=false
+  -f bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=720][vcodec^=avc1][ext=mp4]/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+P720 H264 Mp4 reencode=true
+  -f bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=720][vcodec^=avc1][ext=mp4]/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P720 H264 Mkv reencode=false
+  -f bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=720][vcodec^=avc1][ext=mp4]/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+P720 H264 Mkv reencode=true
+  -f bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=720][vcodec^=avc1][ext=mp4]/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+P720 H264 Webm reencode=false
+  -f bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=720][vcodec^=avc1][ext=mp4]/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+P720 H264 Webm reencode=true
+  -f bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=720][vcodec^=avc1][ext=mp4]/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+P720 H264 Mov reencode=false
+  -f bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=720][vcodec^=avc1][ext=mp4]/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+P720 H264 Mov reencode=true
+  -f bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=720][vcodec^=avc1][ext=mp4]/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+P720 H264 Avi reencode=false
+  -f bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=720][vcodec^=avc1][ext=mp4]/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P720 H264 Avi reencode=true
+  -f bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=720][vcodec^=avc1][ext=mp4]/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P720 H264 Flv reencode=false
+  -f bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=720][vcodec^=avc1][ext=mp4]/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P720 H264 Flv reencode=true
+  -f bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=720][vcodec^=avc1][ext=mp4]/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P720 H264 Mpeg reencode=false
+  -f bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=720][vcodec^=avc1][ext=mp4]/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P720 H264 Mpeg reencode=true
+  -f bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=720][vcodec^=avc1][ext=mp4]/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P720 H264 Wmv reencode=false
+  -f bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=720][vcodec^=avc1][ext=mp4]/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P720 H264 Wmv reencode=true
+  -f bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=720][vcodec^=avc1][ext=mp4]/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P720 Vp9 None reencode=false
+  -f bestvideo[height<=720][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=720][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"none"}
+P720 Vp9 None reencode=true
+  -f bestvideo[height<=720][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=720][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P720 Vp9 Mp4 reencode=false
+  -f bestvideo[height<=720][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=720][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+P720 Vp9 Mp4 reencode=true
+  -f bestvideo[height<=720][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=720][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P720 Vp9 Mkv reencode=false
+  -f bestvideo[height<=720][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=720][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+P720 Vp9 Mkv reencode=true
+  -f bestvideo[height<=720][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=720][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+P720 Vp9 Webm reencode=false
+  -f bestvideo[height<=720][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=720][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+P720 Vp9 Webm reencode=true
+  -f bestvideo[height<=720][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=720][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+P720 Vp9 Mov reencode=false
+  -f bestvideo[height<=720][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=720][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+P720 Vp9 Mov reencode=true
+  -f bestvideo[height<=720][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=720][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+P720 Vp9 Avi reencode=false
+  -f bestvideo[height<=720][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=720][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P720 Vp9 Avi reencode=true
+  -f bestvideo[height<=720][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=720][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P720 Vp9 Flv reencode=false
+  -f bestvideo[height<=720][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=720][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P720 Vp9 Flv reencode=true
+  -f bestvideo[height<=720][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=720][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P720 Vp9 Mpeg reencode=false
+  -f bestvideo[height<=720][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=720][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P720 Vp9 Mpeg reencode=true
+  -f bestvideo[height<=720][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=720][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P720 Vp9 Wmv reencode=false
+  -f bestvideo[height<=720][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=720][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P720 Vp9 Wmv reencode=true
+  -f bestvideo[height<=720][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=720][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P720 Av1 None reencode=false
+  -f bestvideo[height<=720][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"none"}
+P720 Av1 None reencode=true
+  -f bestvideo[height<=720][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P720 Av1 Mp4 reencode=false
+  -f bestvideo[height<=720][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+P720 Av1 Mp4 reencode=true
+  -f bestvideo[height<=720][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P720 Av1 Mkv reencode=false
+  -f bestvideo[height<=720][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+P720 Av1 Mkv reencode=true
+  -f bestvideo[height<=720][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+P720 Av1 Webm reencode=false
+  -f bestvideo[height<=720][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+P720 Av1 Webm reencode=true
+  -f bestvideo[height<=720][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+P720 Av1 Mov reencode=false
+  -f bestvideo[height<=720][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+P720 Av1 Mov reencode=true
+  -f bestvideo[height<=720][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+P720 Av1 Avi reencode=false
+  -f bestvideo[height<=720][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P720 Av1 Avi reencode=true
+  -f bestvideo[height<=720][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P720 Av1 Flv reencode=false
+  -f bestvideo[height<=720][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P720 Av1 Flv reencode=true
+  -f bestvideo[height<=720][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P720 Av1 Mpeg reencode=false
+  -f bestvideo[height<=720][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P720 Av1 Mpeg reencode=true
+  -f bestvideo[height<=720][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P720 Av1 Wmv reencode=false
+  -f bestvideo[height<=720][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P720 Av1 Wmv reencode=true
+  -f bestvideo[height<=720][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=720]+bestaudio/best[height<=720]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P480 Auto None reencode=false
+  -f bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"none"}
+P480 Auto None reencode=true
+  -f bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=480][vcodec^=avc1][ext=mp4]/bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P480 Auto Mp4 reencode=false
+  -f bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+P480 Auto Mp4 reencode=true
+  -f bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=480][vcodec^=avc1][ext=mp4]/bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P480 Auto Mkv reencode=false
+  -f bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+P480 Auto Mkv reencode=true
+  -f bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=480][vcodec^=avc1][ext=mp4]/bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+P480 Auto Webm reencode=false
+  -f bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+P480 Auto Webm reencode=true
+  -f bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+P480 Auto Mov reencode=false
+  -f bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+P480 Auto Mov reencode=true
+  -f bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=480][vcodec^=avc1][ext=mp4]/bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+P480 Auto Avi reencode=false
+  -f bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P480 Auto Avi reencode=true
+  -f bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P480 Auto Flv reencode=false
+  -f bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P480 Auto Flv reencode=true
+  -f bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P480 Auto Mpeg reencode=false
+  -f bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P480 Auto Mpeg reencode=true
+  -f bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P480 Auto Wmv reencode=false
+  -f bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P480 Auto Wmv reencode=true
+  -f bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P480 H264 None reencode=false
+  -f bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=480][vcodec^=avc1][ext=mp4]/bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]/best
+  post {"type":"none"}
+P480 H264 None reencode=true
+  -f bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=480][vcodec^=avc1][ext=mp4]/bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P480 H264 Mp4 reencode=false
+  -f bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=480][vcodec^=avc1][ext=mp4]/bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+P480 H264 Mp4 reencode=true
+  -f bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=480][vcodec^=avc1][ext=mp4]/bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P480 H264 Mkv reencode=false
+  -f bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=480][vcodec^=avc1][ext=mp4]/bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+P480 H264 Mkv reencode=true
+  -f bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=480][vcodec^=avc1][ext=mp4]/bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+P480 H264 Webm reencode=false
+  -f bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=480][vcodec^=avc1][ext=mp4]/bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+P480 H264 Webm reencode=true
+  -f bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=480][vcodec^=avc1][ext=mp4]/bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+P480 H264 Mov reencode=false
+  -f bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=480][vcodec^=avc1][ext=mp4]/bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+P480 H264 Mov reencode=true
+  -f bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=480][vcodec^=avc1][ext=mp4]/bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+P480 H264 Avi reencode=false
+  -f bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=480][vcodec^=avc1][ext=mp4]/bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P480 H264 Avi reencode=true
+  -f bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=480][vcodec^=avc1][ext=mp4]/bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P480 H264 Flv reencode=false
+  -f bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=480][vcodec^=avc1][ext=mp4]/bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P480 H264 Flv reencode=true
+  -f bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=480][vcodec^=avc1][ext=mp4]/bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P480 H264 Mpeg reencode=false
+  -f bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=480][vcodec^=avc1][ext=mp4]/bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P480 H264 Mpeg reencode=true
+  -f bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=480][vcodec^=avc1][ext=mp4]/bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P480 H264 Wmv reencode=false
+  -f bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=480][vcodec^=avc1][ext=mp4]/bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P480 H264 Wmv reencode=true
+  -f bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=480][vcodec^=avc1][ext=mp4]/bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best[height<=480]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P480 Vp9 None reencode=false
+  -f bestvideo[height<=480][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=480][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"none"}
+P480 Vp9 None reencode=true
+  -f bestvideo[height<=480][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=480][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P480 Vp9 Mp4 reencode=false
+  -f bestvideo[height<=480][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=480][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+P480 Vp9 Mp4 reencode=true
+  -f bestvideo[height<=480][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=480][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P480 Vp9 Mkv reencode=false
+  -f bestvideo[height<=480][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=480][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+P480 Vp9 Mkv reencode=true
+  -f bestvideo[height<=480][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=480][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+P480 Vp9 Webm reencode=false
+  -f bestvideo[height<=480][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=480][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+P480 Vp9 Webm reencode=true
+  -f bestvideo[height<=480][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=480][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+P480 Vp9 Mov reencode=false
+  -f bestvideo[height<=480][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=480][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+P480 Vp9 Mov reencode=true
+  -f bestvideo[height<=480][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=480][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+P480 Vp9 Avi reencode=false
+  -f bestvideo[height<=480][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=480][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P480 Vp9 Avi reencode=true
+  -f bestvideo[height<=480][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=480][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P480 Vp9 Flv reencode=false
+  -f bestvideo[height<=480][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=480][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P480 Vp9 Flv reencode=true
+  -f bestvideo[height<=480][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=480][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P480 Vp9 Mpeg reencode=false
+  -f bestvideo[height<=480][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=480][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P480 Vp9 Mpeg reencode=true
+  -f bestvideo[height<=480][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=480][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P480 Vp9 Wmv reencode=false
+  -f bestvideo[height<=480][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=480][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P480 Vp9 Wmv reencode=true
+  -f bestvideo[height<=480][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=480][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P480 Av1 None reencode=false
+  -f bestvideo[height<=480][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"none"}
+P480 Av1 None reencode=true
+  -f bestvideo[height<=480][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P480 Av1 Mp4 reencode=false
+  -f bestvideo[height<=480][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+P480 Av1 Mp4 reencode=true
+  -f bestvideo[height<=480][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P480 Av1 Mkv reencode=false
+  -f bestvideo[height<=480][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+P480 Av1 Mkv reencode=true
+  -f bestvideo[height<=480][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+P480 Av1 Webm reencode=false
+  -f bestvideo[height<=480][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+P480 Av1 Webm reencode=true
+  -f bestvideo[height<=480][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+P480 Av1 Mov reencode=false
+  -f bestvideo[height<=480][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+P480 Av1 Mov reencode=true
+  -f bestvideo[height<=480][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+P480 Av1 Avi reencode=false
+  -f bestvideo[height<=480][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P480 Av1 Avi reencode=true
+  -f bestvideo[height<=480][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P480 Av1 Flv reencode=false
+  -f bestvideo[height<=480][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P480 Av1 Flv reencode=true
+  -f bestvideo[height<=480][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P480 Av1 Mpeg reencode=false
+  -f bestvideo[height<=480][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P480 Av1 Mpeg reencode=true
+  -f bestvideo[height<=480][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P480 Av1 Wmv reencode=false
+  -f bestvideo[height<=480][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P480 Av1 Wmv reencode=true
+  -f bestvideo[height<=480][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=480]+bestaudio/best[height<=480]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P360 Auto None reencode=false
+  -f bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"none"}
+P360 Auto None reencode=true
+  -f bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=360][vcodec^=avc1][ext=mp4]/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best[height<=360]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P360 Auto Mp4 reencode=false
+  -f bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+P360 Auto Mp4 reencode=true
+  -f bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=360][vcodec^=avc1][ext=mp4]/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best[height<=360]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P360 Auto Mkv reencode=false
+  -f bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+P360 Auto Mkv reencode=true
+  -f bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=360][vcodec^=avc1][ext=mp4]/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best[height<=360]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+P360 Auto Webm reencode=false
+  -f bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+P360 Auto Webm reencode=true
+  -f bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+P360 Auto Mov reencode=false
+  -f bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+P360 Auto Mov reencode=true
+  -f bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=360][vcodec^=avc1][ext=mp4]/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best[height<=360]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+P360 Auto Avi reencode=false
+  -f bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P360 Auto Avi reencode=true
+  -f bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P360 Auto Flv reencode=false
+  -f bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P360 Auto Flv reencode=true
+  -f bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P360 Auto Mpeg reencode=false
+  -f bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P360 Auto Mpeg reencode=true
+  -f bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P360 Auto Wmv reencode=false
+  -f bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P360 Auto Wmv reencode=true
+  -f bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P360 H264 None reencode=false
+  -f bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=360][vcodec^=avc1][ext=mp4]/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best[height<=360]/best
+  post {"type":"none"}
+P360 H264 None reencode=true
+  -f bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=360][vcodec^=avc1][ext=mp4]/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best[height<=360]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P360 H264 Mp4 reencode=false
+  -f bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=360][vcodec^=avc1][ext=mp4]/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best[height<=360]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+P360 H264 Mp4 reencode=true
+  -f bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=360][vcodec^=avc1][ext=mp4]/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best[height<=360]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P360 H264 Mkv reencode=false
+  -f bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=360][vcodec^=avc1][ext=mp4]/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best[height<=360]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+P360 H264 Mkv reencode=true
+  -f bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=360][vcodec^=avc1][ext=mp4]/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best[height<=360]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+P360 H264 Webm reencode=false
+  -f bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=360][vcodec^=avc1][ext=mp4]/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best[height<=360]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+P360 H264 Webm reencode=true
+  -f bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=360][vcodec^=avc1][ext=mp4]/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best[height<=360]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+P360 H264 Mov reencode=false
+  -f bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=360][vcodec^=avc1][ext=mp4]/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best[height<=360]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+P360 H264 Mov reencode=true
+  -f bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=360][vcodec^=avc1][ext=mp4]/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best[height<=360]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+P360 H264 Avi reencode=false
+  -f bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=360][vcodec^=avc1][ext=mp4]/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best[height<=360]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P360 H264 Avi reencode=true
+  -f bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=360][vcodec^=avc1][ext=mp4]/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best[height<=360]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P360 H264 Flv reencode=false
+  -f bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=360][vcodec^=avc1][ext=mp4]/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best[height<=360]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P360 H264 Flv reencode=true
+  -f bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=360][vcodec^=avc1][ext=mp4]/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best[height<=360]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P360 H264 Mpeg reencode=false
+  -f bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=360][vcodec^=avc1][ext=mp4]/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best[height<=360]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P360 H264 Mpeg reencode=true
+  -f bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=360][vcodec^=avc1][ext=mp4]/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best[height<=360]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P360 H264 Wmv reencode=false
+  -f bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=360][vcodec^=avc1][ext=mp4]/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best[height<=360]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P360 H264 Wmv reencode=true
+  -f bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360][vcodec^=avc1][ext=mp4]+bestaudio/best[height<=360][vcodec^=avc1][ext=mp4]/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best[height<=360]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P360 Vp9 None reencode=false
+  -f bestvideo[height<=360][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=360][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"none"}
+P360 Vp9 None reencode=true
+  -f bestvideo[height<=360][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=360][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P360 Vp9 Mp4 reencode=false
+  -f bestvideo[height<=360][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=360][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+P360 Vp9 Mp4 reencode=true
+  -f bestvideo[height<=360][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=360][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P360 Vp9 Mkv reencode=false
+  -f bestvideo[height<=360][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=360][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+P360 Vp9 Mkv reencode=true
+  -f bestvideo[height<=360][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=360][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+P360 Vp9 Webm reencode=false
+  -f bestvideo[height<=360][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=360][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+P360 Vp9 Webm reencode=true
+  -f bestvideo[height<=360][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=360][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+P360 Vp9 Mov reencode=false
+  -f bestvideo[height<=360][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=360][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+P360 Vp9 Mov reencode=true
+  -f bestvideo[height<=360][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=360][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+P360 Vp9 Avi reencode=false
+  -f bestvideo[height<=360][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=360][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P360 Vp9 Avi reencode=true
+  -f bestvideo[height<=360][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=360][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P360 Vp9 Flv reencode=false
+  -f bestvideo[height<=360][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=360][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P360 Vp9 Flv reencode=true
+  -f bestvideo[height<=360][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=360][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P360 Vp9 Mpeg reencode=false
+  -f bestvideo[height<=360][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=360][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P360 Vp9 Mpeg reencode=true
+  -f bestvideo[height<=360][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=360][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P360 Vp9 Wmv reencode=false
+  -f bestvideo[height<=360][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=360][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P360 Vp9 Wmv reencode=true
+  -f bestvideo[height<=360][vcodec^=vp09]+bestaudio[acodec=opus]/bestvideo[height<=360][ext=webm]+bestaudio[ext=webm]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P360 Av1 None reencode=false
+  -f bestvideo[height<=360][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"none"}
+P360 Av1 None reencode=true
+  -f bestvideo[height<=360][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P360 Av1 Mp4 reencode=false
+  -f bestvideo[height<=360][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+P360 Av1 Mp4 reencode=true
+  -f bestvideo[height<=360][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+P360 Av1 Mkv reencode=false
+  -f bestvideo[height<=360][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+P360 Av1 Mkv reencode=true
+  -f bestvideo[height<=360][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+P360 Av1 Webm reencode=false
+  -f bestvideo[height<=360][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+P360 Av1 Webm reencode=true
+  -f bestvideo[height<=360][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+P360 Av1 Mov reencode=false
+  -f bestvideo[height<=360][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+P360 Av1 Mov reencode=true
+  -f bestvideo[height<=360][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+P360 Av1 Avi reencode=false
+  -f bestvideo[height<=360][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P360 Av1 Avi reencode=true
+  -f bestvideo[height<=360][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+P360 Av1 Flv reencode=false
+  -f bestvideo[height<=360][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P360 Av1 Flv reencode=true
+  -f bestvideo[height<=360][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+P360 Av1 Mpeg reencode=false
+  -f bestvideo[height<=360][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P360 Av1 Mpeg reencode=true
+  -f bestvideo[height<=360][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+P360 Av1 Wmv reencode=false
+  -f bestvideo[height<=360][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+P360 Av1 Wmv reencode=true
+  -f bestvideo[height<=360][vcodec^=av01]+bestaudio[acodec=opus]/bestvideo[height<=360]+bestaudio/best[height<=360]/best
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+Worst Auto None reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"none"}
+Worst Auto None reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+Worst Auto Mp4 reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+Worst Auto Mp4 reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+Worst Auto Mkv reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+Worst Auto Mkv reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+Worst Auto Webm reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+Worst Auto Webm reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+Worst Auto Mov reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+Worst Auto Mov reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+Worst Auto Avi reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+Worst Auto Avi reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+Worst Auto Flv reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+Worst Auto Flv reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+Worst Auto Mpeg reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+Worst Auto Mpeg reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+Worst Auto Wmv reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+Worst Auto Wmv reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+Worst H264 None reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"none"}
+Worst H264 None reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+Worst H264 Mp4 reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+Worst H264 Mp4 reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+Worst H264 Mkv reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+Worst H264 Mkv reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+Worst H264 Webm reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+Worst H264 Webm reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+Worst H264 Mov reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+Worst H264 Mov reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+Worst H264 Avi reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+Worst H264 Avi reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+Worst H264 Flv reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+Worst H264 Flv reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+Worst H264 Mpeg reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+Worst H264 Mpeg reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+Worst H264 Wmv reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+Worst H264 Wmv reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+Worst Vp9 None reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"none"}
+Worst Vp9 None reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+Worst Vp9 Mp4 reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+Worst Vp9 Mp4 reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+Worst Vp9 Mkv reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+Worst Vp9 Mkv reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+Worst Vp9 Webm reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+Worst Vp9 Webm reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+Worst Vp9 Mov reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+Worst Vp9 Mov reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+Worst Vp9 Avi reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+Worst Vp9 Avi reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+Worst Vp9 Flv reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+Worst Vp9 Flv reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+Worst Vp9 Mpeg reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+Worst Vp9 Mpeg reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+Worst Vp9 Wmv reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+Worst Vp9 Wmv reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+Worst Av1 None reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"none"}
+Worst Av1 None reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+Worst Av1 Mp4 reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":true}
+Worst Av1 Mp4 reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mp4","preset":"Balanced","remuxFirst":false}
+Worst Av1 Mkv reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":true}
+Worst Av1 Mkv reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mkv","preset":"Balanced","remuxFirst":false}
+Worst Av1 Webm reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":true}
+Worst Av1 Webm reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"webm","preset":"Balanced","remuxFirst":false}
+Worst Av1 Mov reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":true}
+Worst Av1 Mov reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mov","preset":"Balanced","remuxFirst":false}
+Worst Av1 Avi reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+Worst Av1 Avi reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"avi","preset":"Balanced","remuxFirst":false}
+Worst Av1 Flv reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+Worst Av1 Flv reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"flv","preset":"Balanced","remuxFirst":false}
+Worst Av1 Mpeg reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+Worst Av1 Mpeg reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"mpeg","preset":"Balanced","remuxFirst":false}
+Worst Av1 Wmv reencode=false
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}
+Worst Av1 Wmv reencode=true
+  -f worstvideo+worstaudio/worst
+  post {"type":"transcode","target":"wmv","preset":"Balanced","remuxFirst":false}

@@ -1,0 +1,275 @@
+## defaults
+  --ignore-config
+  --color
+  never
+  --no-mtime
+  --quiet
+  --no-simulate
+  --newline
+  --progress
+  --progress-template
+  download:YTDL-P %(progress)j
+  --progress-template
+  postprocess:YTDL-PP %(progress.status)s %(progress.postprocessor)s
+  --print
+  before_dl:YTDL-ITEM	%(playlist_index)s	%(n_entries)s	%(playlist_count)s	%(id)j	%(title)j
+  --print
+  after_move:YTDL-FILE %(filepath)j
+  --windows-filenames
+  --no-restrict-filenames
+  -N
+  4
+  -R
+  5
+  --fragment-retries
+  5
+  --remote-components
+  ejs:github
+  --no-playlist
+  --abort-on-error
+  -o
+  %(title).200B [%(id)s].%(ext)s
+  -f
+  bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best
+  --
+  https://www.youtube.com/watch?v=abc
+## playlist, 16 fragments
+  --ignore-config
+  --color
+  never
+  --no-mtime
+  --quiet
+  --no-simulate
+  --newline
+  --progress
+  --progress-template
+  download:YTDL-P %(progress)j
+  --progress-template
+  postprocess:YTDL-PP %(progress.status)s %(progress.postprocessor)s
+  --print
+  before_dl:YTDL-ITEM	%(playlist_index)s	%(n_entries)s	%(playlist_count)s	%(id)j	%(title)j
+  --print
+  after_move:YTDL-FILE %(filepath)j
+  --windows-filenames
+  --no-restrict-filenames
+  -N
+  16
+  -R
+  5
+  --fragment-retries
+  5
+  --remote-components
+  ejs:github
+  --yes-playlist
+  --no-abort-on-error
+  -o
+  %(playlist_title|playlist)s/%(playlist_index)03d - %(title).200B [%(id)s].%(ext)s
+  -f
+  bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best
+  --
+  https://www.youtube.com/watch?v=abc
+## browser cookies, js runtimes, ffmpeg dir
+  --ignore-config
+  --color
+  never
+  --no-mtime
+  --quiet
+  --no-simulate
+  --newline
+  --progress
+  --progress-template
+  download:YTDL-P %(progress)j
+  --progress-template
+  postprocess:YTDL-PP %(progress.status)s %(progress.postprocessor)s
+  --print
+  before_dl:YTDL-ITEM	%(playlist_index)s	%(n_entries)s	%(playlist_count)s	%(id)j	%(title)j
+  --print
+  after_move:YTDL-FILE %(filepath)j
+  --windows-filenames
+  --no-restrict-filenames
+  -N
+  4
+  -R
+  5
+  --fragment-retries
+  5
+  --remote-components
+  ejs:github
+  --js-runtimes
+  deno:/usr/bin/deno
+  --js-runtimes
+  node:/usr/bin/node
+  --ffmpeg-location
+  /usr/bin
+  --no-playlist
+  --abort-on-error
+  -o
+  %(title).200B [%(id)s].%(ext)s
+  --cookies-from-browser
+  firefox
+  -f
+  bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best
+  --
+  https://www.youtube.com/watch?v=abc
+## cookies.txt copy + archive
+  --ignore-config
+  --color
+  never
+  --no-mtime
+  --quiet
+  --no-simulate
+  --newline
+  --progress
+  --progress-template
+  download:YTDL-P %(progress)j
+  --progress-template
+  postprocess:YTDL-PP %(progress.status)s %(progress.postprocessor)s
+  --print
+  before_dl:YTDL-ITEM	%(playlist_index)s	%(n_entries)s	%(playlist_count)s	%(id)j	%(title)j
+  --print
+  after_move:YTDL-FILE %(filepath)j
+  --windows-filenames
+  --no-restrict-filenames
+  -N
+  4
+  -R
+  5
+  --fragment-retries
+  5
+  --remote-components
+  ejs:github
+  --no-playlist
+  --abort-on-error
+  -o
+  %(title).200B [%(id)s].%(ext)s
+  --cookies
+  /data/tmp/cookies-1.txt
+  -f
+  bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best
+  --download-archive
+  /data/download-archive.txt
+  --
+  https://www.youtube.com/watch?v=abc
+## all extras
+  --ignore-config
+  --color
+  never
+  --no-mtime
+  --quiet
+  --no-simulate
+  --newline
+  --progress
+  --progress-template
+  download:YTDL-P %(progress)j
+  --progress-template
+  postprocess:YTDL-PP %(progress.status)s %(progress.postprocessor)s
+  --print
+  before_dl:YTDL-ITEM	%(playlist_index)s	%(n_entries)s	%(playlist_count)s	%(id)j	%(title)j
+  --print
+  after_move:YTDL-FILE %(filepath)j
+  --windows-filenames
+  --no-restrict-filenames
+  -N
+  4
+  -R
+  5
+  --fragment-retries
+  5
+  --remote-components
+  ejs:github
+  --no-playlist
+  --abort-on-error
+  -o
+  %(title).200B [%(id)s].%(ext)s
+  -f
+  bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best
+  --embed-subs
+  --sub-langs
+  en,tr
+  --embed-chapters
+  --embed-thumbnail
+  --embed-metadata
+  --sponsorblock-remove
+  sponsor
+  --
+  https://www.youtube.com/watch?v=abc
+## all extras in audio mode (no subs)
+  --ignore-config
+  --color
+  never
+  --no-mtime
+  --quiet
+  --no-simulate
+  --newline
+  --progress
+  --progress-template
+  download:YTDL-P %(progress)j
+  --progress-template
+  postprocess:YTDL-PP %(progress.status)s %(progress.postprocessor)s
+  --print
+  before_dl:YTDL-ITEM	%(playlist_index)s	%(n_entries)s	%(playlist_count)s	%(id)j	%(title)j
+  --print
+  after_move:YTDL-FILE %(filepath)j
+  --windows-filenames
+  --no-restrict-filenames
+  -N
+  4
+  -R
+  5
+  --fragment-retries
+  5
+  --remote-components
+  ejs:github
+  --no-playlist
+  --abort-on-error
+  -o
+  %(title).200B [%(id)s].%(ext)s
+  -f
+  bestaudio/best
+  -x
+  --audio-format
+  m4a
+  --audio-quality
+  0
+  --embed-chapters
+  --embed-thumbnail
+  --embed-metadata
+  --sponsorblock-remove
+  sponsor
+  --
+  https://www.youtube.com/watch?v=abc
+## hostile-looking url stays after --
+  --ignore-config
+  --color
+  never
+  --no-mtime
+  --quiet
+  --no-simulate
+  --newline
+  --progress
+  --progress-template
+  download:YTDL-P %(progress)j
+  --progress-template
+  postprocess:YTDL-PP %(progress.status)s %(progress.postprocessor)s
+  --print
+  before_dl:YTDL-ITEM	%(playlist_index)s	%(n_entries)s	%(playlist_count)s	%(id)j	%(title)j
+  --print
+  after_move:YTDL-FILE %(filepath)j
+  --windows-filenames
+  --no-restrict-filenames
+  -N
+  4
+  -R
+  5
+  --fragment-retries
+  5
+  --remote-components
+  ejs:github
+  --no-playlist
+  --abort-on-error
+  -o
+  %(title).200B [%(id)s].%(ext)s
+  -f
+  bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best
+  --
+  https://example.com/--exec=rm -rf

@@ -29,3 +29,10 @@ Thumbs.db
 # Logs / downloads
 *.log
 /downloads/
+
+# Tauri / Node (rewrite)
+node_modules/
+src-tauri/target/
+src-tauri/gen/
+*.tsbuildinfo
+.vite/

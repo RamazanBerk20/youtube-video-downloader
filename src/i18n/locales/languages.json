@@ -1,0 +1,37 @@
+{
+  "order": [
+    "en",
+    "tr",
+    "es",
+    "fr",
+    "de",
+    "ru",
+    "ar",
+    "zh",
+    "ja",
+    "ko"
+  ],
+  "nativeNames": {
+    "en": "English",
+    "tr": "Türkçe",
+    "es": "Español",
+    "fr": "Français",
+    "de": "Deutsch",
+    "ru": "Русский",
+    "ar": "العربية",
+    "zh": "中文",
+    "ja": "日本語",
+    "ko": "한국어"
+  },
+  "localizedOptions": [
+    "Auto",
+    "Balanced",
+    "Best",
+    "Fast",
+    "None",
+    "Off",
+    "Original",
+    "Quality",
+    "Worst"
+  ]
+}

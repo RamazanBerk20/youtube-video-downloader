@@ -1,138 +1,160 @@
 # YouTube Video Downloader
 
-A cross-platform desktop GUI for downloading YouTube videos and audio, built on
-[`yt-dlp`](https://github.com/yt-dlp/yt-dlp) and
-[`customtkinter`](https://github.com/TomSchimansky/CustomTkinter). Runs on
-Linux and Windows.
+A small, fast cross-platform desktop app for downloading YouTube videos and
+audio, built on [`yt-dlp`](https://github.com/yt-dlp/yt-dlp). Runs on Linux and
+Windows. It is written in Rust with [Tauri 2](https://tauri.app/) and a
+React/TypeScript UI (it was a Python/CustomTkinter app before version 2).
 
 ## Features
 
 - **Concurrent downloads** — paste many URLs (one per line), pick a max-
   simultaneous count (1–5, 10, `∞`, or a custom number), and they run in
   parallel with a per-task progress row
-- **Multilingual UI** — choose English, Türkçe, Español, Français, Deutsch,
-  Русский, العربية, 中文, or 日本語 in the top-right; the choice is remembered.
-  Auto-detects from your system locale on first launch.
+- **Metadata preview** — title, channel, duration and thumbnail are shown
+  before you queue a URL
+- **Multilingual UI** — English, Türkçe, Español, Français, Deutsch, Русский,
+  العربية, 中文, 日本語 and 한국어 (10 languages); the choice is remembered and
+  auto-detected from your system locale on first launch
+- **System, light or dark theme**
 - **Video or audio** — toggle with a single radio button
 - **Codec selector** — for video: Auto (mp4 if possible, else webm/mkv) /
   MP4 (H.264) / WebM (VP9) / WebM (AV1). For audio: m4a (AAC, default) /
-  mp3 / opus / flac / wav / Original (no transcoding). m4a is the modern
-  default — YouTube serves AAC natively up to 1080p so no re-encoding is
-  needed, files are smaller than mp3, and quality is higher.
+  mp3 / opus / flac / wav / Original (no transcoding)
 - **Quality selector** — Best / 4K / 1440p / 1080p / 720p / 480p / 360p /
-  Worst for video; Best / 320 / 256 / 192 / 128 / 96 kbps for lossy audio.
-  The bitrate dropdown auto-disables for flac/wav/alac/Original.
+  Worst for video; Best / 320 / 256 / 192 / 128 / 96 kbps for lossy audio
+  (disabled for flac/wav/Original)
 - **Container and compatibility controls** — keep the original container,
-  remux to MP4/MKV/WebM/MOV, or transcode to legacy-friendly AVI/FLV/MPEG/WMV.
-  The compatibility re-encode uses codecs that fit the selected container.
-- **Browser cookies + JS runtime support** — can use browser cookies when
-  YouTube asks for sign-in, can fall back to a `cookies.txt` export when
-  Chromium cookie decryption is blocked, and checks for Deno/Node/Bun for
-  yt-dlp's YouTube anti-bot challenge support.
+  remux to MP4/MKV/WebM/MOV, or transcode to legacy-friendly AVI/FLV/MPEG/WMV;
+  the compatibility re-encode picks codecs that fit the container, with
+  hardware acceleration where available
+- **Browser cookies + JS runtime support** — uses browser cookies when YouTube
+  asks for sign-in, falls back to a `cookies.txt` export when Chromium cookie
+  decryption is blocked, and checks for Deno/Node/Bun for yt-dlp's YouTube
+  anti-bot challenge
 - **Automatic rate-limit rescue** — when cookie retries fail, the app can
-  activate a configured anyIP proxy for queued/future downloads and retry
-  the failed task once.
-- **Playlist support** — entire playlists download into a folder named after
-  the playlist, with zero-padded index prefixes
-- **Per-task cancel + Cancel all + Clear finished** — fine-grained control
-  over the queue
-- **Session log** — timestamped panel showing each completed file and any
+  activate a configured anyIP proxy for queued/future downloads and retry the
+  failed task once
+- **Managed, self-updating yt-dlp** — the app downloads the official yt-dlp
+  release itself and keeps it current; no Python or pip involved
+- **Playlist support** — playlists download into a folder named after the
+  playlist, with zero-padded index prefixes
+- **Cancel in every phase** (fetching, downloading, merging, encoding) **and
+  retry per row**, plus Cancel all and Clear finished
+- **Optional extras** (all off by default) — restore the queue on launch, a
+  download archive that skips videos you already have, embedding of subtitles /
+  chapters / thumbnail / metadata, and SponsorBlock
+- **Session log** — timestamped panel with each completed file and any
   warnings/errors
-- **Remembers preferences** — language, max-concurrent, output folder,
+- **Remembers preferences** — language, theme, concurrency, output folder,
   format, quality, codecs, container, playlist toggle, fragments, cookie
-  source, cookie file, and anyIP rescue settings persist in a config file:
-  `%APPDATA%\youtube-downloader\config.json` (Windows) /
-  `~/.config/youtube-downloader/config.json` (Linux) /
-  `~/Library/Application Support/youtube-downloader/config.json` (macOS)
-- **Dark theme** — CustomTkinter, identical on both OSes
+  source, cookie file and anyIP rescue settings
+- **In-app updates** — checks this repository's releases; AppImage and Windows
+  installs can update in place after a SHA-256 check
 
 ## Requirements
 
-- Python 3.10+
-- [`ffmpeg`](https://ffmpeg.org/) on `PATH` (required for audio extraction and
-  for merging high-quality video+audio streams)
-- A JavaScript runtime on `PATH` — Deno recommended, Node/Bun also work
-  (needed by yt-dlp for YouTube's anti-bot challenge solver)
+- [`ffmpeg`](https://ffmpeg.org/) on `PATH` (audio extraction, merging, encoding).
+  If it is missing the app shows a banner that guides you to install it.
+- A JavaScript runtime on `PATH` — Deno recommended, Node/Bun also work (needed
+  by yt-dlp for YouTube's anti-bot challenge solver)
 
-## Install & Run
-
-### Linux / macOS
-
-```bash
-git clone https://github.com/RamazanBerk20/youtube-video-downloader.git
-cd youtube-video-downloader
-./start.sh
-```
-
-The launcher creates a `.venv/`, installs `yt-dlp` and `customtkinter` on
-first run, then starts the GUI. Subsequent launches skip the setup.
-
-Make sure `ffmpeg` is installed first:
+Python is **not** needed any more, and neither is a separate yt-dlp install.
 
 ```bash
 sudo pacman -S ffmpeg          # Arch / CachyOS
 sudo apt install ffmpeg        # Debian / Ubuntu
-brew install ffmpeg            # macOS
+winget install Gyan.FFmpeg     # Windows
 ```
 
-### Windows
+## Install from a release
 
-1. Install **Python 3.10+** from <https://www.python.org/downloads/> — make
-   sure to tick **"Add python.exe to PATH"** in the installer. (If you skip
-   this step, double-clicking `start.bat` will open the Microsoft Store
-   instead of running.)
-2. Install **ffmpeg**:
-   ```bat
-   winget install Gyan.FFmpeg
-   ```
-   or grab a build from <https://www.gyan.dev/ffmpeg/builds/> and add its
-   `bin\` folder to `PATH`.
-3. Clone and launch:
-   ```bat
-   git clone https://github.com/RamazanBerk20/youtube-video-downloader.git
-   cd youtube-video-downloader
-   start.bat
-   ```
-   Or just double-click `start.bat` after cloning.
+Download from the [releases page](https://github.com/RamazanBerk20/youtube-video-downloader/releases/latest)
+and, if you like, check the file against `SHA256SUMS`:
 
-If you previously got a *"Windows doesn't support this version"* dialog, it
-means the bundled Microsoft Store stub ran instead of a real Python.
-Install Python from the link above and try again, or disable the alias at
-**Settings → Apps → Advanced app settings → App execution aliases**.
+- **Linux AppImage** — `chmod +x` it and run it. Updates itself in place.
+- **Linux `.deb`** — `sudo apt install ./<file>.deb`. `ffmpeg` is installed as
+  a recommended package. Updates come from new releases (the app only links to
+  them).
+- **Windows installer** (`…-setup.exe`) — updates itself by downloading the
+  newer installer.
+
+Releases are **not code-signed** (there are no signing keys), so Windows
+SmartScreen will warn ("Windows protected your PC" → More info → Run anyway).
+`SHA256SUMS` is the integrity check.
+
+## Build from source
+
+Needs Node 22+, [pnpm](https://pnpm.io/), a recent stable Rust toolchain, and on
+Linux the Tauri 2 system packages (`libwebkit2gtk-4.1-dev`, `libgtk-3-dev`,
+`librsvg2-dev`, `libglib2.0-dev`, `libdbus-1-dev`, `patchelf`).
+
+```bash
+pnpm install
+pnpm tauri build          # bundles land in src-tauri/target/release/bundle/
+pnpm tauri dev            # run with hot reload
+```
+
+## Settings and data
+
+| | Settings | Queue / archive / yt-dlp |
+|---|---|---|
+| Linux | `~/.config/youtube-downloader/` | `~/.local/share/youtube-downloader/` |
+| Windows | `%APPDATA%\youtube-downloader\` | `%LOCALAPPDATA%\youtube-downloader\` |
+
+The settings directory is the one the Python version used. The old
+`config.json` is **migrated automatically on first run**; it is only read, and
+left in place.
 
 ## Usage
 
-1. Paste one or more YouTube URLs into the **URL(s)** textbox — one per line
+1. Paste one or more YouTube URLs — one per line
 2. Pick an output folder (defaults to `~/Downloads`)
 3. Choose **Video** or **Audio**, then a **Codec** and a **Quality**
 4. Tick **Download as playlist** if a URL is a playlist
-5. Pick **Max concurrent** (1–5, 10, or type a custom number, or `∞`)
+5. Pick **Max concurrent**
 6. Click **Add to queue** — downloads start immediately
-
-Each download gets its own row showing status, progress, speed and ETA, plus
-a per-task cancel button. Use **Cancel all** to stop everything in flight,
-or **Clear finished** to remove completed rows.
 
 Files are named `<title> [<id>].<ext>`; playlist entries land in a subfolder
 named after the playlist.
 
 If Chromium-family browser cookies fail on Windows, this is usually Chrome /
-Edge / Brave App-Bound Encryption blocking yt-dlp's DPAPI decrypt path. Use
-Firefox cookies, or export YouTube cookies to a Netscape-format `cookies.txt`
-file and select it in the app.
+Edge / Brave App-Bound Encryption blocking yt-dlp's decrypt path. Use Firefox
+cookies, or export YouTube cookies to a Netscape-format `cookies.txt` file and
+select it in the app.
 
-## Project layout
+## Coming from the Python version
 
+Deliberate behaviour changes (full list in [`docs/PARITY.md`](docs/PARITY.md)):
+
+- The queue is only restored (and auto-started) at launch if you enable
+  **restore queue**; it is off by default.
+- Container MP4/MOV without re-encode now converts Opus audio to AAC (video is
+  still copied) instead of stream-copying Opus into MP4.
+- No separate video-convert pass and no ac3 audio extraction (bug fixes); playlists
+  keep going past an unavailable entry.
+- yt-dlp options were compared mechanically with the old app's across 9,288
+  combinations; format selector, output template, retries, cookies and
+  JS-runtime settings are identical.
+- The Python files (`app.py`, `start.sh`, …) are no longer used.
+
+## Development
+
+```bash
+pnpm dev          # UI only, at http://localhost:1420
+pnpm test         # vitest
+pnpm build        # tsc -b && vite build
+cargo test --manifest-path src-tauri/Cargo.toml --all-targets --locked
+pnpm check        # all of the above
 ```
-app.py             # CustomTkinter GUI: queue list, language toggle, polling loop
-downloader.py      # DownloadManager + DownloadTask (concurrent yt-dlp threads)
-i18n.py            # Translation tables and dropdown option localization
-settings.py        # JSON-backed user preferences
-requirements.txt   # Python dependencies
-start.sh           # Linux/macOS launcher
-start.bat          # Windows launcher
-LICENSE            # MIT
-```
+
+Outside Tauri (plain `pnpm dev` in a browser) the UI runs against an in-browser
+mock backend (`src/lib/mockBackend.ts`). Words in a URL script its behaviour:
+none = normal download, `list` = 3-item playlist, `fail` = unavailable video,
+`bot` = bot check rescued with cookies, `botx` = bot check never rescued,
+`noformat` = format not available (JS-runtime banner), `slow` = 10× slower
+(for testing cancel). CI (`.github/workflows/ci.yml`) runs type-check, tests,
+build, `cargo fmt`, `clippy -D warnings` and `cargo test` on Linux and
+Windows. Pushing a `v*` tag runs `release.yml`.
 
 ## License
 
