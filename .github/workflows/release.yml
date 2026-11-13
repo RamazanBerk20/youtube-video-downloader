@@ -100,7 +100,8 @@ jobs:
       - name: Collect files and write SHA256SUMS
         run: |
           mkdir release
-          mv artifacts/*/* release/
+          # upload-artifact keeps the bundle subfolders (appimage/, deb/, nsis/)
+          find artifacts -type f -exec mv -t release {} +
           cd release
           # In-app updater reads this: "<hash>  <name>", names only.
           sha256sum -- * > SHA256SUMS
