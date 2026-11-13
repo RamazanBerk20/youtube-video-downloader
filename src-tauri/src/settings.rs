@@ -443,11 +443,7 @@ pub fn detect_language() -> &'static str {
 /// non-empty of LC_ALL, LC_CTYPE, LANG), then the first non-empty of
 /// LC_ALL, LC_MESSAGES, LANG.
 pub fn posix_locale_candidates(get: &dyn Fn(&str) -> Option<String>) -> Vec<String> {
-    let first = |keys: &[&str]| {
-        keys.iter()
-            .filter_map(|k| get(k))
-            .find(|v| !v.is_empty())
-    };
+    let first = |keys: &[&str]| keys.iter().filter_map(|k| get(k)).find(|v| !v.is_empty());
     [
         first(&["LC_ALL", "LC_CTYPE", "LANG"]),
         first(&["LC_ALL", "LC_MESSAGES", "LANG"]),
@@ -652,9 +648,17 @@ mod tests {
     #[test]
     fn lc_ctype_counts_like_python_getlocale() {
         let env = |pairs: &'static [(&'static str, &'static str)]| {
-            move |k: &str| pairs.iter().find(|(n, _)| *n == k).map(|(_, v)| v.to_string())
+            move |k: &str| {
+                pairs
+                    .iter()
+                    .find(|(n, _)| *n == k)
+                    .map(|(_, v)| v.to_string())
+            }
         };
-        let c = posix_locale_candidates(&env(&[("LC_CTYPE", "tr_TR.UTF-8"), ("LANG", "en_US.UTF-8")]));
+        let c = posix_locale_candidates(&env(&[
+            ("LC_CTYPE", "tr_TR.UTF-8"),
+            ("LANG", "en_US.UTF-8"),
+        ]));
         assert_eq!(detect_language_from(&c), "tr");
         let c = posix_locale_candidates(&env(&[("LC_MESSAGES", "de_DE"), ("LANG", "C")]));
         assert_eq!(detect_language_from(&c), "de");

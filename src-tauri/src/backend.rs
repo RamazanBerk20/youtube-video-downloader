@@ -903,7 +903,10 @@ pub mod tests {
         let (b, _, dir) = test_backend("nopersist");
         put_task(&b, TaskState::Queued);
         b.persist_queue();
-        assert!(!b.paths.queue_file().exists(), "off by default: nothing kept");
+        assert!(
+            !b.paths.queue_file().exists(),
+            "off by default: nothing kept"
+        );
         let patch = serde_json::json!({ "restoreQueue": true });
         b.update_settings(patch.as_object().unwrap()).unwrap();
         b.exiting.store(true, Ordering::SeqCst);

@@ -898,10 +898,22 @@ mod tests {
         assert!(conv);
         assert_eq!(args, copy_video_args("mp4"));
         assert!(container_change_args("mov", Some("vorbis")).1);
-        assert_eq!(container_change_args("mp4", Some("aac")), (remux_args("mp4"), false));
-        assert_eq!(container_change_args("mp4", None), (remux_args("mp4"), false));
-        assert_eq!(container_change_args("mkv", Some("opus")), (remux_args("mkv"), false));
-        assert_eq!(container_change_args("webm", Some("opus")), (remux_args("webm"), false));
+        assert_eq!(
+            container_change_args("mp4", Some("aac")),
+            (remux_args("mp4"), false)
+        );
+        assert_eq!(
+            container_change_args("mp4", None),
+            (remux_args("mp4"), false)
+        );
+        assert_eq!(
+            container_change_args("mkv", Some("opus")),
+            (remux_args("mkv"), false)
+        );
+        assert_eq!(
+            container_change_args("webm", Some("opus")),
+            (remux_args("webm"), false)
+        );
     }
 
     #[test]

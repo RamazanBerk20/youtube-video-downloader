@@ -60,7 +60,7 @@ describe("mock backend", () => {
     );
     await until(() => tasks.get(slow)?.state.state === "downloading");
     await api.cancelTask(slow);
-    await until(() => ["done", "failed", "cancelled"].every((s) => [ok, bot, bad, slow].some((id) => tasks.get(id)?.state.state === s)));
+    await until(() => [ok, bot, bad, slow].every((id) => ["done", "failed", "cancelled"].includes(tasks.get(id)?.state.state ?? "")));
     expect(tasks.get(ok)?.state.state).toBe("done");
     expect(tasks.get(bot)?.state.state).toBe("done");
     expect(tasks.get(bot)?.attempts).toHaveLength(2);
