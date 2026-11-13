@@ -156,6 +156,11 @@ none = normal download, `list` = 3-item playlist, `fail` = unavailable video,
 build, `cargo fmt`, `clippy -D warnings` and `cargo test` on Linux and
 Windows. Pushing a `v*` tag runs `release.yml`.
 
+## Support
+
+This project is free. If you want to support its development, you can do so
+through [GitHub Sponsors](https://github.com/sponsors/RamazanBerk20).
+
 ## License
 
 [MIT](LICENSE) © 2026 ramazanberksirin

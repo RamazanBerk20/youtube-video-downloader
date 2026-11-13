@@ -185,6 +185,7 @@
   "theme.dark": "ダーク",
   "label.language": "言語",
   "label.tools": "ツール",
+  "link.sponsor": "開発を支援する（GitHub Sponsors）",
   "label.app_version": "アプリのバージョン {version}",
   "tools.js_runtime": "JavaScript ランタイム",
   "tools.not_found": "見つかりません",

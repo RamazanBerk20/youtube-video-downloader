@@ -70,12 +70,15 @@ export const DEFAULT_SETTINGS: Settings = {
 
 type Handler = (e: AppEvent) => void;
 
+export const SPONSOR_URL = "https://github.com/sponsors/RamazanBerk20";
+
 class MockBackend {
   settings: Settings = { ...DEFAULT_SETTINGS };
   passwordSet = false;
   tasks: Task[] = [];
   nextId = 0;
   log: LogEntry[] = [];
+  opened: string[] = [];
   seq = 0;
   banners: Banner[] = [];
   shownOnce = new Set<BannerKind>();
@@ -520,6 +523,9 @@ async function invoke<T>(cmd: string, args: Record<string, unknown> = {}): Promi
         b.setUpdate({ phase: "readyToRestart", version: "2.1.0" });
         b.key(null, "info", "log.update_done");
         return b.appUpdate;
+      case "open_sponsor_page":
+        b.opened.push(SPONSOR_URL);
+        return undefined;
       case "open_release_page":
       case "restart_app":
       case "confirm_exit":

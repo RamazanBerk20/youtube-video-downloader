@@ -1,7 +1,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import { App } from "../App";
-import { mockControls } from "../lib/mockBackend";
+import { mockControls, SPONSOR_URL } from "../lib/mockBackend";
 
 beforeAll(() => {
   mockControls.setSpeed(0.01);
@@ -95,6 +95,16 @@ describe("App against the mock backend", () => {
     fireEvent.change(screen.getByTestId("language"), { target: { value: "en" } });
     await waitFor(() => expect(document.documentElement.dir).toBe("ltr"));
     expect(screen.getByTestId("add").textContent).toContain("Add to queue");
+  });
+
+  it("offers the sponsor link only in the Tools tab", async () => {
+    render(<App />);
+    await waitFor(() => expect(screen.getByTestId("app").dataset.state).toBe("ready"));
+    expect(screen.queryByTestId("sponsor-link")).toBeNull();
+    fireEvent.click(screen.getByTestId("drawer-toggle"));
+    fireEvent.click(screen.getByTestId("drawer-tab-tools"));
+    fireEvent.click(await screen.findByTestId("sponsor-link"));
+    await waitFor(() => expect(mockControls.backend.opened).toEqual([SPONSOR_URL]));
   });
 
   it("applies the option dependencies on screen", async () => {

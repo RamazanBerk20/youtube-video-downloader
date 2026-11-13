@@ -185,6 +185,7 @@
   "theme.dark": "어둡게",
   "label.language": "언어",
   "label.tools": "도구",
+  "link.sponsor": "개발 후원하기 (GitHub Sponsors)",
   "label.app_version": "앱 버전 {version}",
   "tools.js_runtime": "JavaScript 런타임",
   "tools.not_found": "찾을 수 없음",

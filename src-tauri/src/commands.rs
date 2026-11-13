@@ -417,10 +417,17 @@ pub async fn apply_app_update(b: B<'_>) -> Result<UpdateState, String> {
     .map_err(|e| e.to_string())?
 }
 
+const SPONSOR_URL: &str = "https://github.com/sponsors/RamazanBerk20";
+
 #[tauri::command]
 pub fn open_release_page() -> Result<(), String> {
     crate::process::open_with_system(std::ffi::OsStr::new(&updater::release_page()))
         .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn open_sponsor_page() -> Result<(), String> {
+    crate::process::open_with_system(std::ffi::OsStr::new(SPONSOR_URL)).map_err(|e| e.to_string())
 }
 
 /// Spawn the new instance detached, then exit (spec 1.13 item 107).

@@ -185,6 +185,7 @@
   "theme.dark": "Тёмная",
   "label.language": "Язык",
   "label.tools": "Инструменты",
+  "link.sponsor": "Поддержать разработку (GitHub Sponsors)",
   "label.app_version": "Версия приложения {version}",
   "tools.js_runtime": "Среда выполнения JavaScript",
   "tools.not_found": "не найдено",

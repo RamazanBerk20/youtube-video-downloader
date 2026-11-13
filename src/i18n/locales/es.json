@@ -185,6 +185,7 @@
   "theme.dark": "Oscuro",
   "label.language": "Idioma",
   "label.tools": "Herramientas",
+  "link.sponsor": "Apoya el desarrollo (GitHub Sponsors)",
   "label.app_version": "Versión de la app {version}",
   "tools.js_runtime": "Entorno de ejecución JavaScript",
   "tools.not_found": "no encontrado",

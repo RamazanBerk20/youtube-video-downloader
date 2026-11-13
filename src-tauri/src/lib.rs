@@ -134,6 +134,7 @@ pub fn run() {
             commands::check_app_update,
             commands::apply_app_update,
             commands::open_release_page,
+            commands::open_sponsor_page,
             commands::restart_app,
             commands::confirm_exit,
         ])

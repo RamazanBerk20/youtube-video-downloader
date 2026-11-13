@@ -126,6 +126,8 @@ export const api = {
   applyAppUpdate: () => call<UpdateState>("apply_app_update"),
   /** "Update now" when canApply is false. */
   openReleasePage: () => call<void>("open_release_page"),
+  /** Quiet "Support development" link in the Tools tab. */
+  openSponsorPage: () => call<void>("open_sponsor_page"),
   /** After the restart prompt is answered yes. */
   restartApp: () => call<void>("restart_app"),
   /** After a closeRequested event is confirmed. */

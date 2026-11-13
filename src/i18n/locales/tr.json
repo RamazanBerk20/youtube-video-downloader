@@ -185,6 +185,7 @@
   "theme.dark": "Koyu",
   "label.language": "Dil",
   "label.tools": "Araçlar",
+  "link.sponsor": "Geliştirmeyi destekle (GitHub Sponsors)",
   "label.app_version": "Uygulama sürümü {version}",
   "tools.js_runtime": "JavaScript çalışma zamanı",
   "tools.not_found": "bulunamadı",

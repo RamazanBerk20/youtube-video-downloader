@@ -220,6 +220,9 @@ function Tools() {
             </button>
           )}
         </div>
+        <button type="button" className="quiet-link" data-testid="sponsor-link" onClick={() => void api.openSponsorPage()}>
+          {t("link.sponsor")}
+        </button>
       </div>
     </div>
   );

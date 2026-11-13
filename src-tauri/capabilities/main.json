@@ -28,6 +28,7 @@
     "allow-check-app-update",
     "allow-apply-app-update",
     "allow-open-release-page",
+    "allow-open-sponsor-page",
     "allow-restart-app",
     "allow-confirm-exit"
   ]

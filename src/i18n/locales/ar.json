@@ -185,6 +185,7 @@
   "theme.dark": "داكن",
   "label.language": "اللغة",
   "label.tools": "الأدوات",
+  "link.sponsor": "ادعم التطوير (GitHub Sponsors)",
   "label.app_version": "إصدار التطبيق {version}",
   "tools.js_runtime": "بيئة تشغيل JavaScript",
   "tools.not_found": "غير موجود",

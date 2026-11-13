@@ -185,6 +185,7 @@
   "theme.dark": "深色",
   "label.language": "语言",
   "label.tools": "工具",
+  "link.sponsor": "支持开发（GitHub Sponsors）",
   "label.app_version": "应用版本 {version}",
   "tools.js_runtime": "JavaScript 运行时",
   "tools.not_found": "未找到",

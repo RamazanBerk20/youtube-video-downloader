@@ -975,6 +975,18 @@ code {
   font-size: 12.5px;
   overflow-wrap: anywhere;
 }
+.quiet-link {
+  grid-column: 1 / -1;
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+}
 .tool-actions {
   display: flex;
   align-items: center;

@@ -17,6 +17,7 @@ const COMMANDS: &[&str] = &[
     "check_app_update",
     "apply_app_update",
     "open_release_page",
+    "open_sponsor_page",
     "restart_app",
     "confirm_exit",
 ];

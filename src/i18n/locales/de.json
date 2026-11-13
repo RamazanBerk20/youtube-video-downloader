@@ -185,6 +185,7 @@
   "theme.dark": "Dunkel",
   "label.language": "Sprache",
   "label.tools": "Werkzeuge",
+  "link.sponsor": "Entwicklung unterstützen (GitHub Sponsors)",
   "label.app_version": "App-Version {version}",
   "tools.js_runtime": "JavaScript-Laufzeit",
   "tools.not_found": "nicht gefunden",
