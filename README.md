@@ -87,12 +87,12 @@ manager; the in-app update check only links to the release page.
 Download from the [releases page](https://github.com/RamazanBerk20/youtube-video-downloader/releases/latest)
 and, if you like, check the file against `SHA256SUMS`:
 
-- **Linux AppImage** (`YouTube-Downloader_2.0.1_amd64.AppImage`) — `chmod +x`
+- **Linux AppImage** (`YouTube-Downloader_<version>_amd64.AppImage`) — `chmod +x`
   it and run it. Updates itself in place.
-- **Linux `.deb`** (`YouTube-Downloader_2.0.1_amd64.deb`) —
+- **Linux `.deb`** (`YouTube-Downloader_<version>_amd64.deb`) —
   `sudo apt install ./<file>.deb`. `ffmpeg` is installed as a recommended
   package. Updates come from new releases (the app only links to them).
-- **Windows installer** (`YouTube-Downloader_2.0.1_x64-setup.exe`) — updates
+- **Windows installer** (`YouTube-Downloader_<version>_x64-setup.exe`) — updates
   itself by downloading the newer installer.
 
 Releases are **not code-signed** (there are no signing keys), so Windows
