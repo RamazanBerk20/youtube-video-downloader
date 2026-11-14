@@ -1,6 +1,6 @@
 [package]
 name = "youtube-downloader"
-version = "2.0.0"
+version = "2.0.1"
 description = "Fast, small desktop front-end for yt-dlp"
 authors = ["YouTube Downloader contributors"]
 license = "MIT"
@@ -33,6 +33,9 @@ ureq = "3.5.1"
 
 [target.'cfg(unix)'.dependencies]
 libc = "0.2.186"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+gtk = "0.18.2"
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61.2", features = [

@@ -81,12 +81,71 @@ fn start_background(b: Arc<Backend>, legacy_password: Option<String>) {
     });
 }
 
+/// The first of `candidates` that has a `cursors` folder under one of `data_dirs`.
+#[cfg(target_os = "linux")]
+fn loadable_cursor_theme(
+    candidates: impl IntoIterator<Item = String>,
+    data_dirs: &[std::path::PathBuf],
+) -> Option<String> {
+    candidates.into_iter().find(|name| {
+        !name.is_empty()
+            && !name.contains('/')
+            && data_dirs
+                .iter()
+                .any(|d| d.join("icons").join(name).join("cursors").is_dir())
+    })
+}
+
+/// GTK 3.24.33, the copy inside the AppImage, aborts on Wayland as soon as it needs a cursor when
+/// the desktop's cursor settings can't be loaded: a size of 0, or a theme with no `cursors` folder
+/// in the system data dirs (KDE leaves both GNOME settings empty; a theme may live only in
+/// `~/.icons`). Give it a size and a theme that load before any window exists. Newer GTK falls
+/// back by itself, so this changes nothing there.
+#[cfg(target_os = "linux")]
+fn ensure_cursor_theme() {
+    use gtk::prelude::*;
+    if gtk::init().is_err() {
+        return;
+    }
+    let Some(settings) = gtk::Settings::default() else {
+        return;
+    };
+    if settings.gtk_cursor_theme_size() <= 0 {
+        settings.set_gtk_cursor_theme_size(24);
+    }
+    let data_dirs = gtk::glib::system_data_dirs();
+    let current = settings
+        .gtk_cursor_theme_name()
+        .map(|s| s.to_string())
+        .unwrap_or_default();
+    if loadable_cursor_theme([current], &data_dirs).is_some() {
+        return;
+    }
+    let installed = data_dirs.iter().flat_map(|d| {
+        std::fs::read_dir(d.join("icons"))
+            .into_iter()
+            .flatten()
+            .flatten()
+            .filter_map(|e| e.file_name().into_string().ok())
+    });
+    let candidates = std::env::var("XCURSOR_THEME")
+        .ok()
+        .into_iter()
+        .chain(["default", "breeze_cursors", "Adwaita"].map(String::from))
+        .chain(installed);
+    if let Some(name) = loadable_cursor_theme(candidates, &data_dirs) {
+        settings.set_gtk_cursor_theme_name(Some(&name));
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     // SAFETY: first thing in main, before any thread exists.
     unsafe { transcode::capture_and_strip_nvidia_env() };
     #[cfg(windows)]
     set_app_user_model_id();
+    #[cfg(target_os = "linux")]
+    ensure_cursor_theme();
 
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
@@ -153,4 +212,21 @@ pub fn run() {
             b.shutdown();
         }
     });
+}
+
+#[cfg(all(test, target_os = "linux"))]
+mod cursor_theme_tests {
+    use super::loadable_cursor_theme;
+
+    #[test]
+    fn picks_first_theme_that_has_a_cursors_folder() {
+        let dir = std::env::temp_dir().join(format!("ytdl-cursor-{}", std::process::id()));
+        std::fs::create_dir_all(dir.join("icons/good/cursors")).unwrap();
+        std::fs::create_dir_all(dir.join("icons/no-cursors")).unwrap();
+        let names = ["", "../good", "missing", "no-cursors", "good", "later"].map(String::from);
+        let dirs = [dir.clone()];
+        assert_eq!(loadable_cursor_theme(names, &dirs), Some("good".into()));
+        assert_eq!(loadable_cursor_theme(["".to_string()], &dirs), None);
+        std::fs::remove_dir_all(dir).unwrap();
+    }
 }
