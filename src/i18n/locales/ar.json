@@ -1,6 +1,10 @@
 {
   "app.title": "محمّل يوتيوب",
   "header.title": "محمّل يوتيوب",
+  "window.minimize": "تصغير",
+  "window.maximize": "تكبير",
+  "window.restore": "استعادة",
+  "window.close": "إغلاق",
   "field.url": "الرابط (الروابط)",
   "field.url.placeholder": "ألصق رابط يوتيوب واحد في كل سطر، ثم انقر إضافة…",
   "field.save_to": "حفظ في",

@@ -1,6 +1,10 @@
 {
   "app.title": "YouTube İndirici",
   "header.title": "YouTube İndirici",
+  "window.minimize": "Küçült",
+  "window.maximize": "Büyüt",
+  "window.restore": "Önceki boyutuna getir",
+  "window.close": "Kapat",
   "field.url": "Bağlantı(lar)",
   "field.url.placeholder": "Her satıra bir YouTube bağlantısı yapıştırıp Ekle'ye basın…",
   "field.save_to": "Kaydet",

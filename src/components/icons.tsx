@@ -28,6 +28,9 @@ const paths: Record<string, ReactNode> = {
   stop: <rect x="6.5" y="6.5" width="11" height="11" rx="2" />,
   sweep: <path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 12.5h9l1-12.5" />,
   download: <path d="M12 4v11M7 10.5l5 5 5-5M5 19.5h14" />,
+  minimize: <path d="M6.5 12h11" />,
+  maximize: <rect x="6.5" y="6.5" width="11" height="11" rx="1.5" />,
+  restore: <><rect x="6.5" y="9" width="8.5" height="8.5" rx="1.5" /><path d="M9.5 6.5h6.5a1.5 1.5 0 0 1 1.5 1.5v6.5" /></>,
   terminal: <><rect x="3" y="4.5" width="18" height="15" rx="2" /><path d="M7 9.5l3 2.5-3 2.5M12.5 15h4" /></>
 };
 

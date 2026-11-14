@@ -12,7 +12,7 @@ describe("i18n catalogs", () => {
   it("every language has every English key with the same placeholders", () => {
     const en = CATALOGS.en as Record<string, string>;
     const ph = (s: string) => (s.match(/\{\w+\}/g) ?? []).sort().join();
-    expect(Object.keys(en)).toHaveLength(207);
+    expect(Object.keys(en)).toHaveLength(211);
     for (const lang of LANGUAGES) {
       const table = CATALOGS[lang] as Record<string, string>;
       expect(Object.keys(table).sort()).toEqual(Object.keys(en).sort());

@@ -153,26 +153,106 @@ textarea {
   /* Last resort on very short windows: the page scrolls rather than hiding the drawer. */
   overflow-y: auto;
 }
+/* The title bar: the window is undecorated, so this row is the window's chrome and
+   the app's header at once. Still while idle; while the queue moves it shows a
+   quiet summary and a 2 px overall-progress line on its bottom edge. */
 .topbar {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 5;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding-block: 10px;
-  padding-inline: 18px 12px;
+  gap: 10px;
+  min-block-size: 44px;
+  padding-inline: 14px 6px;
   border-block-end: 1px solid var(--border);
   background: var(--surface);
+  user-select: none;
+  -webkit-user-select: none;
+  flex: none;
+}
+.titlebar-mark {
+  flex: none;
 }
 .topbar h1 {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 650;
   margin: 0;
-  flex: 1;
+  flex: 0 1 auto;
+  min-inline-size: 0;
   letter-spacing: 0.01em;
+}
+.titlebar-summary {
+  flex: 1 1 0;
+  min-inline-size: 0;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
 }
 .topbar-tools {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex: none;
+}
+.window-buttons {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-inline-start: 8px;
+  flex: none;
+}
+.window-btn {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 40px;
+  block-size: 32px;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background var(--dur), color var(--dur);
+}
+.window-btn:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+.window-btn:active {
+  background: var(--border);
+}
+.window-btn.close:hover,
+.window-btn.close:focus-visible {
+  background: var(--bad);
+  color: #fff;
+}
+.titlebar-progress {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: -1px;
+  block-size: 2px;
+  pointer-events: none;
+}
+.titlebar-progress > i {
+  display: block;
+  block-size: 100%;
+  background: var(--accent);
+  transition: inline-size 400ms linear;
+}
+@media (prefers-reduced-motion: reduce) {
+  .titlebar-progress > i {
+    transition: none;
+  }
+}
+/* An undecorated window has no frame: draw a 1 px edge so it does not melt into
+   windows behind it; none when maximised (no gaps at screen edges). */
+html:not([data-maximized]) body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  border: 1px solid var(--border);
+  pointer-events: none;
+  z-index: 2147483647;
 }
 
 /* ---- buttons ---------------------------------------------------------- */

@@ -30,7 +30,13 @@ interface Transport {
   setWindowTitle(title: string): Promise<void>;
   /** null = follow the system. */
   setWindowTheme(theme: "light" | "dark" | null): Promise<void>;
+  /** Custom title bar: close goes through CloseRequested like the system button did. */
+  windowAction(action: WindowAction): Promise<void>;
+  isMaximized(): Promise<boolean>;
+  onResized(handler: () => void): Promise<() => void>;
 }
+
+export type WindowAction = "minimize" | "toggleMaximize" | "close";
 
 let transport: Promise<Transport> | null = null;
 
@@ -68,7 +74,10 @@ async function tauriTransport(): Promise<Transport> {
       }
     },
     setWindowTitle: (title) => win.getCurrentWindow().setTitle(title),
-    setWindowTheme: (theme) => win.getCurrentWindow().setTheme(theme).catch(() => {})
+    setWindowTheme: (theme) => win.getCurrentWindow().setTheme(theme).catch(() => {}),
+    windowAction: (action) => win.getCurrentWindow()[action](),
+    isMaximized: () => win.getCurrentWindow().isMaximized(),
+    onResized: (handler) => win.getCurrentWindow().onResized(handler)
   };
 }
 
@@ -138,7 +147,10 @@ export const api = {
   readClipboard: async () => (await getTransport()).readClipboard(),
   setWindowTitle: async (title: string) => (await getTransport()).setWindowTitle(title),
   /** Native title bar / webview colour scheme for the manual theme override. */
-  setWindowTheme: async (theme: "light" | "dark" | null) => (await getTransport()).setWindowTheme(theme)
+  setWindowTheme: async (theme: "light" | "dark" | null) => (await getTransport()).setWindowTheme(theme),
+  windowAction: async (action: WindowAction) => (await getTransport()).windowAction(action),
+  isMaximized: async () => (await getTransport()).isMaximized(),
+  onResized: async (handler: () => void) => (await getTransport()).onResized(handler)
 };
 
 /** Narrow a rejected addTasks() value. */

@@ -5,7 +5,7 @@ import { DEFAULT_SETTINGS } from "../lib/mockBackend";
 import { AUDIO_CODECS, AUDIO_QUALITIES, VIDEO_QUALITIES, type Settings, type Task, type TaskState } from "../lib/types";
 import { appendPasted, scanUrls, urlAtCaret } from "../lib/urls";
 import { wordEndAfter, wordStartBefore } from "../lib/textEdit";
-import { barPercent, detailLine, ellipsize, formatBytes, formatEta, formatSpeed, logLine, statusKey } from "../lib/format";
+import { barPercent, detailLine, ellipsize, formatBytes, formatEta, formatSpeed, logLine, queueSummary, statusKey, summaryLine } from "../lib/format";
 import { countTasks } from "../state/store";
 import type { Preview } from "../lib/types";
 
@@ -210,5 +210,23 @@ describe("formatting (items 66-69, 77, 78, 90)", () => {
   it("counts tasks by state", () => {
     const m = new Map([task({ state: "queued" }), task({ state: "downloading", item: null, stream: 0, percent: 0, downloaded: null, total: null, speed: null, eta: null }), task({ state: "failed", errorClass: "unknown", message: "" })].map((t, i) => [i, t]));
     expect(countTasks(m)).toEqual({ total: 3, active: 1, queued: 1, done: 0, failed: 1, cancelled: 0 });
+  });
+  it("title-bar summary: count, total speed and overall progress of the current run", () => {
+    const dl = (percent: number, speed: number | null, createdMs: number) => task({ state: "downloading", item: null, stream: 0, percent, downloaded: null, total: null, speed, eta: null }, { createdMs });
+    const done = (createdMs: number) => task({ state: "done", files: [], itemErrors: [] }, { createdMs });
+    // Idle: nothing running or waiting, whatever finished before.
+    expect(queueSummary([])).toBeNull();
+    expect(queueSummary([done(1), task({ state: "failed", errorClass: "unknown", message: "" })])).toBeNull();
+    // Two downloads (one with no speed yet) and one waiting; the done task from before the run is ignored.
+    const q = queueSummary([done(1), dl(50, 3 * 1024 * 1024, 10), dl(30, null, 11), task({ state: "queued" }, { createdMs: 12 })])!;
+    expect(q).toEqual({ active: 2, queued: 1, speed: 3 * 1024 * 1024, progress: 80 / 300 });
+    expect(summaryLine("en", q)).toBe("2 active  ·  3.0 MB/s");
+    expect(summaryLine("de", { ...q, speed: 0 })).not.toContain("MB/s");
+    // A task finished during the run counts as whole; post-processing counts as transferred; failures leave the run.
+    const later = queueSummary([done(20), task({ state: "postProcessing", kind: "merge", item: null, percent: null, speedX: null, eta: null }, { createdMs: 21 }), dl(0, 0, 10), task({ state: "failed", errorClass: "unknown", message: "" }, { createdMs: 15 })])!;
+    expect(later.progress).toBeCloseTo(200 / 300);
+    expect(later.speed).toBe(0);
+    // Waiting only: says how many are queued.
+    expect(summaryLine("en", queueSummary([task({ state: "queued" }), task({ state: "queued" })])!)).toBe("2 queued");
   });
 });

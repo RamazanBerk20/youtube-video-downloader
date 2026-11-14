@@ -1,6 +1,7 @@
 // Pure display helpers (spec items 67-69, 77, 78, 90). No React here.
 import { t } from "../i18n";
 import type { LogEntry, PostKind, Task } from "./types";
+import { ACTIVE_STATES } from "./types";
 
 const UNITS = ["B", "KB", "MB", "GB", "TB"];
 
@@ -143,6 +144,42 @@ export function barPercent(task: Task): number | null {
     default:
       return 0;
   }
+}
+
+/** What the title bar shows while the queue moves; null when nothing is running or waiting. */
+export interface QueueSummary {
+  active: number;
+  queued: number;
+  /** Sum of the downloading tasks' speeds, bytes/s. */
+  speed: number;
+  /** 0..1 over the current run: the waiting and running tasks plus those finished since the oldest of them was added. */
+  progress: number;
+}
+
+export function queueSummary(tasks: Iterable<Task>): QueueSummary | null {
+  const all = [...tasks];
+  const live = all.filter((t) => t.state.state === "queued" || ACTIVE_STATES.includes(t.state.state));
+  if (live.length === 0) return null;
+  const since = Math.min(...live.map((t) => t.createdMs));
+  const run = all.filter((t) => t.createdMs >= since && (t.state.state === "done" || live.includes(t)));
+  let active = 0;
+  let queued = 0;
+  let speed = 0;
+  let sum = 0;
+  for (const t of run) {
+    if (ACTIVE_STATES.includes(t.state.state)) active++;
+    else if (t.state.state === "queued") queued++;
+    if (t.state.state === "downloading" && t.state.speed != null && Number.isFinite(t.state.speed) && t.state.speed > 0) speed += t.state.speed;
+    // Post-processing restarts the row's bar; for the whole run the transfer is finished.
+    sum += t.state.state === "postProcessing" ? 100 : Math.min(100, Math.max(0, barPercent(t) ?? 0));
+  }
+  return { active, queued, speed, progress: sum / (run.length * 100) };
+}
+
+/** "2 active · 4.3 MB/s" ("3 queued" before any starts); no speed while nothing is transferring. */
+export function summaryLine(lang: string, q: QueueSummary): string {
+  const count = q.active > 0 ? t(lang, "queue.count_active", { n: q.active }) : t(lang, "queue.count_queued", { n: q.queued });
+  return q.speed > 0 ? `${count}${SEP}${formatSpeed(q.speed)}` : count;
 }
 
 const pad2 = (n: number) => String(n).padStart(2, "0");

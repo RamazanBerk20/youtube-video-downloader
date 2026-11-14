@@ -1,6 +1,10 @@
 {
   "app.title": "Загрузчик YouTube",
   "header.title": "Загрузчик YouTube",
+  "window.minimize": "Свернуть",
+  "window.maximize": "Развернуть",
+  "window.restore": "Восстановить",
+  "window.close": "Закрыть",
   "field.url": "Ссылки",
   "field.url.placeholder": "Вставьте по одной ссылке YouTube на строку и нажмите Добавить…",
   "field.save_to": "Сохранить в",

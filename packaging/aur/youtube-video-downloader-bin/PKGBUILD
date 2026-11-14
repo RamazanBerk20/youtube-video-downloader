@@ -34,7 +34,10 @@ package() {
   # Tauri names these oddly in the deb; use the standard paths the source packages use.
   mv "$pkgdir/usr/share/applications/YouTube Downloader.desktop" \
     "$pkgdir/usr/share/applications/youtube-downloader.desktop"
-  mv "$pkgdir/usr/share/icons/hicolor/256x256@2" "$pkgdir/usr/share/icons/hicolor/256x256"
+  # Releases up to 2.0.2 put the 256 px icon under 256x256@2.
+  if [[ -d "$pkgdir/usr/share/icons/hicolor/256x256@2" ]]; then
+    mv "$pkgdir/usr/share/icons/hicolor/256x256@2" "$pkgdir/usr/share/icons/hicolor/256x256"
+  fi
   install -Dm644 "$srcdir/LICENSE-$pkgver" \
     "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 }

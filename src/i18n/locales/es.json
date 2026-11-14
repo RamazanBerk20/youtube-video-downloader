@@ -1,6 +1,10 @@
 {
   "app.title": "Descargador de YouTube",
   "header.title": "Descargador de YouTube",
+  "window.minimize": "Minimizar",
+  "window.maximize": "Maximizar",
+  "window.restore": "Restaurar",
+  "window.close": "Cerrar",
   "field.url": "URL",
   "field.url.placeholder": "Pegue un enlace de YouTube por línea, luego pulse Añadir…",
   "field.save_to": "Guardar en",

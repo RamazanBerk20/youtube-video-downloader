@@ -1,6 +1,10 @@
 {
   "app.title": "YouTube 下载器",
   "header.title": "YouTube 下载器",
+  "window.minimize": "最小化",
+  "window.maximize": "最大化",
+  "window.restore": "还原",
+  "window.close": "关闭",
   "field.url": "网址",
   "field.url.placeholder": "每行粘贴一个 YouTube 网址,然后点击添加…",
   "field.save_to": "保存到",

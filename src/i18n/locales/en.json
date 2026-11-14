@@ -1,6 +1,10 @@
 {
   "app.title": "YouTube Downloader",
   "header.title": "YouTube Downloader",
+  "window.minimize": "Minimize",
+  "window.maximize": "Maximize",
+  "window.restore": "Restore",
+  "window.close": "Close",
   "field.url": "URL(s)",
   "field.url.placeholder": "Paste one YouTube URL per line, then click Add…",
   "field.save_to": "Save to",

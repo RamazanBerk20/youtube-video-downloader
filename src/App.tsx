@@ -1,4 +1,4 @@
-// One window, no navigation: header, banners, composer + options, the queue as
+// One window, no navigation: the title bar (window chrome + header tools), banners, composer + options, the queue as
 // the main area, and the log/tools drawer. Backend data comes from the store;
 // the UI's own state is the reducer in state/ui.ts.
 import { useCallback, useEffect, useReducer } from "react";
@@ -16,6 +16,7 @@ import { Icon } from "./components/icons";
 import { OptionsBar } from "./components/OptionsBar";
 import { Queue } from "./components/Queue";
 import { SettingsSheet } from "./components/SettingsSheet";
+import { TitleBar } from "./components/TitleBar";
 
 const THEME_KEY = "ytdl.theme";
 const THEME_ORDER: ThemePref[] = ["system", "light", "dark"];
@@ -129,34 +130,31 @@ export function App() {
         data-theme-pref={ui.theme}
         data-backend={isTauri() ? "tauri" : "mock"}
       >
-        <header className="topbar">
-          <h1>{t(lang, "header.title")}</h1>
-          <div className="topbar-tools">
-            <span className="select compact">
-              <select aria-label={t(lang, "label.language")} data-testid="language" value={language} disabled={!hasSettings} onChange={(e) => void updateSettings({ language: e.target.value as Lang })}>
-                {LANGUAGES.map((l) => (
-                  <option key={l} value={l} lang={l}>
-                    {NATIVE_NAMES[l]}
-                  </option>
-                ))}
-              </select>
-              <Icon name="chevronDown" size={14} />
-            </span>
-            <button
-              type="button"
-              className="icon-btn"
-              data-testid="theme-toggle"
-              aria-label={`${t(lang, "label.theme")}: ${t(lang, `theme.${ui.theme}`)}`}
-              title={`${t(lang, "label.theme")}: ${t(lang, `theme.${ui.theme}`)}`}
-              onClick={() => dispatch({ type: "theme", theme: THEME_ORDER[(THEME_ORDER.indexOf(ui.theme) + 1) % 3] })}
-            >
-              <Icon name={ui.theme === "light" ? "sun" : ui.theme === "dark" ? "moon" : "monitor"} />
-            </button>
-            <button type="button" className="icon-btn" data-testid="settings-open" aria-label={t(lang, "settings.title")} title={t(lang, "settings.title")} disabled={!hasSettings} onClick={() => dispatch(settingsOpen ? { type: "closeSettings" } : { type: "openSettings" })}>
-              <Icon name="gear" />
-            </button>
-          </div>
-        </header>
+        <TitleBar>
+          <span className="select compact">
+            <select aria-label={t(lang, "label.language")} data-testid="language" value={language} disabled={!hasSettings} onChange={(e) => void updateSettings({ language: e.target.value as Lang })}>
+              {LANGUAGES.map((l) => (
+                <option key={l} value={l} lang={l}>
+                  {NATIVE_NAMES[l]}
+                </option>
+              ))}
+            </select>
+            <Icon name="chevronDown" size={14} />
+          </span>
+          <button
+            type="button"
+            className="icon-btn"
+            data-testid="theme-toggle"
+            aria-label={`${t(lang, "label.theme")}: ${t(lang, `theme.${ui.theme}`)}`}
+            title={`${t(lang, "label.theme")}: ${t(lang, `theme.${ui.theme}`)}`}
+            onClick={() => dispatch({ type: "theme", theme: THEME_ORDER[(THEME_ORDER.indexOf(ui.theme) + 1) % 3] })}
+          >
+            <Icon name={ui.theme === "light" ? "sun" : ui.theme === "dark" ? "moon" : "monitor"} />
+          </button>
+          <button type="button" className="icon-btn" data-testid="settings-open" aria-label={t(lang, "settings.title")} title={t(lang, "settings.title")} disabled={!hasSettings} onClick={() => dispatch(settingsOpen ? { type: "closeSettings" } : { type: "openSettings" })}>
+            <Icon name="gear" />
+          </button>
+        </TitleBar>
 
         <Banners />
 

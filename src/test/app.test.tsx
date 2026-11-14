@@ -77,11 +77,42 @@ describe("App against the mock backend", () => {
     // Closing with active tasks asks first.
     await addUrls("https://y/slow");
     await waitFor(() => expect(row(6)?.dataset.state).not.toBe("queued"));
-    act(() => mockControls.requestClose());
+    // The title bar shows the run and its close button goes through the same confirmation.
+    expect(screen.getByTestId("titlebar-summary").textContent).toContain("1 active");
+    expect(screen.getByTestId("titlebar").dataset.busy).toBe("true");
+    fireEvent.click(screen.getByTestId("window-close"));
     const dlg = await screen.findByTestId("dialog-confirmClose");
     // Queue restore is opt-in, so by default the dialog says downloads stop.
     expect(dlg.textContent).toContain("They will be stopped.");
     fireEvent.click(screen.getByTestId("cancel-all"));
+    expect(mockControls.window.closed).toBe(false);
+    await waitFor(() => expect(screen.getByTestId("titlebar").dataset.busy).toBe("false"));
+    expect(screen.getByTestId("titlebar-summary").textContent).toBe("");
+  });
+
+  it("title bar window buttons: maximise state, labels, close when idle", async () => {
+    Object.assign(mockControls.window, { maximized: false, minimized: false, closed: false });
+    render(<App />);
+    await waitFor(() => expect(screen.getByTestId("app").dataset.state).toBe("ready"));
+    const max = screen.getByTestId("window-maximize");
+    expect(max.getAttribute("aria-label")).toBe("Maximize");
+    fireEvent.click(max);
+    await waitFor(() => expect(max.getAttribute("aria-label")).toBe("Restore"));
+    expect(document.documentElement.hasAttribute("data-maximized")).toBe(true);
+    fireEvent.click(max);
+    await waitFor(() => expect(max.getAttribute("aria-label")).toBe("Maximize"));
+    expect(document.documentElement.hasAttribute("data-maximized")).toBe(false);
+    fireEvent.click(screen.getByTestId("window-minimize"));
+    await waitFor(() => expect(mockControls.window.minimized).toBe(true));
+    // Translated with the rest of the UI.
+    fireEvent.change(screen.getByTestId("language"), { target: { value: "de" } });
+    await waitFor(() => expect(screen.getByTestId("window-close").getAttribute("aria-label")).toBe("Schließen"));
+    fireEvent.change(screen.getByTestId("language"), { target: { value: "en" } });
+    await waitFor(() => expect(screen.getByTestId("window-close").getAttribute("aria-label")).toBe("Close"));
+    // Nothing running: no question, the window closes.
+    fireEvent.click(screen.getByTestId("window-close"));
+    await waitFor(() => expect(mockControls.window.closed).toBe(true));
+    expect(screen.queryByTestId("dialog-confirmClose")).toBeNull();
   });
 
   it("renders right-to-left in Arabic and back", async () => {

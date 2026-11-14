@@ -1,6 +1,10 @@
 {
   "app.title": "Téléchargeur YouTube",
   "header.title": "Téléchargeur YouTube",
+  "window.minimize": "Réduire",
+  "window.maximize": "Agrandir",
+  "window.restore": "Restaurer",
+  "window.close": "Fermer",
   "field.url": "URL",
   "field.url.placeholder": "Collez une URL YouTube par ligne, puis cliquez sur Ajouter…",
   "field.save_to": "Enregistrer dans",

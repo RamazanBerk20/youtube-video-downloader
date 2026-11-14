@@ -1,6 +1,10 @@
 {
   "app.title": "YouTube ダウンローダー",
   "header.title": "YouTube ダウンローダー",
+  "window.minimize": "最小化",
+  "window.maximize": "最大化",
+  "window.restore": "元のサイズに戻す",
+  "window.close": "閉じる",
   "field.url": "URL",
   "field.url.placeholder": "1行に1つの YouTube URL を貼り付けて、追加をクリックしてください…",
   "field.save_to": "保存先",

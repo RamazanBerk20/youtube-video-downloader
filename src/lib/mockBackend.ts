@@ -36,6 +36,7 @@ import type {
   Level
 } from "./types";
 import { ACTIVE_STATES, TERMINAL_STATES } from "./types";
+import type { WindowAction } from "./api";
 
 export const DEFAULT_SETTINGS: Settings = {
   language: "en",
@@ -445,6 +446,7 @@ export const mockControls = {
     backend = new MockBackend();
     backend.handlers = handlers;
     backend.key(null, "info", "log.ready");
+    Object.assign(mockControls.window, { maximized: false, minimized: false, closed: false });
   },
   setSpeed(multiplier: number) {
     backend.speed = multiplier;
@@ -456,6 +458,8 @@ export const mockControls = {
     const active = backend.tasks.filter((t) => ACTIVE_STATES.includes(t.state.state)).length;
     backend.emit({ type: "closeRequested", activeTasks: active });
   },
+  /** The fake window behind the custom title bar. */
+  window: { maximized: false, minimized: false, closed: false, resized: new Set<() => void>() },
   offerAppUpdate(canApply = true) {
     backend.setUpdate({ phase: "available", current: "2.0.0", latest: "2.1.0", canApply });
     backend.showBanner({ kind: "appUpdate", install: null, version: "2.1.0", canApply });
@@ -550,6 +554,20 @@ export function mockTransport() {
     setWindowTitle: async (title: string) => {
       if (typeof document !== "undefined") document.title = title;
     },
-    setWindowTheme: async () => {}
+    setWindowTheme: async () => {},
+    windowAction: async (action: WindowAction) => {
+      const w = mockControls.window;
+      if (action === "minimize") w.minimized = true;
+      else if (action === "toggleMaximize") {
+        w.maximized = !w.maximized;
+        w.resized.forEach((h) => h());
+      } else if (backend.tasks.some((t) => ACTIVE_STATES.includes(t.state.state))) mockControls.requestClose();
+      else w.closed = true; // like the backend: nothing running, the window just closes
+    },
+    isMaximized: async () => mockControls.window.maximized,
+    onResized: async (handler: () => void) => {
+      mockControls.window.resized.add(handler);
+      return () => mockControls.window.resized.delete(handler);
+    }
   };
 }

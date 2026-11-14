@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- 32-48 px drawing: pixel-aligned, progress split kept. -->
+  <rect x="2" y="2" width="28" height="28" rx="6.5" fill="#2f6fdb"/>
+  <path d="M10 9.5H22L16 18.5Z" fill="#fff" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="8" y="22" width="16" height="3" rx="1.5" fill="#1b4a9e"/>
+  <rect x="8" y="22" width="10" height="3" rx="1.5" fill="#fff"/>
+</svg>
