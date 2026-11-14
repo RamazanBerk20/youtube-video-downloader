@@ -66,17 +66,34 @@ sudo apt install ffmpeg        # Debian / Ubuntu
 winget install Gyan.FFmpeg     # Windows
 ```
 
-## Install from a release
+## Install
+
+### Arch Linux (AUR)
+
+Three packages, all installing the same files and conflicting with each other:
+
+```bash
+yay -S youtube-video-downloader        # stable release, built from source
+yay -S youtube-video-downloader-bin    # stable release, prebuilt (repackaged .deb)
+yay -S youtube-video-downloader-git    # latest main, built from source
+```
+
+`ffmpeg` is a dependency. `deno` (or `nodejs`/`bun`) and a secret service such
+as `gnome-keyring` are optional. AUR installs are updated by your package
+manager; the in-app update check only links to the release page.
+
+### Release files
 
 Download from the [releases page](https://github.com/RamazanBerk20/youtube-video-downloader/releases/latest)
 and, if you like, check the file against `SHA256SUMS`:
 
-- **Linux AppImage** — `chmod +x` it and run it. Updates itself in place.
-- **Linux `.deb`** — `sudo apt install ./<file>.deb`. `ffmpeg` is installed as
-  a recommended package. Updates come from new releases (the app only links to
-  them).
-- **Windows installer** (`…-setup.exe`) — updates itself by downloading the
-  newer installer.
+- **Linux AppImage** (`YouTube-Downloader_2.0.1_amd64.AppImage`) — `chmod +x`
+  it and run it. Updates itself in place.
+- **Linux `.deb`** (`YouTube-Downloader_2.0.1_amd64.deb`) —
+  `sudo apt install ./<file>.deb`. `ffmpeg` is installed as a recommended
+  package. Updates come from new releases (the app only links to them).
+- **Windows installer** (`YouTube-Downloader_2.0.1_x64-setup.exe`) — updates
+  itself by downloading the newer installer.
 
 Releases are **not code-signed** (there are no signing keys), so Windows
 SmartScreen will warn ("Windows protected your PC" → More info → Run anyway).
