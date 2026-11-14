@@ -160,7 +160,22 @@ pub fn run() {
             );
             app.manage(b.clone());
             start_background(b, legacy_password);
+            // The window starts hidden (tauri.conf.json) and is shown by `on_page_load`, so no
+            // empty gray frame is visible while the web view starts. If the page never
+            // finishes loading, show the window anyway.
+            let handle = app.handle().clone();
+            std::thread::spawn(move || {
+                std::thread::sleep(Duration::from_secs(5));
+                if let Some(w) = handle.get_webview_window("main") {
+                    let _ = w.show();
+                }
+            });
             Ok(())
+        })
+        .on_page_load(|webview, payload| {
+            if payload.event() == tauri::webview::PageLoadEvent::Finished {
+                let _ = webview.window().show();
+            }
         })
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {

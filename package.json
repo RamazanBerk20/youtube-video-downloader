@@ -1,7 +1,7 @@
 {
   "name": "youtube-downloader",
   "private": true,
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Fast, small desktop front-end for yt-dlp",
   "license": "MIT",
   "type": "module",
